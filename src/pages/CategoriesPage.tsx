@@ -76,32 +76,6 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ categories, onNa
           Belum ada kategori yang ditambahkan.
         </div>
       )}
-
-      {/* Bottom Editorial Banner */}
-      <div className="bg-[#111111] text-white rounded-2xl p-8 sm:p-10 flex flex-col sm:flex-row items-center justify-between gap-6">
-        <div className="space-y-2">
-          <span className="text-xs font-bold uppercase tracking-wider text-[#FF6B00]">
-            Looking for something specific?
-          </span>
-          <h3 className="text-xl sm:text-2xl font-bold">
-            Audit your setup using our interactive calculator
-          </h3>
-          <p className="text-xs text-neutral-400 max-w-xl">
-            Check your exact desk dimensions to receive a tailored list of space-saving hardware upgrades.
-          </p>
-        </div>
-        <button
-          onClick={() => {
-            onNavigate({ page: 'home' });
-            setTimeout(() => {
-              window.scrollTo({ top: 900, behavior: 'smooth' });
-            }, 100);
-          }}
-          className="px-6 py-3.5 bg-[#FF6B00] hover:bg-[#e05e00] text-white text-xs font-bold rounded-xl transition-all whitespace-nowrap cursor-pointer shrink-0"
-        >
-          Open Space Visualizer →
-        </button>
-      </div>
     </div>
   );
 };

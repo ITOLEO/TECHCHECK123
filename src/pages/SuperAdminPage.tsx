@@ -19,8 +19,6 @@ import {
   Upload,
   RefreshCw,
   AlertTriangle,
-  Eye,
-  EyeOff,
   Lock,
   Sliders,
   Image as ImageIcon,
@@ -66,7 +64,6 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
   // Authentication state - strictly require password "654321" upon entering
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [loginPasscode, setLoginPasscode] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState('');
 
   // Run the splash screen / loading screen sequence
@@ -286,7 +283,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
     setIsProductModalOpen(true);
   };
 
-  const handleSaveProduct = (e: React.FormEvent) => {
+  const handleSaveProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!productFormData.name?.trim()) {
       setProductFormError('Nama produk wajib diisi!');
@@ -360,14 +357,29 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
     let updatedList: Product[];
     if (editingProduct) {
       updatedList = products.map((p) => (p.id === editingProduct.id ? newProduct : p));
-      showToast(`Produk "${newProduct.name}" berhasil diperbarui!`);
     } else {
       updatedList = [newProduct, ...products];
-      showToast(`Produk "${newProduct.name}" berhasil ditambahkan!`);
     }
 
     onUpdateProducts(updatedList);
     dataStorage.saveProducts(updatedList);
+
+    if (supabaseStatus?.connected) {
+      try {
+        const res = await fetch('/api/products', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newProduct),
+        });
+        if (!res.ok) throw new Error('Network error');
+        showToast(editingProduct ? `Produk "${newProduct.name}" berhasil diperbarui di Supabase!` : `Produk "${newProduct.name}" berhasil ditambahkan ke Supabase!`);
+      } catch (err: any) {
+        showToast(`Tersimpan lokal, tapi gagal dikirim ke Supabase.`);
+      }
+    } else {
+      showToast(editingProduct ? `Produk "${newProduct.name}" berhasil diperbarui lokal!` : `Produk "${newProduct.name}" berhasil ditambahkan lokal!`);
+    }
+
     setIsProductModalOpen(false);
   };
 
@@ -435,7 +447,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
     setIsCategoryModalOpen(true);
   };
 
-  const handleSaveCategory = (e: React.FormEvent) => {
+  const handleSaveCategory = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!categoryFormData.name?.trim()) {
       setCategoryFormError('Nama kategori wajib diisi!');
@@ -469,14 +481,29 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
         dataStorage.saveProducts(updatedProducts);
       }
       updatedList = categories.map((c) => (c.id === editingCategory.id ? newCat : c));
-      showToast(`Kategori "${newCat.name}" berhasil diperbarui!`);
     } else {
       updatedList = [...categories, newCat];
-      showToast(`Kategori "${newCat.name}" berhasil ditambahkan!`);
     }
 
     onUpdateCategories(updatedList);
     dataStorage.saveCategories(updatedList);
+
+    if (supabaseStatus?.connected) {
+      try {
+        const res = await fetch('/api/categories', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newCat),
+        });
+        if (!res.ok) throw new Error('Network error');
+        showToast(editingCategory ? `Kategori "${newCat.name}" diperbarui di Supabase!` : `Kategori "${newCat.name}" ditambahkan ke Supabase!`);
+      } catch (err: any) {
+        showToast(`Tersimpan lokal, tapi gagal dikirim ke Supabase.`);
+      }
+    } else {
+      showToast(editingCategory ? `Kategori "${newCat.name}" diperbarui lokal!` : `Kategori "${newCat.name}" ditambahkan lokal!`);
+    }
+
     setIsCategoryModalOpen(false);
   };
 
@@ -524,7 +551,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
     setIsGuideModalOpen(true);
   };
 
-  const handleSaveGuide = (e: React.FormEvent) => {
+  const handleSaveGuide = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!guideFormData.title?.trim()) {
       setGuideFormError('Judul panduan wajib diisi!');
@@ -558,14 +585,29 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
     let updatedList: Guide[];
     if (editingGuide) {
       updatedList = guides.map((g) => (g.id === editingGuide.id ? newGuide : g));
-      showToast(`Panduan "${newGuide.title}" berhasil diperbarui!`);
     } else {
       updatedList = [newGuide, ...guides];
-      showToast(`Panduan "${newGuide.title}" berhasil ditambahkan!`);
     }
 
     onUpdateGuides(updatedList);
     dataStorage.saveGuides(updatedList);
+
+    if (supabaseStatus?.connected) {
+      try {
+        const res = await fetch('/api/guides', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newGuide),
+        });
+        if (!res.ok) throw new Error('Network error');
+        showToast(editingGuide ? `Panduan "${newGuide.title}" diperbarui di Supabase!` : `Panduan "${newGuide.title}" ditambahkan ke Supabase!`);
+      } catch (err: any) {
+        showToast(`Tersimpan lokal, tapi gagal dikirim ke Supabase.`);
+      }
+    } else {
+      showToast(editingGuide ? `Panduan "${newGuide.title}" diperbarui lokal!` : `Panduan "${newGuide.title}" ditambahkan lokal!`);
+    }
+
     setIsGuideModalOpen(false);
   };
 
@@ -578,10 +620,25 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
   };
 
   // --- SETTINGS ACTIONS ---
-  const handleSaveSettings = (newSettings: SiteSettings) => {
+  const handleSaveSettings = async (newSettings: SiteSettings) => {
     onUpdateSettings(newSettings);
     dataStorage.saveSiteSettings(newSettings);
-    showToast('Pengaturan website berhasil disimpan!');
+    
+    if (supabaseStatus?.connected) {
+      try {
+        const res = await fetch('/api/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newSettings),
+        });
+        if (!res.ok) throw new Error('Network error');
+        showToast('Pengaturan website berhasil disimpan ke Supabase!');
+      } catch (err: any) {
+        showToast(`Tersimpan lokal, tapi gagal dikirim ke Supabase.`);
+      }
+    } else {
+      showToast('Pengaturan website berhasil disimpan lokal!');
+    }
   };
 
   const handleExportBackup = () => {
@@ -760,24 +817,16 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                   <Lock className="w-4 h-4" />
                 </div>
                 <input
-                  type={showPassword ? 'text' : 'password'}
+                  type="password"
                   value={loginPasscode}
                   onChange={(e) => {
                     setLoginPasscode(e.target.value);
                     setLoginError('');
                   }}
                   placeholder="Masukkan password..."
-                  className="w-full pl-10 pr-11 py-3 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl text-sm focus:outline-none focus:border-[#FF6B00] focus:bg-white transition-all text-[#111111] font-medium"
+                  className="w-full pl-10 pr-4 py-3 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl text-sm focus:outline-none focus:border-[#FF6B00] focus:bg-white transition-all text-[#111111] font-medium"
                   autoFocus
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-neutral-400 hover:text-neutral-700 cursor-pointer"
-                  title={showPassword ? 'Sembunyikan password' : 'Lihat password'}
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
               </div>
               {loginError && (
                 <p className="text-xs text-rose-600 mt-2 font-medium flex items-center gap-1">

@@ -2,7 +2,6 @@ import React from 'react';
 import { ArrowRight, ArrowUpRight, Check, Sparkles, Layers, Box, Cpu, ShieldCheck, Zap } from 'lucide-react';
 import { Product, CategoryInfo, Guide, ViewRoute, ProductCategory, SiteSettings } from '../types';
 import { ProductCard } from '../components/ProductCard';
-import { DeskSpaceCalculator } from '../components/DeskSpaceCalculator';
 
 interface HomePageProps {
   products: Product[];
@@ -147,14 +146,6 @@ export const HomePage: React.FC<HomePageProps> = ({
           </div>
         )}
       </section>
-
-      {/* 4. INTERACTIVE DESK SPACE CALCULATOR */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <DeskSpaceCalculator
-          products={products}
-          onSelectProduct={onSelectProduct}
-        />
-      </div>
 
       {/* 5. CATEGORIES SECTION */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

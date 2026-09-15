@@ -120,43 +120,6 @@ export const SearchModal: React.FC<SearchModalProps> = ({
 
         {/* Results Body */}
         <div className="overflow-y-auto p-4 space-y-6">
-          {/* admintechcheck Secret Quick-Access */}
-          {normalizedQuery &&
-            ('admintechcheck'.includes(normalizedQuery) ||
-              'admindtechcheck'.includes(normalizedQuery) ||
-              normalizedQuery.includes('admin') ||
-              normalizedQuery.includes('superadmin') ||
-              normalizedQuery.includes('portal') ||
-              normalizedQuery.includes('cms')) && (
-              <div
-                onClick={() => {
-                  onClose();
-                  onNavigate({ page: 'superadmin' });
-                }}
-                className="p-3.5 bg-gradient-to-r from-orange-50 to-neutral-50 border border-orange-200 rounded-xl flex items-center justify-between cursor-pointer hover:border-[#FF6B00] transition-all shadow-xs"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-[#111111] text-white flex items-center justify-center font-bold">
-                    <Shield className="w-5 h-5 text-[#FF6B00]" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-bold text-[#111111]">Portal admintechcheck</p>
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[#FF6B00] text-white">
-                        ADMIN
-                      </span>
-                    </div>
-                    <p className="text-xs text-neutral-500">
-                      Buka dashboard kelola katalog produk, link afiliasi & pengaturan
-                    </p>
-                  </div>
-                </div>
-                <span className="text-xs font-bold text-[#FF6B00] flex items-center gap-1">
-                  Masuk <ArrowRight className="w-3.5 h-3.5" />
-                </span>
-              </div>
-            )}
-
           {/* Products Results */}
           <div>
             <div className="flex items-center justify-between mb-2">
