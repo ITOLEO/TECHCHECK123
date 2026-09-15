@@ -125,9 +125,6 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate, onOpen
             >
               <Search className="w-4 h-4 text-neutral-500" />
               <span className="text-xs text-neutral-500 font-medium">Search gear...</span>
-              <kbd className="hidden lg:inline-block text-[10px] bg-neutral-100 text-neutral-500 px-1.5 py-0.5 rounded border border-neutral-200">
-                ⌘K
-              </kbd>
             </button>
 
             <button
