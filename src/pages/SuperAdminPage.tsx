@@ -56,13 +56,15 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
   onUpdateSettings,
   onNavigate,
 }) => {
+  // Authentication state
+  const initialAuth = dataStorage.isAdminAuthenticated();
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(initialAuth);
+
   // Splash & Loading state before reaching password verification
-  const [showSplashLoading, setShowSplashLoading] = useState<boolean>(true);
+  const [showSplashLoading, setShowSplashLoading] = useState<boolean>(!initialAuth);
   const [splashProgress, setSplashProgress] = useState<number>(0);
   const [splashStatusText, setSplashStatusText] = useState<string>('Menginisialisasi gateway superadmin...');
 
-  // Authentication state - strictly require password "654321" upon entering
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [loginPasscode, setLoginPasscode] = useState('');
   const [loginError, setLoginError] = useState('');
 
@@ -1803,33 +1805,32 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                 </div>
 
                 <div>
-                  <label className="block font-bold text-neutral-700 mb-1">Kategori *</label>
+                  <label className="block font-bold text-neutral-700 mb-2">Kategori *</label>
                   {categories.length > 0 ? (
-                    <select
-                      value={productFormData.category || categories[0]?.name || ''}
-                      onChange={(e) => setProductFormData({ ...productFormData, category: e.target.value })}
-                      className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl font-medium focus:outline-none focus:border-[#FF6B00]"
-                    >
+                    <div className="flex flex-wrap gap-2">
                       {Array.from(
                         new Set([
                           ...categories.map((c) => c.name),
                           productFormData.category || '',
                         ].filter(Boolean))
                       ).map((catName) => (
-                        <option key={catName} value={catName}>
+                        <div
+                          key={catName}
+                          onClick={() => setProductFormData({ ...productFormData, category: catName })}
+                          className={`px-3.5 py-2 rounded-xl text-xs font-bold cursor-pointer transition-all border ${
+                            (productFormData.category || categories[0]?.name || '') === catName
+                              ? 'bg-[#FF6B00] text-white border-[#FF6B00] shadow-sm'
+                              : 'bg-white text-neutral-600 border-[#E9E9E6] hover:bg-neutral-100 hover:border-neutral-300'
+                          }`}
+                        >
                           {catName}
-                        </option>
+                        </div>
                       ))}
-                    </select>
+                    </div>
                   ) : (
-                    <input
-                      type="text"
-                      required
-                      value={productFormData.category || ''}
-                      onChange={(e) => setProductFormData({ ...productFormData, category: e.target.value })}
-                      placeholder="Masukkan nama kategori (contoh: Monitor, Audio)"
-                      className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl font-medium focus:outline-none focus:border-[#FF6B00]"
-                    />
+                    <div className="text-xs text-neutral-500 italic p-3 bg-neutral-100 rounded-xl border border-neutral-200">
+                      Belum ada kategori yang ditambahkan. Silakan ke tab "Kelola Kategori" untuk menambah kategori terlebih dahulu.
+                    </div>
                   )}
                 </div>
 
