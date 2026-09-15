@@ -28,7 +28,8 @@ import {
   FileCode,
   CheckCircle2,
   XCircle,
-  Table
+  Table,
+  Eye
 } from 'lucide-react';
 import { Product, CategoryInfo, Guide, SiteSettings, ViewRoute } from '../types';
 import { dataStorage, DEFAULT_SITE_SETTINGS } from '../services/dataStorage';
@@ -836,13 +837,6 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                   {loginError}
                 </p>
               )}
-            </div>
-
-            <div className="bg-orange-50/80 border border-orange-200/80 rounded-xl p-3.5 text-xs text-orange-950 flex items-start gap-2.5">
-              <span className="font-bold text-[#FF6B00] shrink-0">Info Password:</span>
-              <span>
-                Password masuk mode superadmin: <code className="font-mono bg-white px-2 py-0.5 rounded border border-orange-200 text-[#111111] font-bold">654321</code> (dapat diubah di menu Pengaturan).
-              </span>
             </div>
 
             <button

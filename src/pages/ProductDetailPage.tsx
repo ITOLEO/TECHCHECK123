@@ -178,12 +178,21 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
 
           <hr className="border-neutral-200" />
 
-          {/* Our Take */}
+          {/* Our Take & Actions */}
           <div className="bg-[#111111] text-white rounded-xl p-6 shadow-sm">
             <h2 className="text-lg font-bold mb-3">Our Take</h2>
-            <p className="text-sm text-neutral-300 leading-relaxed">
+            <p className="text-sm text-neutral-300 leading-relaxed mb-6">
               {product.verdict}
             </p>
+            {product.affiliateUrl && (
+              <button
+                onClick={() => window.open(product.affiliateUrl, '_blank', 'noopener,noreferrer')}
+                className="w-full sm:w-auto px-6 py-3.5 bg-[#FF6B00] hover:bg-[#E05E00] text-white text-sm font-bold rounded-xl transition-all shadow-sm hover:shadow-md cursor-pointer flex items-center justify-center gap-2"
+              >
+                View live product
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+              </button>
+            )}
           </div>
 
         </div>
