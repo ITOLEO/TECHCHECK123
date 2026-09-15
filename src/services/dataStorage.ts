@@ -186,33 +186,7 @@ export const dataStorage = {
 
   // Bulk push current state to Supabase tables
   async syncAllToSupabase(): Promise<{ success: boolean; message?: string; results?: any }> {
-    try {
-      const payload = {
-        products: this.getProducts(),
-        categories: this.getCategories(),
-        guides: this.getGuides(),
-        settings: this.getSiteSettings(),
-      };
-
-      const res = await fetch('/api/sync-seed', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      if (!res.ok) {
-        const errJson = await res.json().catch(() => ({}));
-        return {
-          success: false,
-          message: errJson.error || `Server responded with status ${res.status}`,
-        };
-      }
-
-      const data = await res.json();
-      return { success: true, results: data.results };
-    } catch (err: any) {
-      return { success: false, message: err.message || 'Gagal sinkronisasi data ke Supabase' };
-    }
+    return { success: false, message: 'Fungsi sync-seed telah dihapus. Harap gunakan API langsung.' };
   },
 
   getProducts(): Product[] {
@@ -225,15 +199,6 @@ export const dataStorage = {
     } catch (e) {
       console.error('Failed to save products', e);
     }
-
-    // Background sync to Supabase
-    fetch('/api/sync-seed', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ products }),
-    }).catch((err) => {
-      console.warn('Supabase product sync skipped/error:', err);
-    });
   },
 
   getCategories(): CategoryInfo[] {
@@ -246,15 +211,6 @@ export const dataStorage = {
     } catch (e) {
       console.error('Failed to save categories', e);
     }
-
-    // Background sync to Supabase
-    fetch('/api/sync-seed', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ categories }),
-    }).catch((err) => {
-      console.warn('Supabase category sync skipped/error:', err);
-    });
   },
 
   getGuides(): Guide[] {
@@ -267,15 +223,6 @@ export const dataStorage = {
     } catch (e) {
       console.error('Failed to save guides', e);
     }
-
-    // Background sync to Supabase
-    fetch('/api/sync-seed', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ guides }),
-    }).catch((err) => {
-      console.warn('Supabase guides sync skipped/error:', err);
-    });
   },
 
   // Remote DELETE methods for Supabase
@@ -330,15 +277,6 @@ export const dataStorage = {
     } catch (e) {
       console.error('Failed to save site settings', e);
     }
-
-    // Background sync to Supabase
-    fetch('/api/settings', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(settings),
-    }).catch((err) => {
-      console.warn('Supabase settings sync skipped/error:', err);
-    });
   },
 
   resetAllData(): {

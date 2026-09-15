@@ -367,20 +367,20 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
     onUpdateProducts(updatedList);
     dataStorage.saveProducts(updatedList);
 
-    if (supabaseStatus?.connected) {
-      try {
-        const res = await fetch('/api/products', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newProduct),
-        });
-        if (!res.ok) throw new Error('Network error');
-        showToast(editingProduct ? `Produk "${newProduct.name}" berhasil diperbarui di Supabase!` : `Produk "${newProduct.name}" berhasil ditambahkan ke Supabase!`);
-      } catch (err: any) {
-        showToast(`Tersimpan lokal, tapi gagal dikirim ke Supabase.`);
+    try {
+      const res = await fetch('/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newProduct),
+      });
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error || 'Server error');
       }
-    } else {
-      showToast(editingProduct ? `Produk "${newProduct.name}" berhasil diperbarui lokal!` : `Produk "${newProduct.name}" berhasil ditambahkan lokal!`);
+      showToast(editingProduct ? `Produk "${newProduct.name}" berhasil diperbarui di Supabase!` : `Produk "${newProduct.name}" berhasil ditambahkan ke Supabase!`);
+    } catch (err: any) {
+      showToast(`Tersimpan lokal, tapi gagal dikirim ke Supabase: ${err.message}`);
+      console.error(err);
     }
 
     setIsProductModalOpen(false);
@@ -491,20 +491,20 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
     onUpdateCategories(updatedList);
     dataStorage.saveCategories(updatedList);
 
-    if (supabaseStatus?.connected) {
-      try {
-        const res = await fetch('/api/categories', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newCat),
-        });
-        if (!res.ok) throw new Error('Network error');
-        showToast(editingCategory ? `Kategori "${newCat.name}" diperbarui di Supabase!` : `Kategori "${newCat.name}" ditambahkan ke Supabase!`);
-      } catch (err: any) {
-        showToast(`Tersimpan lokal, tapi gagal dikirim ke Supabase.`);
+    try {
+      const res = await fetch('/api/categories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newCat),
+      });
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error || 'Server error');
       }
-    } else {
-      showToast(editingCategory ? `Kategori "${newCat.name}" diperbarui lokal!` : `Kategori "${newCat.name}" ditambahkan lokal!`);
+      showToast(editingCategory ? `Kategori "${newCat.name}" diperbarui di Supabase!` : `Kategori "${newCat.name}" ditambahkan ke Supabase!`);
+    } catch (err: any) {
+      showToast(`Tersimpan lokal, tapi gagal dikirim ke Supabase: ${err.message}`);
+      console.error(err);
     }
 
     setIsCategoryModalOpen(false);
@@ -595,20 +595,20 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
     onUpdateGuides(updatedList);
     dataStorage.saveGuides(updatedList);
 
-    if (supabaseStatus?.connected) {
-      try {
-        const res = await fetch('/api/guides', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newGuide),
-        });
-        if (!res.ok) throw new Error('Network error');
-        showToast(editingGuide ? `Panduan "${newGuide.title}" diperbarui di Supabase!` : `Panduan "${newGuide.title}" ditambahkan ke Supabase!`);
-      } catch (err: any) {
-        showToast(`Tersimpan lokal, tapi gagal dikirim ke Supabase.`);
+    try {
+      const res = await fetch('/api/guides', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newGuide),
+      });
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error || 'Server error');
       }
-    } else {
-      showToast(editingGuide ? `Panduan "${newGuide.title}" diperbarui lokal!` : `Panduan "${newGuide.title}" ditambahkan lokal!`);
+      showToast(editingGuide ? `Panduan "${newGuide.title}" diperbarui di Supabase!` : `Panduan "${newGuide.title}" ditambahkan ke Supabase!`);
+    } catch (err: any) {
+      showToast(`Tersimpan lokal, tapi gagal dikirim ke Supabase: ${err.message}`);
+      console.error(err);
     }
 
     setIsGuideModalOpen(false);
@@ -627,20 +627,20 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
     onUpdateSettings(newSettings);
     dataStorage.saveSiteSettings(newSettings);
     
-    if (supabaseStatus?.connected) {
-      try {
-        const res = await fetch('/api/settings', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newSettings),
-        });
-        if (!res.ok) throw new Error('Network error');
-        showToast('Pengaturan website berhasil disimpan ke Supabase!');
-      } catch (err: any) {
-        showToast(`Tersimpan lokal, tapi gagal dikirim ke Supabase.`);
+    try {
+      const res = await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newSettings),
+      });
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error || 'Server error');
       }
-    } else {
-      showToast('Pengaturan website berhasil disimpan lokal!');
+      showToast('Pengaturan website berhasil disimpan ke Supabase!');
+    } catch (err: any) {
+      showToast(`Tersimpan lokal, tapi gagal dikirim ke Supabase: ${err.message}`);
+      console.error(err);
     }
   };
 
