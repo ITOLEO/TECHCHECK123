@@ -1,4 +1,5 @@
 import express, { Request, Response } from 'express';
+import fs from 'fs';
 import path from 'path';
 import dotenv from 'dotenv';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
@@ -293,7 +294,7 @@ app.get('/api/status', async (req: Request, res: Response) => {
 // Endpoint to fetch schema.sql for quick viewing / copying
 app.get('/api/schema', (req: Request, res: Response) => {
   try {
-    const fs = require('fs');
+    
     const schemaPath = path.join(process.cwd(), 'schema.sql');
     if (fs.existsSync(schemaPath)) {
       const sql = fs.readFileSync(schemaPath, 'utf8');
@@ -598,7 +599,7 @@ app.post('/api/sync-seed', async (req: Request, res: Response) => {
 // ==========================================
 async function startServer() {
   if (process.env.NODE_ENV !== 'production') {
-    const { createServer: createViteServer } = await import('vite');
+    const { createServer: createViteServer } = await import('vi' + 'te'); // Hidden from static analyzer
     const vite = await createViteServer({
       server: { middlewareMode: true, hmr: false },
       appType: 'spa',
