@@ -67,9 +67,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelectProdu
         </div>
 
         {/* Action Buttons */}
-        <div className="mt-auto flex flex-col sm:flex-row items-stretch sm:items-center justify-start gap-2.5">
-          <button className="flex-1 sm:flex-none px-5 py-2.5 text-sm font-semibold text-[#111111] bg-white border border-[#E9E9E6] group-hover:border-[#FF6B00] group-hover:text-[#FF6B00] rounded-lg transition-all flex items-center justify-center gap-2">
-            Read Our Review
+        <div className="mt-auto flex flex-col xl:flex-row items-stretch xl:items-center justify-start gap-2.5">
+          <button className="flex-1 px-4 py-2.5 text-sm font-semibold text-[#111111] bg-white border border-[#E9E9E6] group-hover:border-[#FF6B00] group-hover:text-[#FF6B00] rounded-lg transition-all flex items-center justify-center gap-2">
+            Read Review
             <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
           </button>
           {product.affiliateUrl && (
@@ -78,9 +78,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelectProdu
                 e.stopPropagation();
                 window.open(product.affiliateUrl, '_blank', 'noopener,noreferrer');
               }}
-              className="flex-1 sm:flex-none px-5 py-2.5 text-sm font-semibold text-white bg-[#111111] hover:bg-black rounded-lg transition-all flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-2.5 text-sm font-semibold text-white bg-[#111111] hover:bg-black rounded-lg transition-all flex items-center justify-center gap-2"
             >
-              View live product
+              View Live
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
             </button>
           )}
