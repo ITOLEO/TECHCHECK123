@@ -33,6 +33,7 @@ import {
 } from 'lucide-react';
 import { Product, CategoryInfo, Guide, SiteSettings, ViewRoute } from '../types';
 import { dataStorage, DEFAULT_SITE_SETTINGS } from '../services/dataStorage';
+import { AdminImageUploader } from '../components/AdminImageUploader';
 
 interface SuperAdminPageProps {
   products: Product[];
@@ -1885,38 +1886,20 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                 />
               </div>
 
-              {/* Image URL with Presets */}
-              <div>
-                <label className="block font-bold text-neutral-700 mb-1">URL Gambar Utama</label>
-                <div className="flex items-center gap-3">
-                  <input
-                    type="text"
-                    value={productFormData.image || ''}
-                    onChange={(e) => setProductFormData({ ...productFormData, image: e.target.value })}
-                    placeholder="/acer-nitro.png atau URL gambar web"
-                    className="flex-1 p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl font-mono"
-                  />
-                  {productFormData.image && (
-                    <div className="w-10 h-10 rounded-lg bg-neutral-100 border border-neutral-200 overflow-hidden shrink-0">
-                      <img src={productFormData.image} alt="Preview" className="w-full h-full object-cover" />
-                    </div>
-                  )}
-                </div>
-
-                <div className="mt-2 flex items-center gap-2 flex-wrap">
-                  <span className="text-[10px] text-neutral-400">Pilihan cepat:</span>
-                  {['/acer-nitro.png', '/acer-creator.png', '/powerpac.png', '/acer-portable.png'].map((preset) => (
-                    <button
-                      type="button"
-                      key={preset}
-                      onClick={() => setProductFormData({ ...productFormData, image: preset })}
-                      className="px-2 py-1 text-[10px] font-mono bg-neutral-100 hover:bg-orange-100 text-neutral-700 rounded border border-neutral-200 cursor-pointer"
-                    >
-                      {preset}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              {/* Product Main Image with Multi-format Upload & URL */}
+              <AdminImageUploader
+                label="URL Gambar Utama"
+                value={productFormData.image || ''}
+                onChange={(newUrl) => {
+                  setProductFormData({
+                    ...productFormData,
+                    image: newUrl,
+                    gallery: newUrl ? [newUrl] : [],
+                  });
+                }}
+                presets={['/acer-nitro.png', '/acer-creator.png', '/powerpac.png', '/acer-portable.png']}
+                placeholder="https://example.com/product-image.jpg atau /acer-nitro.png"
+              />
 
               {/* Product Highlights (Line by line) */}
               <div>
@@ -2095,13 +2078,12 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
               </div>
 
               <div>
-                <label className="block font-bold text-neutral-700 mb-1">URL Gambar Cover</label>
-                <input
-                  type="text"
+                <AdminImageUploader
+                  label="URL Gambar Cover"
                   value={categoryFormData.image || ''}
-                  onChange={(e) => setCategoryFormData({ ...categoryFormData, image: e.target.value })}
-                  placeholder="/acer-nitro.png"
-                  className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl font-mono"
+                  onChange={(newUrl) => setCategoryFormData({ ...categoryFormData, image: newUrl })}
+                  presets={['/acer-nitro.png', '/acer-creator.png', '/powerpac.png', '/acer-portable.png']}
+                  placeholder="https://example.com/category-cover.jpg atau /acer-nitro.png"
                 />
               </div>
 
@@ -2202,13 +2184,12 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
               </div>
 
               <div>
-                <label className="block font-bold text-neutral-700 mb-1">URL Gambar Header</label>
-                <input
-                  type="text"
+                <AdminImageUploader
+                  label="URL Gambar Header"
                   value={guideFormData.image || ''}
-                  onChange={(e) => setGuideFormData({ ...guideFormData, image: e.target.value })}
-                  placeholder="/acer-nitro.png"
-                  className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl font-mono"
+                  onChange={(newUrl) => setGuideFormData({ ...guideFormData, image: newUrl })}
+                  presets={['/acer-nitro.png', '/acer-creator.png', '/powerpac.png', '/acer-portable.png']}
+                  placeholder="https://example.com/guide-header.jpg atau /acer-nitro.png"
                 />
               </div>
 

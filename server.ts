@@ -12,6 +12,17 @@ const PORT = 3000;
 
 app.use(express.json({ limit: '10mb' }));
 
+// Static uploads directory serving
+const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
+try {
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
+} catch (e) {
+  // Ignore in read-only environment
+}
+app.use('/uploads', express.static(uploadsDir));
+
 // Lazy Supabase Client
 let supabaseClient: SupabaseClient | null = null;
 
@@ -196,6 +207,74 @@ function fromSettingsRow(row: any) {
 // ==========================================
 // API ROUTES
 // ==========================================
+
+// 0. Image Upload API (Supports JPG, JPEG, PNG, WEBP, GIF, SVG)
+app.post('/api/upload', async (req: Request, res: Response) => {
+  try {
+    const { filename, fileData, mimeType } = req.body;
+    if (!fileData || !filename) {
+      res.status(400).json({ error: 'Missing fileData or filename' });
+      return;
+    }
+
+    const validMimes = [
+      'image/jpeg',
+      'image/png',
+      'image/webp',
+      'image/gif',
+      'image/svg+xml',
+    ];
+
+    const ext = path.extname(filename).toLowerCase();
+    const validExts = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.svg'];
+
+    if (!validMimes.includes(mimeType) && !validExts.includes(ext)) {
+      res.status(400).json({
+        error: 'Unsupported image format. Please upload JPG, JPEG, PNG, WEBP, GIF, or SVG.',
+      });
+      return;
+    }
+
+    // SVG security check
+    if (mimeType === 'image/svg+xml' || ext === '.svg') {
+      const base64Data = fileData.includes('base64,') ? fileData.split('base64,')[1] : fileData;
+      const rawContent = Buffer.from(base64Data, 'base64').toString('utf8');
+      if (/<script|javascript:|onload=|onerror=/i.test(rawContent)) {
+        res.status(400).json({ error: 'Unsafe SVG content detected.' });
+        return;
+      }
+    }
+
+    // Try saving to public/uploads
+    const uploadsPath = path.join(process.cwd(), 'public', 'uploads');
+    if (!fs.existsSync(uploadsPath)) {
+      fs.mkdirSync(uploadsPath, { recursive: true });
+    }
+
+    const safeExt = ext || (mimeType === 'image/jpeg' ? '.jpg' : '.png');
+    const baseName = path.basename(filename, ext).replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 50);
+    const uniqueFilename = `${baseName}-${Date.now()}${safeExt}`;
+    const targetPath = path.join(uploadsPath, uniqueFilename);
+
+    const base64Data = fileData.includes('base64,') ? fileData.split('base64,')[1] : fileData;
+    fs.writeFileSync(targetPath, Buffer.from(base64Data, 'base64'));
+
+    res.json({
+      success: true,
+      url: `/uploads/${uniqueFilename}`,
+      filename: uniqueFilename,
+      mimeType,
+    });
+  } catch (err: any) {
+    console.warn('Local disk write failed, fallback to data url:', err.message);
+    res.json({
+      success: true,
+      url: req.body.fileData,
+      filename: req.body.filename,
+      mimeType: req.body.mimeType,
+    });
+  }
+});
 
 // 1. Status & Health (Verifies all 4 Supabase tables)
 app.get('/api/status', async (req: Request, res: Response) => {

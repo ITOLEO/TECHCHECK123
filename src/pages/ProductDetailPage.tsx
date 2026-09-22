@@ -16,6 +16,10 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
 }) => {
   const [activeImage, setActiveImage] = useState<string>(product.image);
 
+  React.useEffect(() => {
+    setActiveImage(product.image);
+  }, [product.image]);
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-16">
       {/* 1. Breadcrumbs */}
