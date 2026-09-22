@@ -23,6 +23,11 @@ try {
 }
 app.use('/uploads', express.static(uploadsDir));
 
+// Google Search Console Verification route
+app.get('/googlebf09fd737c25f2c1.html', (req: Request, res: Response) => {
+  res.type('text/html').send('google-site-verification: googlebf09fd737c25f2c1.html');
+});
+
 // Lazy Supabase Client
 let supabaseClient: SupabaseClient | null = null;
 
