@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { Search, Menu, X, ArrowUpRight, Monitor, Layers } from 'lucide-react';
-import { ViewRoute, ProductCategory } from '../types';
+import React, { useState, useEffect, useRef } from 'react';
+import { Search, Menu, X, ArrowUpRight } from 'lucide-react';
+import { ViewRoute } from '../types';
 
 interface NavbarProps {
   currentRoute: ViewRoute;
@@ -10,6 +10,39 @@ interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate, onOpenSearch }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
+  const toggleBtnRef = useRef<HTMLButtonElement>(null);
+
+  // Close mobile menu on ESC key or clicking outside
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setMobileMenuOpen(false);
+        toggleBtnRef.current?.focus();
+      }
+    };
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        mobileMenuRef.current &&
+        !mobileMenuRef.current.contains(e.target as Node) &&
+        toggleBtnRef.current &&
+        !toggleBtnRef.current.contains(e.target as Node)
+      ) {
+        setMobileMenuOpen(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [mobileMenuOpen]);
 
   const isCurrent = (page: string, category?: string) => {
     if (page === 'home' && currentRoute.page === 'home') return true;
@@ -37,7 +70,8 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate, onOpen
           <button
             id="nav-logo-btn"
             onClick={() => handleNavClick({ page: 'home' })}
-            className="flex items-center gap-2.5 text-left group cursor-pointer focus:outline-none"
+            className="flex items-center gap-2.5 text-left group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] rounded-xl p-1"
+            aria-label="TechCheck Home"
           >
             <div className="flex items-center justify-center transition-transform group-hover:scale-105">
               <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -53,11 +87,12 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate, onOpen
           </button>
 
           {/* Center Navigation Links (Desktop) */}
-          <nav className="hidden md:flex items-center gap-8 text-[15px] font-medium">
+          <nav className="hidden md:flex items-center gap-8 text-[15px] font-medium" aria-label="Main Navigation">
             <button
               id="nav-link-home"
               onClick={() => handleNavClick({ page: 'home' })}
-              className={`transition-colors cursor-pointer py-1 relative ${
+              aria-current={isCurrent('home') ? 'page' : undefined}
+              className={`transition-colors cursor-pointer py-1 relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] rounded-md ${
                 isCurrent('home')
                   ? 'text-[#FF6B00] font-semibold'
                   : 'text-neutral-700 hover:text-[#111111]'
@@ -72,7 +107,8 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate, onOpen
             <button
               id="nav-link-recommendations"
               onClick={() => handleNavClick({ page: 'recommendations' })}
-              className={`transition-colors cursor-pointer py-1 relative ${
+              aria-current={isCurrent('recommendations') ? 'page' : undefined}
+              className={`transition-colors cursor-pointer py-1 relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] rounded-md ${
                 isCurrent('recommendations')
                   ? 'text-[#FF6B00] font-semibold'
                   : 'text-neutral-700 hover:text-[#111111]'
@@ -87,7 +123,8 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate, onOpen
             <button
               id="nav-link-categories"
               onClick={() => handleNavClick({ page: 'categories' })}
-              className={`transition-colors cursor-pointer py-1 relative ${
+              aria-current={isCurrent('categories') ? 'page' : undefined}
+              className={`transition-colors cursor-pointer py-1 relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] rounded-md ${
                 isCurrent('categories')
                   ? 'text-[#FF6B00] font-semibold'
                   : 'text-neutral-700 hover:text-[#111111]'
@@ -102,7 +139,8 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate, onOpen
             <button
               id="nav-link-guides"
               onClick={() => handleNavClick({ page: 'guides' })}
-              className={`transition-colors cursor-pointer py-1 relative ${
+              aria-current={isCurrent('guides') ? 'page' : undefined}
+              className={`transition-colors cursor-pointer py-1 relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] rounded-md ${
                 isCurrent('guides')
                   ? 'text-[#FF6B00] font-semibold'
                   : 'text-neutral-700 hover:text-[#111111]'
@@ -120,17 +158,21 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate, onOpen
             <button
               id="nav-search-btn"
               onClick={onOpenSearch}
-              className="flex items-center gap-2 px-3.5 py-2 text-sm text-neutral-600 hover:text-[#111111] bg-white border border-[#E9E9E6] hover:border-neutral-300 rounded-lg transition-all shadow-xs cursor-pointer"
-              title="Search products and guides"
+              className="flex items-center gap-2 px-3.5 py-2 text-sm text-neutral-600 hover:text-[#111111] bg-white border border-[#E9E9E6] hover:border-neutral-300 rounded-lg transition-all shadow-xs cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
+              title="Search products and guides (Ctrl+K)"
+              aria-label="Open search dialog (Ctrl+K)"
             >
               <Search className="w-4 h-4 text-neutral-500" />
               <span className="text-xs text-neutral-500 font-medium">Search gear...</span>
+              <kbd className="text-[10px] font-sans px-1.5 py-0.5 rounded bg-neutral-100 text-neutral-400 border border-neutral-200">
+                ⌘K
+              </kbd>
             </button>
 
             <button
               id="nav-explore-btn"
               onClick={() => handleNavClick({ page: 'recommendations' })}
-              className="inline-flex items-center justify-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-[#111111] hover:bg-[#FF6B00] rounded-lg transition-colors shadow-xs cursor-pointer"
+              className="inline-flex items-center justify-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-[#111111] hover:bg-[#FF6B00] rounded-lg transition-colors shadow-xs cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
             >
               <span>Explore Products</span>
               <ArrowUpRight className="w-4 h-4" />
@@ -142,17 +184,20 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate, onOpen
             <button
               id="nav-mobile-search-btn"
               onClick={onOpenSearch}
-              className="p-2 text-neutral-700 hover:text-[#111111] rounded-lg border border-[#E9E9E6] bg-white"
-              aria-label="Search"
+              className="p-2 text-neutral-700 hover:text-[#111111] rounded-lg border border-[#E9E9E6] bg-white focus-visible:ring-2 focus-visible:ring-[#FF6B00] cursor-pointer"
+              aria-label="Search products and guides"
             >
               <Search className="w-5 h-5" />
             </button>
 
             <button
+              ref={toggleBtnRef}
               id="nav-mobile-toggle-btn"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-neutral-700 hover:text-[#111111] rounded-lg border border-[#E9E9E6] bg-white"
-              aria-label="Toggle menu"
+              className="p-2 text-neutral-700 hover:text-[#111111] rounded-lg border border-[#E9E9E6] bg-white focus-visible:ring-2 focus-visible:ring-[#FF6B00] cursor-pointer"
+              aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+              aria-expanded={mobileMenuOpen}
+              aria-controls="mobile-nav-menu"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
@@ -162,11 +207,17 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate, onOpen
 
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-[#E9E9E6] bg-[#F7F6F2] px-4 pt-3 pb-6 space-y-2">
+        <div
+          ref={mobileMenuRef}
+          id="mobile-nav-menu"
+          role="region"
+          aria-label="Mobile Navigation"
+          className="md:hidden border-t border-[#E9E9E6] bg-[#F7F6F2] px-4 pt-3 pb-6 space-y-2 animate-in slide-in-from-top-2 duration-150"
+        >
           <button
             id="mobile-nav-home"
             onClick={() => handleNavClick({ page: 'home' })}
-            className={`w-full text-left px-4 py-3 rounded-lg text-base font-medium flex items-center justify-between ${
+            className={`w-full text-left px-4 py-3 rounded-lg text-base font-medium flex items-center justify-between cursor-pointer ${
               isCurrent('home')
                 ? 'bg-white text-[#FF6B00] font-semibold shadow-xs'
                 : 'text-neutral-800 hover:bg-neutral-100'
@@ -178,7 +229,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate, onOpen
           <button
             id="mobile-nav-recommendations"
             onClick={() => handleNavClick({ page: 'recommendations' })}
-            className={`w-full text-left px-4 py-3 rounded-lg text-base font-medium flex items-center justify-between ${
+            className={`w-full text-left px-4 py-3 rounded-lg text-base font-medium flex items-center justify-between cursor-pointer ${
               isCurrent('recommendations')
                 ? 'bg-white text-[#FF6B00] font-semibold shadow-xs'
                 : 'text-neutral-800 hover:bg-neutral-100'
@@ -190,7 +241,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate, onOpen
           <button
             id="mobile-nav-categories"
             onClick={() => handleNavClick({ page: 'categories' })}
-            className={`w-full text-left px-4 py-3 rounded-lg text-base font-medium flex items-center justify-between ${
+            className={`w-full text-left px-4 py-3 rounded-lg text-base font-medium flex items-center justify-between cursor-pointer ${
               isCurrent('categories')
                 ? 'bg-white text-[#FF6B00] font-semibold shadow-xs'
                 : 'text-neutral-800 hover:bg-neutral-100'
@@ -202,7 +253,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate, onOpen
           <button
             id="mobile-nav-guides"
             onClick={() => handleNavClick({ page: 'guides' })}
-            className={`w-full text-left px-4 py-3 rounded-lg text-base font-medium flex items-center justify-between ${
+            className={`w-full text-left px-4 py-3 rounded-lg text-base font-medium flex items-center justify-between cursor-pointer ${
               isCurrent('guides')
                 ? 'bg-white text-[#FF6B00] font-semibold shadow-xs'
                 : 'text-neutral-800 hover:bg-neutral-100'
@@ -215,7 +266,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate, onOpen
             <button
               id="mobile-nav-cta"
               onClick={() => handleNavClick({ page: 'recommendations' })}
-              className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-[#FF6B00] text-white font-semibold rounded-lg shadow-sm"
+              className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-[#FF6B00] hover:bg-[#E05E00] text-white font-semibold rounded-lg shadow-sm transition-colors cursor-pointer"
             >
               <span>Explore Products</span>
               <ArrowUpRight className="w-4 h-4" />
@@ -226,3 +277,4 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRoute, onNavigate, onOpen
     </header>
   );
 };
+

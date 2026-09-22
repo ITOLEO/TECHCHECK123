@@ -1,7 +1,8 @@
-import React, { useState, useMemo } from 'react';
-import { Filter, SlidersHorizontal, Star, Check, Sparkles, X, Search } from 'lucide-react';
-import { Product, ProductCategory, ProductBadge } from '../types';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Filter, X, Search } from 'lucide-react';
+import { Product, ProductCategory } from '../types';
 import { ProductCard } from '../components/ProductCard';
+import { analytics } from '../services/analytics';
 
 interface RecommendationsPageProps {
   products: Product[];
@@ -20,6 +21,21 @@ export const RecommendationsPage: React.FC<RecommendationsPageProps> = ({
   const [sortBy, setSortBy] = useState<'recommended' | 'rating' | 'reviews'>('recommended');
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Sync when initialCategory changes via navigation
+  useEffect(() => {
+    setSelectedCategory(initialCategory);
+  }, [initialCategory]);
+
+  useEffect(() => {
+    document.title = selectedCategory === 'All'
+      ? 'Curated Space-Saving Recommendations | TechCheck'
+      : `${selectedCategory} Hardware Recommendations | TechCheck`;
+    analytics.track('category_view', { category: selectedCategory });
+    return () => {
+      document.title = 'TechCheck — Small Space. Serious Setup.';
+    };
+  }, [selectedCategory]);
+
   const categories = useMemo(() => {
     const set = new Set<string>();
     products.forEach((p) => {
@@ -27,6 +43,7 @@ export const RecommendationsPage: React.FC<RecommendationsPageProps> = ({
     });
     return ['All', ...Array.from(set)];
   }, [products]);
+
 
   const badges = useMemo(() => {
     const set = new Set<string>();

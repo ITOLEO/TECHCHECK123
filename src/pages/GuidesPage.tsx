@@ -1,6 +1,8 @@
-import React, { useState, useMemo } from 'react';
-import { BookOpen, ArrowRight, Clock, Calendar, User, Search, X } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { BookOpen, ArrowRight, Clock, Search, X } from 'lucide-react';
 import { Guide } from '../types';
+import { SafeImage } from '../components/SafeImage';
+import { analytics } from '../services/analytics';
 
 interface GuidesPageProps {
   guides: Guide[];
@@ -11,13 +13,21 @@ export const GuidesPage: React.FC<GuidesPageProps> = ({ guides, onSelectGuide })
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const categories = [
-    'All',
-    'Setup',
-    'Buying Guides',
-    'Cable Management',
-    'Desk Organization',
-  ];
+  useEffect(() => {
+    document.title = 'Setup Guides & Spatial Blueprints | TechCheck';
+    analytics.track('guide_view', { route: 'guides' });
+    return () => {
+      document.title = 'TechCheck — Small Space. Serious Setup.';
+    };
+  }, []);
+
+  // Dynamically derive categories from current guides
+  const categories = useMemo(() => {
+    const defaultCats = ['All', 'Setup', 'Buying Guides', 'Cable Management', 'Desk Organization'];
+    const extracted = Array.from(new Set(guides.map((g) => g.category).filter(Boolean)));
+    const combined = ['All', ...extracted];
+    return Array.from(new Set([...combined, ...defaultCats]));
+  }, [guides]);
 
   const featuredGuide = guides.find((g) => g.featured) || guides[0];
 
@@ -82,7 +92,8 @@ export const GuidesPage: React.FC<GuidesPageProps> = ({ guides, onSelectGuide })
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 cursor-pointer"
+              aria-label="Clear guide search"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -94,13 +105,21 @@ export const GuidesPage: React.FC<GuidesPageProps> = ({ guides, onSelectGuide })
       {selectedCategory === 'All' && !searchQuery && featuredGuide && (
         <div
           onClick={() => onSelectGuide(featuredGuide.slug)}
-          className="group bg-white rounded-3xl border border-[#E9E9E6] hover:border-neutral-300 shadow-md overflow-hidden cursor-pointer grid grid-cols-1 lg:grid-cols-12 transition-all"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') onSelectGuide(featuredGuide.slug);
+          }}
+          tabIndex={0}
+          role="button"
+          aria-label={`Read featured guide: ${featuredGuide.title}`}
+          className="group bg-white rounded-3xl border border-[#E9E9E6] hover:border-[#FF6B00] shadow-md overflow-hidden cursor-pointer grid grid-cols-1 lg:grid-cols-12 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
         >
           <div className="lg:col-span-7 relative min-h-[300px] lg:min-h-[420px] overflow-hidden bg-neutral-900">
-            <img
+            <SafeImage
               src={featuredGuide.image}
               alt={featuredGuide.title}
+              fallbackText={featuredGuide.title}
               className="w-full h-full object-cover object-center group-hover:scale-103 transition-transform duration-500"
+              loading="eager"
             />
             <div className="absolute top-4 left-4">
               <span className="px-3 py-1 rounded-lg text-xs font-bold tracking-wider uppercase bg-[#FF6B00] text-white">
@@ -118,7 +137,7 @@ export const GuidesPage: React.FC<GuidesPageProps> = ({ guides, onSelectGuide })
                 <span>•</span>
                 <span className="flex items-center gap-1">
                   <Clock className="w-3.5 h-3.5" />
-                  {featuredGuide.readTime}
+                  <span>{featuredGuide.readTime}</span>
                 </span>
                 <span>•</span>
                 <span>{featuredGuide.publishDate}</span>
@@ -135,11 +154,14 @@ export const GuidesPage: React.FC<GuidesPageProps> = ({ guides, onSelectGuide })
 
             <div className="mt-8 pt-6 border-t border-neutral-100 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <img
-                  src={featuredGuide.author.avatar}
-                  alt={featuredGuide.author.name}
-                  className="w-9 h-9 rounded-full object-cover"
-                />
+                <div className="w-9 h-9 rounded-full overflow-hidden shrink-0 border border-neutral-200">
+                  <SafeImage
+                    src={featuredGuide.author.avatar}
+                    alt={featuredGuide.author.name}
+                    fallbackText={featuredGuide.author.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
                 <div>
                   <span className="text-xs font-bold text-neutral-900 block">
                     {featuredGuide.author.name}
@@ -166,7 +188,7 @@ export const GuidesPage: React.FC<GuidesPageProps> = ({ guides, onSelectGuide })
             {selectedCategory === 'All' ? 'All Editorial Articles' : `${selectedCategory} Articles`}
           </h2>
           <span className="text-xs text-neutral-500">
-            {filteredGuides.length} articles available
+            {filteredGuides.length} {filteredGuides.length === 1 ? 'article' : 'articles'} available
           </span>
         </div>
 
@@ -176,12 +198,19 @@ export const GuidesPage: React.FC<GuidesPageProps> = ({ guides, onSelectGuide })
               <div
                 key={guide.id}
                 onClick={() => onSelectGuide(guide.slug)}
-                className="group bg-white rounded-2xl border border-[#E9E9E6] hover:border-neutral-300 shadow-xs hover:shadow-md transition-all overflow-hidden cursor-pointer flex flex-col justify-between"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') onSelectGuide(guide.slug);
+                }}
+                tabIndex={0}
+                role="button"
+                aria-label={`Read guide: ${guide.title}`}
+                className="group bg-white rounded-2xl border border-[#E9E9E6] hover:border-[#FF6B00] shadow-xs hover:shadow-md transition-all overflow-hidden cursor-pointer flex flex-col justify-between focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
               >
                 <div className="aspect-16/10 overflow-hidden bg-neutral-100 relative">
-                  <img
+                  <SafeImage
                     src={guide.image}
                     alt={guide.title}
+                    fallbackText={guide.title}
                     className="w-full h-full object-cover group-hover:scale-104 transition-transform duration-300"
                     loading="lazy"
                   />
@@ -197,7 +226,7 @@ export const GuidesPage: React.FC<GuidesPageProps> = ({ guides, onSelectGuide })
                     <div className="flex items-center gap-2 text-[11px] text-neutral-400 mb-2 font-medium">
                       <span className="flex items-center gap-1">
                         <Clock className="w-3 h-3" />
-                        {guide.readTime}
+                        <span>{guide.readTime}</span>
                       </span>
                       <span>•</span>
                       <span>{guide.publishDate}</span>
@@ -221,13 +250,31 @@ export const GuidesPage: React.FC<GuidesPageProps> = ({ guides, onSelectGuide })
             ))}
           </div>
         ) : (
-          <div className="bg-white rounded-2xl border border-[#E9E9E6] p-12 text-center text-neutral-500 text-sm">
-            {searchQuery
-              ? `Tidak ada panduan yang cocok dengan pencarian "${searchQuery}".`
-              : 'Belum ada artikel panduan yang ditambahkan.'}
+          <div className="bg-white rounded-2xl border border-[#E9E9E6] p-12 text-center space-y-4 max-w-md mx-auto">
+            <div className="w-12 h-12 rounded-2xl bg-orange-50 border border-orange-200 flex items-center justify-center mx-auto text-[#FF6B00]">
+              <BookOpen className="w-6 h-6" />
+            </div>
+            <h3 className="text-lg font-bold text-neutral-900">No matching guides</h3>
+            <p className="text-xs text-neutral-500 leading-relaxed">
+              {searchQuery
+                ? `No articles match your search "${searchQuery}". Try searching for setup, monitor, or cable.`
+                : 'No guides found in this category yet.'}
+            </p>
+            {(searchQuery || selectedCategory !== 'All') && (
+              <button
+                onClick={() => {
+                  setSearchQuery('');
+                  setSelectedCategory('All');
+                }}
+                className="px-4 py-2 text-xs font-semibold text-white bg-[#111111] hover:bg-[#FF6B00] rounded-xl transition-all cursor-pointer"
+              >
+                Reset filters
+              </button>
+            )}
           </div>
         )}
       </div>
     </div>
   );
 };
+

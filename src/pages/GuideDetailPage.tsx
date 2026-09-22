@@ -1,20 +1,22 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ChevronRight,
   Clock,
   Calendar,
-  User,
   ArrowRight,
   Share2,
-  Bookmark,
   Sparkles,
-  CheckCircle2,
   Star,
+  Check,
+  ArrowLeft,
+  BookOpen
 } from 'lucide-react';
 import { Guide, Product, ViewRoute } from '../types';
+import { SafeImage } from '../components/SafeImage';
+import { analytics } from '../services/analytics';
 
 interface GuideDetailPageProps {
-  guide: Guide;
+  guide?: Guide;
   allGuides: Guide[];
   allProducts: Product[];
   onNavigate: (route: ViewRoute) => void;
@@ -30,12 +32,72 @@ export const GuideDetailPage: React.FC<GuideDetailPageProps> = ({
   onSelectProduct,
   onSelectGuide,
 }) => {
+  const [copiedShare, setCopiedShare] = useState(false);
+
+  useEffect(() => {
+    if (guide) {
+      document.title = `${guide.title} | TechCheck Setup Guides`;
+      analytics.track('guide_view', {
+        guideId: guide.id,
+        guideTitle: guide.title,
+        category: guide.category,
+      });
+    }
+    return () => {
+      document.title = 'TechCheck — Small Space. Serious Setup.';
+    };
+  }, [guide]);
+
+  // Missing guide fallback
+  if (!guide) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-20 text-center space-y-6">
+        <div className="w-16 h-16 rounded-2xl bg-orange-50 border border-orange-200 flex items-center justify-center mx-auto text-[#FF6B00]">
+          <BookOpen className="w-8 h-8" />
+        </div>
+        <h1 className="text-3xl font-extrabold text-[#111111]">Guide Not Found</h1>
+        <p className="text-neutral-600 max-w-md mx-auto text-sm leading-relaxed">
+          The guide you are looking for might have been updated or moved in our editorial archive.
+        </p>
+        <button
+          onClick={() => onNavigate({ page: 'guides' })}
+          className="inline-flex items-center gap-2 px-6 py-3 bg-[#111111] hover:bg-[#FF6B00] text-white text-sm font-semibold rounded-xl transition-all shadow-xs cursor-pointer"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Browse All Guides</span>
+        </button>
+      </div>
+    );
+  }
+
   const relatedGuides = allGuides.filter((g) => g.id !== guide.id).slice(0, 3);
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: guide.title,
+          text: guide.excerpt,
+          url: window.location.href,
+        });
+        return;
+      } catch {
+        // Fallback to clipboard
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopiedShare(true);
+      setTimeout(() => setCopiedShare(false), 2500);
+    } catch {
+      // ignore
+    }
+  };
 
   return (
     <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-12">
       {/* 1. Breadcrumb */}
-      <nav className="flex items-center gap-2 text-xs font-medium text-neutral-500 overflow-x-auto whitespace-nowrap">
+      <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs font-medium text-neutral-500 overflow-x-auto whitespace-nowrap">
         <button
           onClick={() => onNavigate({ page: 'home' })}
           className="hover:text-[#FF6B00] transition-colors cursor-pointer"
@@ -55,8 +117,28 @@ export const GuideDetailPage: React.FC<GuideDetailPageProps> = ({
 
       {/* 2. Article Header */}
       <header className="space-y-6">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-orange-50 text-[#FF6B00] border border-orange-200">
-          {guide.category}
+        <div className="flex items-center justify-between gap-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-orange-50 text-[#FF6B00] border border-orange-200">
+            {guide.category}
+          </div>
+          <button
+            type="button"
+            onClick={handleShare}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-neutral-700 bg-white border border-[#E9E9E6] hover:border-neutral-300 shadow-2xs transition-colors cursor-pointer"
+            aria-label="Share article"
+          >
+            {copiedShare ? (
+              <>
+                <Check className="w-3.5 h-3.5 text-emerald-600" />
+                <span className="text-emerald-700">Link Copied!</span>
+              </>
+            ) : (
+              <>
+                <Share2 className="w-3.5 h-3.5" />
+                <span>Share Guide</span>
+              </>
+            )}
+          </button>
         </div>
 
         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#111111] tracking-tight leading-[1.12]">
@@ -70,11 +152,14 @@ export const GuideDetailPage: React.FC<GuideDetailPageProps> = ({
         {/* Metadata & Author Bar */}
         <div className="flex flex-wrap items-center justify-between gap-4 py-4 border-y border-[#E9E9E6]">
           <div className="flex items-center gap-3">
-            <img
-              src={guide.author.avatar}
-              alt={guide.author.name}
-              className="w-10 h-10 rounded-full object-cover border border-neutral-200"
-            />
+            <div className="w-10 h-10 rounded-full overflow-hidden border border-neutral-200 shrink-0">
+              <SafeImage
+                src={guide.author.avatar}
+                alt={guide.author.name}
+                fallbackText={guide.author.name}
+                className="w-full h-full object-cover"
+              />
+            </div>
             <div>
               <span className="text-xs font-bold text-neutral-900 block">
                 {guide.author.name}
@@ -88,12 +173,12 @@ export const GuideDetailPage: React.FC<GuideDetailPageProps> = ({
           <div className="flex items-center gap-4 text-xs text-neutral-500">
             <span className="flex items-center gap-1.5">
               <Clock className="w-4 h-4 text-neutral-400" />
-              {guide.readTime}
+              <span>{guide.readTime}</span>
             </span>
             <span>•</span>
             <span className="flex items-center gap-1.5">
               <Calendar className="w-4 h-4 text-neutral-400" />
-              {guide.publishDate}
+              <span>{guide.publishDate}</span>
             </span>
           </div>
         </div>
@@ -101,10 +186,12 @@ export const GuideDetailPage: React.FC<GuideDetailPageProps> = ({
 
       {/* 3. Hero Image */}
       <div className="aspect-16/9 rounded-3xl overflow-hidden shadow-sm border border-[#E9E9E6] bg-neutral-100">
-        <img
+        <SafeImage
           src={guide.image}
           alt={guide.title}
+          fallbackText={guide.title}
           className="w-full h-full object-cover"
+          loading="eager"
         />
       </div>
 
@@ -144,10 +231,11 @@ export const GuideDetailPage: React.FC<GuideDetailPageProps> = ({
 
               {step.image && (
                 <div className="pl-12 sm:pl-16">
-                  <div className="aspect-16/9 rounded-2xl overflow-hidden border border-[#E9E9E6]">
-                    <img
+                  <div className="aspect-16/9 rounded-2xl overflow-hidden border border-[#E9E9E6] bg-neutral-100">
+                    <SafeImage
                       src={step.image}
                       alt={step.title}
+                      fallbackText={step.title}
                       className="w-full h-full object-cover"
                       loading="lazy"
                     />
@@ -155,24 +243,29 @@ export const GuideDetailPage: React.FC<GuideDetailPageProps> = ({
                 </div>
               )}
 
-              {/* IN-ARTICLE PRODUCT RECOMMENDATION (NO PRICE, "View Details →") */}
+              {/* IN-ARTICLE PRODUCT RECOMMENDATION */}
               {recProduct && (
                 <div className="pl-12 sm:pl-16 pt-2">
                   <div className="bg-white rounded-2xl border border-orange-200/90 p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 hover:border-[#FF6B00] transition-colors">
                     <div className="flex items-center gap-4">
-                      <img
-                        src={recProduct.image}
-                        alt={recProduct.name}
-                        className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-xl shrink-0 bg-neutral-100"
-                      />
+                      <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden shrink-0 bg-neutral-100">
+                        <SafeImage
+                          src={recProduct.image}
+                          alt={recProduct.name}
+                          fallbackText={recProduct.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="text-[10px] font-bold uppercase tracking-wider text-[#FF6B00]">
                             Recommended for this step
                           </span>
-                          <span className="text-[10px] px-1.5 py-0.2 rounded bg-neutral-100 text-neutral-700 font-medium">
-                            {recProduct.badge}
-                          </span>
+                          {recProduct.badge && (
+                            <span className="text-[10px] px-1.5 py-0.2 rounded bg-neutral-100 text-neutral-700 font-medium">
+                              {recProduct.badge}
+                            </span>
+                          )}
                         </div>
                         <h4 className="text-sm sm:text-base font-bold text-[#111111] mt-0.5">
                           {recProduct.name}
@@ -188,10 +281,10 @@ export const GuideDetailPage: React.FC<GuideDetailPageProps> = ({
                       </div>
                     </div>
 
-                    {/* Button MUST go to TechCheck Product Detail, NEVER directly to affiliate store */}
                     <button
+                      type="button"
                       onClick={() => onSelectProduct(recProduct.slug)}
-                      className="shrink-0 px-5 py-2.5 bg-[#111111] hover:bg-[#FF6B00] text-white text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs self-stretch sm:self-auto justify-center"
+                      className="shrink-0 px-5 py-2.5 bg-[#111111] hover:bg-[#FF6B00] text-white text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs self-stretch sm:self-auto justify-center focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
                     >
                       <span>View Details</span>
                       <ArrowRight className="w-3.5 h-3.5" />
@@ -205,42 +298,55 @@ export const GuideDetailPage: React.FC<GuideDetailPageProps> = ({
       </div>
 
       {/* 6. Summary / Conclusion */}
-      <div className="p-8 rounded-2xl bg-white border border-[#E9E9E6] shadow-xs space-y-3">
-        <h3 className="text-lg font-bold text-[#111111]">
-          Editorial Takeaway
-        </h3>
-        <p className="text-sm text-neutral-600 leading-relaxed">
-          {guide.summary}
-        </p>
-      </div>
+      {guide.summary && (
+        <div className="p-8 rounded-2xl bg-white border border-[#E9E9E6] shadow-xs space-y-3">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-[#FF6B00]" />
+            <h3 className="text-lg font-bold text-[#111111]">
+              Editorial Takeaway
+            </h3>
+          </div>
+          <p className="text-sm text-neutral-600 leading-relaxed">
+            {guide.summary}
+          </p>
+        </div>
+      )}
 
       {/* 7. Related Articles */}
-      <div className="pt-10 border-t border-[#E9E9E6] space-y-6">
-        <h3 className="text-xl font-bold text-[#111111]">
-          Related Setup Guides
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {relatedGuides.map((relGuide) => (
-            <div
-              key={relGuide.id}
-              onClick={() => onSelectGuide(relGuide.slug)}
-              className="group bg-white rounded-xl border border-[#E9E9E6] hover:border-neutral-300 p-4 transition-all cursor-pointer flex flex-col justify-between"
-            >
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#FF6B00] block mb-1">
-                  {relGuide.category}
+      {relatedGuides.length > 0 && (
+        <div className="pt-10 border-t border-[#E9E9E6] space-y-6">
+          <h3 className="text-xl font-bold text-[#111111]">
+            Related Setup Guides
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {relatedGuides.map((relGuide) => (
+              <div
+                key={relGuide.id}
+                onClick={() => onSelectGuide(relGuide.slug)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') onSelectGuide(relGuide.slug);
+                }}
+                role="button"
+                tabIndex={0}
+                className="group bg-white rounded-xl border border-[#E9E9E6] hover:border-[#FF6B00] p-4 transition-all cursor-pointer flex flex-col justify-between focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
+              >
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#FF6B00] block mb-1">
+                    {relGuide.category}
+                  </span>
+                  <h4 className="text-sm font-bold text-neutral-900 group-hover:text-[#FF6B00] transition-colors line-clamp-2">
+                    {relGuide.title}
+                  </h4>
+                </div>
+                <span className="mt-4 text-xs font-bold text-neutral-500 group-hover:text-[#FF6B00] flex items-center gap-1">
+                  Read Guide <ArrowRight className="w-3 h-3" />
                 </span>
-                <h4 className="text-sm font-bold text-neutral-900 group-hover:text-[#FF6B00] transition-colors line-clamp-2">
-                  {relGuide.title}
-                </h4>
               </div>
-              <span className="mt-4 text-xs font-bold text-neutral-500 group-hover:text-[#FF6B00] flex items-center gap-1">
-                Read Guide <ArrowRight className="w-3 h-3" />
-              </span>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </article>
   );
 };
+

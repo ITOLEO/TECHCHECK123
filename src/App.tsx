@@ -287,7 +287,7 @@ export default function App() {
         )}
 
         {currentRoute.page === 'product-detail' && (() => {
-          const product = products.find((p) => p.slug === currentRoute.slug) || products[0];
+          const product = products.find((p) => p.slug === currentRoute.slug);
           return (
             <ProductDetailPage
               product={product}
@@ -302,6 +302,7 @@ export default function App() {
         {currentRoute.page === 'categories' && (
           <CategoriesPage
             categories={categories}
+            products={products}
             onNavigate={navigate}
           />
         )}
@@ -314,7 +315,7 @@ export default function App() {
         )}
 
         {currentRoute.page === 'guide-detail' && (() => {
-          const guide = guides.find((g) => g.slug === currentRoute.slug) || guides[0];
+          const guide = guides.find((g) => g.slug === currentRoute.slug);
           return (
             <GuideDetailPage
               guide={guide}

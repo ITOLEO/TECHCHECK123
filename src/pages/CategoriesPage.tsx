@@ -1,16 +1,37 @@
-import React from 'react';
-import { ArrowUpRight, Layers, ShieldCheck } from 'lucide-react';
-import { CategoryInfo, ViewRoute, ProductCategory } from '../types';
+import React, { useEffect } from 'react';
+import { ArrowUpRight, FolderTree } from 'lucide-react';
+import { CategoryInfo, ViewRoute, ProductCategory, Product } from '../types';
+import { SafeImage } from '../components/SafeImage';
+import { analytics } from '../services/analytics';
 
 interface CategoriesPageProps {
   categories: CategoryInfo[];
+  products?: Product[];
   onNavigate: (route: ViewRoute) => void;
 }
 
-export const CategoriesPage: React.FC<CategoriesPageProps> = ({ categories, onNavigate }) => {
+export const CategoriesPage: React.FC<CategoriesPageProps> = ({ categories, products = [], onNavigate }) => {
+  useEffect(() => {
+    document.title = 'Hardware Categories | TechCheck Space-Saving Catalog';
+    analytics.track('category_view', { route: 'categories' });
+    return () => {
+      document.title = 'TechCheck — Small Space. Serious Setup.';
+    };
+  }, []);
+
   const handleSelectCategory = (name: ProductCategory) => {
+    analytics.track('category_view', { category: name });
     onNavigate({ page: 'recommendations', categoryFilter: name });
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Helper to get real product count
+  const getCategoryCount = (cat: CategoryInfo) => {
+    if (products && products.length > 0) {
+      const realCount = products.filter((p) => p.category === cat.name).length;
+      if (realCount > 0) return realCount;
+    }
+    return cat.productCount || 0;
   };
 
   return (
@@ -31,51 +52,77 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ categories, onNa
       {/* Grid of Categories */}
       {categories.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {categories.map((cat) => (
-            <div
-              key={cat.id}
-              onClick={() => handleSelectCategory(cat.name)}
-              className="group bg-white rounded-2xl border border-[#E9E9E6] hover:border-neutral-300 shadow-xs hover:shadow-md transition-all overflow-hidden cursor-pointer flex flex-col justify-between"
-            >
-              <div className="relative aspect-16/10 overflow-hidden bg-neutral-100">
-                <img
-                  src={cat.image}
-                  alt={cat.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
-                  loading="lazy"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent pointer-events-none" />
-                <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-white">
-                  <span className="text-xs font-semibold bg-white/20 backdrop-blur-md px-2.5 py-1 rounded-md">
-                    {cat.productCount} Curated Accessories
-                  </span>
-                  <span className="text-xs font-bold uppercase tracking-wider text-[#FF6B00]">
-                    Reclaims Space
-                  </span>
-                </div>
-              </div>
-
-              <div className="p-6 sm:p-7">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-xl font-bold text-[#111111] group-hover:text-[#FF6B00] transition-colors">
-                    {cat.name}
-                  </h3>
-                  <div className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center text-neutral-700 group-hover:bg-[#FF6B00] group-hover:text-white transition-colors">
-                    <ArrowUpRight className="w-4 h-4" />
+          {categories.map((cat) => {
+            const count = getCategoryCount(cat);
+            return (
+              <div
+                key={cat.id}
+                onClick={() => handleSelectCategory(cat.name)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleSelectCategory(cat.name);
+                  }
+                }}
+                tabIndex={0}
+                role="button"
+                aria-label={`Browse ${cat.name} category with ${count} accessories`}
+                className="group bg-white rounded-2xl border border-[#E9E9E6] hover:border-[#FF6B00] shadow-xs hover:shadow-md transition-all overflow-hidden cursor-pointer flex flex-col justify-between focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
+              >
+                <div className="relative aspect-16/10 overflow-hidden bg-neutral-100">
+                  <SafeImage
+                    src={cat.image}
+                    alt={cat.name}
+                    fallbackText={cat.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent pointer-events-none" />
+                  <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-white">
+                    <span className="text-xs font-semibold bg-white/20 backdrop-blur-md px-2.5 py-1 rounded-md">
+                      {count} Curated {count === 1 ? 'Accessory' : 'Accessories'}
+                    </span>
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#FF6B00]">
+                      Reclaims Space
+                    </span>
                   </div>
                 </div>
-                <p className="text-xs sm:text-sm text-neutral-600 leading-relaxed">
-                  {cat.description}
-                </p>
+
+                <div className="p-6 sm:p-7">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-xl font-bold text-[#111111] group-hover:text-[#FF6B00] transition-colors">
+                      {cat.name}
+                    </h3>
+                    <div className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center text-neutral-700 group-hover:bg-[#FF6B00] group-hover:text-white transition-colors">
+                      <ArrowUpRight className="w-4 h-4" />
+                    </div>
+                  </div>
+                  <p className="text-xs sm:text-sm text-neutral-600 leading-relaxed">
+                    {cat.description}
+                  </p>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-[#E9E9E6] p-12 text-center text-neutral-500 text-sm">
-          Belum ada kategori yang ditambahkan.
+        <div className="bg-white rounded-2xl border border-[#E9E9E6] p-12 text-center space-y-4 max-w-md mx-auto">
+          <div className="w-12 h-12 rounded-2xl bg-orange-50 border border-orange-200 flex items-center justify-center mx-auto text-[#FF6B00]">
+            <FolderTree className="w-6 h-6" />
+          </div>
+          <h3 className="text-lg font-bold text-neutral-900">No categories found</h3>
+          <p className="text-xs text-neutral-500 leading-relaxed">
+            Categories will appear here once configured in the TechCheck editorial admin.
+          </p>
+          <button
+            onClick={() => onNavigate({ page: 'recommendations' })}
+            className="px-4 py-2 text-xs font-semibold text-white bg-[#111111] hover:bg-[#FF6B00] rounded-xl transition-all cursor-pointer"
+          >
+            Explore all products
+          </button>
         </div>
       )}
     </div>
   );
 };
+

@@ -1,7 +1,8 @@
 import React from 'react';
-import { ArrowRight, ArrowUpRight, Check, Sparkles, Layers, Box, Cpu, ShieldCheck, Zap } from 'lucide-react';
-import { Product, CategoryInfo, Guide, ViewRoute, ProductCategory, SiteSettings } from '../types';
+import { ArrowRight, ArrowUpRight } from 'lucide-react';
+import { Product, CategoryInfo, Guide, ViewRoute, SiteSettings } from '../types';
 import { ProductCard } from '../components/ProductCard';
+import { SafeImage } from '../components/SafeImage';
 
 interface HomePageProps {
   products: Product[];
@@ -30,6 +31,11 @@ export const HomePage: React.FC<HomePageProps> = ({
   const heroLine1 = siteSettings?.heroHeadline1 || 'Better Gear.';
   const heroLine2 = siteSettings?.heroHeadline2 || 'Smarter Spaces.';
   const heroSubtext = siteSettings?.heroSubtext || 'Discover space-saving tech and accessories that help you build a cleaner, more functional gaming setup — without the clutter.';
+
+  const getCategoryCount = (cat: CategoryInfo) => {
+    const realCount = products.filter((p) => p.category === cat.name).length;
+    return realCount > 0 ? realCount : cat.productCount || 0;
+  };
 
   return (
     <div className="space-y-20 sm:space-y-28 pb-20">
@@ -60,7 +66,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                 <button
                   id="hero-explore-products-btn"
                   onClick={() => onNavigate({ page: 'recommendations' })}
-                  className="px-7 py-4 text-base font-bold text-white bg-[#FF6B00] hover:bg-[#e05e00] rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer group"
+                  className="px-7 py-4 text-base font-bold text-white bg-[#FF6B00] hover:bg-[#e05e00] rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer group focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
                 >
                   <span>Explore Products</span>
                   <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
@@ -69,7 +75,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                 <button
                   id="hero-read-guides-btn"
                   onClick={() => onNavigate({ page: 'guides' })}
-                  className="px-7 py-4 text-base font-semibold text-neutral-800 hover:text-[#111111] bg-white border border-[#E9E9E6] hover:border-neutral-300 rounded-xl transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer"
+                  className="px-7 py-4 text-base font-semibold text-neutral-800 hover:text-[#111111] bg-white border border-[#E9E9E6] hover:border-neutral-300 rounded-xl transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
                 >
                   <span>Read Our Guides</span>
                 </button>
@@ -88,10 +94,12 @@ export const HomePage: React.FC<HomePageProps> = ({
             {/* Right Column: Premium Gaming Desk Photography */}
             <div className="lg:col-span-6">
               <div className="relative rounded-2xl overflow-hidden shadow-xl border border-[#E9E9E6] bg-neutral-900 group">
-                <img
+                <SafeImage
                   src="/acer-nitro.png"
                   alt="Curated compact gaming setup with dual elevated monitors and clean cable management"
+                  fallbackText="Compact Gaming Setup"
                   className="w-full h-80 sm:h-[480px] object-cover object-center group-hover:scale-102 transition-transform duration-500 ease-out"
+                  loading="eager"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent pointer-events-none" />
                 
@@ -142,7 +150,7 @@ export const HomePage: React.FC<HomePageProps> = ({
           </div>
         ) : (
           <div className="bg-white rounded-2xl border border-[#E9E9E6] p-10 text-center text-neutral-500 text-xs">
-            Belum ada produk unggulan yang ditampilkan. Anda dapat menambah dan menandai produk featured di dashboard <span className="font-bold text-[#FF6B00]">admintechcheck</span>.
+            No featured products marked yet. Configure featured products in the TechCheck admin.
           </div>
         )}
       </section>
@@ -163,46 +171,56 @@ export const HomePage: React.FC<HomePageProps> = ({
 
         {categories.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {categories.map((cat) => (
-              <div
-                key={cat.id}
-                onClick={() => onNavigate({ page: 'recommendations', categoryFilter: cat.name })}
-                className="group bg-white rounded-2xl border border-[#E9E9E6] hover:border-neutral-300 shadow-xs hover:shadow-md transition-all overflow-hidden cursor-pointer flex flex-col justify-between"
-              >
-                <div className="relative aspect-16/9 overflow-hidden bg-neutral-100">
-                  <img
-                    src={cat.image}
-                    alt={cat.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
-                  <div className="absolute bottom-3 left-3 text-white">
-                    <span className="text-xs font-semibold bg-black/40 backdrop-blur-xs px-2 py-0.5 rounded">
-                      {cat.productCount} Curated Products
-                    </span>
-                  </div>
-                </div>
-
-                <div className="p-6">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-lg font-bold text-[#111111] group-hover:text-[#FF6B00] transition-colors">
-                      {cat.name}
-                    </h3>
-                    <div className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center text-neutral-600 group-hover:bg-[#FF6B00] group-hover:text-white transition-colors">
-                      <ArrowUpRight className="w-4 h-4" />
+            {categories.map((cat) => {
+              const count = getCategoryCount(cat);
+              return (
+                <div
+                  key={cat.id}
+                  onClick={() => onNavigate({ page: 'recommendations', categoryFilter: cat.name })}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') onNavigate({ page: 'recommendations', categoryFilter: cat.name });
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Browse ${cat.name} category`}
+                  className="group bg-white rounded-2xl border border-[#E9E9E6] hover:border-[#FF6B00] shadow-xs hover:shadow-md transition-all overflow-hidden cursor-pointer flex flex-col justify-between focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
+                >
+                  <div className="relative aspect-16/9 overflow-hidden bg-neutral-100">
+                    <SafeImage
+                      src={cat.image}
+                      alt={cat.name}
+                      fallbackText={cat.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
+                    <div className="absolute bottom-3 left-3 text-white">
+                      <span className="text-xs font-semibold bg-black/40 backdrop-blur-xs px-2 py-0.5 rounded">
+                        {count} Curated Products
+                      </span>
                     </div>
                   </div>
-                  <p className="text-xs text-neutral-600 leading-relaxed">
-                    {cat.description}
-                  </p>
+
+                  <div className="p-6">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-lg font-bold text-[#111111] group-hover:text-[#FF6B00] transition-colors">
+                        {cat.name}
+                      </h3>
+                      <div className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center text-neutral-600 group-hover:bg-[#FF6B00] group-hover:text-white transition-colors">
+                        <ArrowUpRight className="w-4 h-4" />
+                      </div>
+                    </div>
+                    <p className="text-xs text-neutral-600 leading-relaxed">
+                      {cat.description}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <div className="bg-white rounded-2xl border border-[#E9E9E6] p-10 text-center text-neutral-500 text-xs">
-            Belum ada kategori yang ditambahkan.
+            No categories available.
           </div>
         )}
       </section>
@@ -235,13 +253,21 @@ export const HomePage: React.FC<HomePageProps> = ({
         {featuredGuide ? (
           <div
             onClick={() => onSelectGuide(featuredGuide.slug)}
-            className="group bg-white rounded-2xl border border-[#E9E9E6] hover:border-neutral-300 shadow-sm overflow-hidden cursor-pointer grid grid-cols-1 lg:grid-cols-12 mb-8"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') onSelectGuide(featuredGuide.slug);
+            }}
+            tabIndex={0}
+            role="button"
+            aria-label={`Read featured guide: ${featuredGuide.title}`}
+            className="group bg-white rounded-2xl border border-[#E9E9E6] hover:border-[#FF6B00] shadow-sm overflow-hidden cursor-pointer grid grid-cols-1 lg:grid-cols-12 mb-8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
           >
             <div className="lg:col-span-7 relative min-h-[280px] lg:min-h-[380px] overflow-hidden bg-neutral-900">
-              <img
+              <SafeImage
                 src={featuredGuide.image}
                 alt={featuredGuide.title}
+                fallbackText={featuredGuide.title}
                 className="w-full h-full object-cover object-center group-hover:scale-103 transition-transform duration-500"
+                loading="eager"
               />
             </div>
             <div className="lg:col-span-5 p-8 sm:p-10 flex flex-col justify-between">
@@ -267,11 +293,14 @@ export const HomePage: React.FC<HomePageProps> = ({
 
               <div className="mt-8 pt-6 border-t border-neutral-100 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <img
-                    src={featuredGuide.author.avatar}
-                    alt={featuredGuide.author.name}
-                    className="w-8 h-8 rounded-full object-cover"
-                  />
+                  <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 border border-neutral-200">
+                    <SafeImage
+                      src={featuredGuide.author.avatar}
+                      alt={featuredGuide.author.name}
+                      fallbackText={featuredGuide.author.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
                   <div>
                     <span className="text-xs font-bold text-neutral-800 block">
                       {featuredGuide.author.name}
@@ -290,7 +319,7 @@ export const HomePage: React.FC<HomePageProps> = ({
           </div>
         ) : (
           <div className="bg-white rounded-2xl border border-[#E9E9E6] p-10 text-center text-neutral-500 text-xs mb-8">
-            Belum ada artikel panduan yang ditambahkan.
+            No guide articles published yet.
           </div>
         )}
 
@@ -301,12 +330,19 @@ export const HomePage: React.FC<HomePageProps> = ({
               <div
                 key={guide.id}
                 onClick={() => onSelectGuide(guide.slug)}
-                className="group bg-white rounded-xl border border-[#E9E9E6] hover:border-neutral-300 shadow-xs hover:shadow-md transition-all overflow-hidden cursor-pointer flex flex-col justify-between"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') onSelectGuide(guide.slug);
+                }}
+                role="button"
+                tabIndex={0}
+                aria-label={`Read guide: ${guide.title}`}
+                className="group bg-white rounded-xl border border-[#E9E9E6] hover:border-[#FF6B00] shadow-xs hover:shadow-md transition-all overflow-hidden cursor-pointer flex flex-col justify-between focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
               >
                 <div className="aspect-16/10 overflow-hidden bg-neutral-100 relative">
-                  <img
+                  <SafeImage
                     src={guide.image}
                     alt={guide.title}
+                    fallbackText={guide.title}
                     className="w-full h-full object-cover group-hover:scale-104 transition-transform duration-300"
                     loading="lazy"
                   />
@@ -364,7 +400,7 @@ export const HomePage: React.FC<HomePageProps> = ({
               <button
                 id="dark-cta-explore-collection-btn"
                 onClick={() => onNavigate({ page: 'recommendations' })}
-                className="px-8 py-4 bg-[#FF6B00] hover:bg-[#e05e00] text-white font-bold rounded-xl shadow-lg transition-all inline-flex items-center gap-2 cursor-pointer group"
+                className="px-8 py-4 bg-[#FF6B00] hover:bg-[#e05e00] text-white font-bold rounded-xl shadow-lg transition-all inline-flex items-center gap-2 cursor-pointer group focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#FF6B00]"
               >
                 <span>Explore the Collection</span>
                 <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
@@ -376,3 +412,4 @@ export const HomePage: React.FC<HomePageProps> = ({
     </div>
   );
 };
+

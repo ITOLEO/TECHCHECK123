@@ -160,6 +160,24 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
     }
   }, [isAuthenticated]);
 
+  // Lock background body scrolling when any modal is open, and restore when closed
+  const isAnyAdminModalOpen =
+    isProductModalOpen ||
+    isCategoryModalOpen ||
+    isGuideModalOpen ||
+    Boolean(deleteTarget) ||
+    showSchemaModal;
+
+  React.useEffect(() => {
+    if (isAnyAdminModalOpen) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [isAnyAdminModalOpen]);
+
   const handleCheckSupabase = async () => {
     setIsCheckingSupabase(true);
     const status = await dataStorage.checkSupabaseStatus();
@@ -1754,9 +1772,10 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
       {/* PRODUCT FORM MODAL (CREATE / EDIT) */}
       {/* ==================================================== */}
       {isProductModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl border border-[#E9E9E6] shadow-2xl w-full max-w-3xl my-8 overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="p-6 border-b border-[#E9E9E6] flex items-center justify-between bg-[#F7F6F2]">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-hidden">
+          <div className="bg-white rounded-3xl border border-[#E9E9E6] shadow-2xl w-full max-w-3xl max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-2.5rem)] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            {/* Modal Header - Fixed at top */}
+            <div className="shrink-0 p-5 sm:p-6 border-b border-[#E9E9E6] flex items-center justify-between bg-[#F7F6F2]">
               <div>
                 <span className="text-[10px] font-bold uppercase tracking-wider text-[#FF6B00]">
                   {editingProduct ? 'EDIT PRODUK' : 'PRODUK BARU'}
@@ -1766,6 +1785,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                 </h3>
               </div>
               <button
+                type="button"
                 onClick={() => setIsProductModalOpen(false)}
                 className="p-2 text-neutral-400 hover:text-[#111111] rounded-xl hover:bg-neutral-200 transition-colors cursor-pointer"
               >
@@ -1773,14 +1793,17 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
               </button>
             </div>
 
-            <form onSubmit={handleSaveProduct} className="p-6 overflow-y-auto space-y-6 flex-1 text-xs">
-              {/* Error Banner */}
-              {productFormError && (
-                <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold rounded-xl flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-rose-500 shrink-0" />
-                  <span>{productFormError}</span>
-                </div>
-              )}
+            {/* Form wrapper with single scrollable content and sticky footer */}
+            <form onSubmit={handleSaveProduct} className="flex-1 min-h-0 flex flex-col overflow-hidden">
+              {/* Scrollable Form Content */}
+              <div className="flex-1 min-h-0 overflow-y-auto p-5 sm:p-6 space-y-6 text-xs overscroll-contain">
+                {/* Error Banner */}
+                {productFormError && (
+                  <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold rounded-xl flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-rose-500 shrink-0" />
+                    <span>{productFormError}</span>
+                  </div>
+                )}
 
               {/* Basic Details */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1992,12 +2015,14 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                   />
                 </div>
               </div>
+              </div>
 
-              <div className="pt-4 border-t border-[#E9E9E6] flex items-center justify-end gap-3">
+              {/* Sticky Modal Footer - Always visible and accessible */}
+              <div className="shrink-0 sticky bottom-0 bg-[#F7F6F2] p-4 sm:p-5 border-t border-[#E9E9E6] flex items-center justify-end gap-3 z-10 shadow-xs">
                 <button
                   type="button"
                   onClick={() => setIsProductModalOpen(false)}
-                  className="px-5 py-2.5 bg-[#F7F6F2] hover:bg-neutral-200 text-neutral-700 font-bold rounded-xl transition-all cursor-pointer"
+                  className="px-5 py-2.5 bg-white hover:bg-neutral-100 text-neutral-700 font-bold rounded-xl border border-[#E9E9E6] transition-all cursor-pointer shadow-2xs"
                 >
                   Batal
                 </button>
@@ -2018,13 +2043,15 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
       {/* CATEGORY FORM MODAL (CREATE / EDIT) */}
       {/* ==================================================== */}
       {isCategoryModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl border border-[#E9E9E6] shadow-2xl w-full max-w-lg overflow-hidden">
-            <div className="p-6 border-b border-[#E9E9E6] flex items-center justify-between bg-[#F7F6F2]">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-hidden">
+          <div className="bg-white rounded-3xl border border-[#E9E9E6] shadow-2xl w-full max-w-lg max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-2.5rem)] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            {/* Modal Header */}
+            <div className="shrink-0 p-5 sm:p-6 border-b border-[#E9E9E6] flex items-center justify-between bg-[#F7F6F2]">
               <h3 className="text-lg font-extrabold text-[#111111]">
                 {editingCategory ? `Edit Kategori: ${editingCategory.name}` : 'Tambah Kategori Baru'}
               </h3>
               <button
+                type="button"
                 onClick={() => setIsCategoryModalOpen(false)}
                 className="p-2 text-neutral-400 hover:text-[#111111] rounded-xl hover:bg-neutral-200 transition-colors cursor-pointer"
               >
@@ -2032,66 +2059,70 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
               </button>
             </div>
 
-            <form onSubmit={handleSaveCategory} className="p-6 space-y-4 text-xs">
-              {categoryFormError && (
-                <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold rounded-xl flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-rose-500 shrink-0" />
-                  <span>{categoryFormError}</span>
+            <form onSubmit={handleSaveCategory} className="flex-1 min-h-0 flex flex-col overflow-hidden">
+              {/* Scrollable Content */}
+              <div className="flex-1 min-h-0 overflow-y-auto p-5 sm:p-6 space-y-4 text-xs overscroll-contain">
+                {categoryFormError && (
+                  <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold rounded-xl flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-rose-500 shrink-0" />
+                    <span>{categoryFormError}</span>
+                  </div>
+                )}
+
+                <div>
+                  <label className="block font-bold text-neutral-700 mb-1">Nama Kategori *</label>
+                  <input
+                    type="text"
+                    required
+                    value={categoryFormData.name || ''}
+                    onChange={(e) => {
+                      setCategoryFormData({ ...categoryFormData, name: e.target.value });
+                      if (categoryFormError) setCategoryFormError(null);
+                    }}
+                    placeholder="Contoh: Audio, Lighting, Monitors"
+                    className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl font-medium focus:outline-none focus:border-[#FF6B00]"
+                  />
                 </div>
-              )}
 
-              <div>
-                <label className="block font-bold text-neutral-700 mb-1">Nama Kategori *</label>
-                <input
-                  type="text"
-                  required
-                  value={categoryFormData.name || ''}
-                  onChange={(e) => {
-                    setCategoryFormData({ ...categoryFormData, name: e.target.value });
-                    if (categoryFormError) setCategoryFormError(null);
-                  }}
-                  placeholder="Contoh: Audio, Lighting, Monitors"
-                  className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl font-medium focus:outline-none focus:border-[#FF6B00]"
-                />
+                <div>
+                  <label className="block font-bold text-neutral-700 mb-1">Slug URL (Opsional)</label>
+                  <input
+                    type="text"
+                    value={categoryFormData.slug || ''}
+                    onChange={(e) => setCategoryFormData({ ...categoryFormData, slug: e.target.value })}
+                    placeholder="monitors, accessories (otomatis jika kosong)"
+                    className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-neutral-700 mb-1">Deskripsi Kategori</label>
+                  <textarea
+                    rows={3}
+                    value={categoryFormData.description || ''}
+                    onChange={(e) => setCategoryFormData({ ...categoryFormData, description: e.target.value })}
+                    placeholder="Deskripsi ringkas kategori..."
+                    className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl"
+                  />
+                </div>
+
+                <div>
+                  <AdminImageUploader
+                    label="URL Gambar Cover"
+                    value={categoryFormData.image || ''}
+                    onChange={(newUrl) => setCategoryFormData({ ...categoryFormData, image: newUrl })}
+                    presets={['/acer-nitro.png', '/acer-creator.png', '/powerpac.png', '/acer-portable.png']}
+                    placeholder="https://example.com/category-cover.jpg atau /acer-nitro.png"
+                  />
+                </div>
               </div>
 
-              <div>
-                <label className="block font-bold text-neutral-700 mb-1">Slug URL (Opsional)</label>
-                <input
-                  type="text"
-                  value={categoryFormData.slug || ''}
-                  onChange={(e) => setCategoryFormData({ ...categoryFormData, slug: e.target.value })}
-                  placeholder="monitors, accessories (otomatis jika kosong)"
-                  className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl font-mono"
-                />
-              </div>
-
-              <div>
-                <label className="block font-bold text-neutral-700 mb-1">Deskripsi Kategori</label>
-                <textarea
-                  rows={3}
-                  value={categoryFormData.description || ''}
-                  onChange={(e) => setCategoryFormData({ ...categoryFormData, description: e.target.value })}
-                  placeholder="Deskripsi ringkas kategori..."
-                  className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl"
-                />
-              </div>
-
-              <div>
-                <AdminImageUploader
-                  label="URL Gambar Cover"
-                  value={categoryFormData.image || ''}
-                  onChange={(newUrl) => setCategoryFormData({ ...categoryFormData, image: newUrl })}
-                  presets={['/acer-nitro.png', '/acer-creator.png', '/powerpac.png', '/acer-portable.png']}
-                  placeholder="https://example.com/category-cover.jpg atau /acer-nitro.png"
-                />
-              </div>
-
-              <div className="pt-4 border-t border-[#E9E9E6] flex items-center justify-end gap-3">
+              {/* Sticky Footer */}
+              <div className="shrink-0 sticky bottom-0 bg-[#F7F6F2] p-4 sm:p-5 border-t border-[#E9E9E6] flex items-center justify-end gap-3 z-10 shadow-xs">
                 <button
                   type="button"
                   onClick={() => setIsCategoryModalOpen(false)}
-                  className="px-5 py-2 bg-[#F7F6F2] hover:bg-neutral-200 text-neutral-700 font-bold rounded-xl transition-all cursor-pointer"
+                  className="px-5 py-2 bg-white hover:bg-neutral-100 text-neutral-700 font-bold rounded-xl border border-[#E9E9E6] transition-all cursor-pointer shadow-2xs"
                 >
                   Batal
                 </button>
@@ -2111,13 +2142,15 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
       {/* GUIDE FORM MODAL (CREATE / EDIT) */}
       {/* ==================================================== */}
       {isGuideModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl border border-[#E9E9E6] shadow-2xl w-full max-w-2xl my-8 overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="p-6 border-b border-[#E9E9E6] flex items-center justify-between bg-[#F7F6F2]">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-hidden">
+          <div className="bg-white rounded-3xl border border-[#E9E9E6] shadow-2xl w-full max-w-2xl max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-2.5rem)] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+            {/* Modal Header */}
+            <div className="shrink-0 p-5 sm:p-6 border-b border-[#E9E9E6] flex items-center justify-between bg-[#F7F6F2]">
               <h3 className="text-lg font-extrabold text-[#111111]">
                 {editingGuide ? `Edit Panduan: ${editingGuide.title}` : 'Tambah Panduan Baru'}
               </h3>
               <button
+                type="button"
                 onClick={() => setIsGuideModalOpen(false)}
                 className="p-2 text-neutral-400 hover:text-[#111111] rounded-xl hover:bg-neutral-200 transition-colors cursor-pointer"
               >
@@ -2125,79 +2158,83 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
               </button>
             </div>
 
-            <form onSubmit={handleSaveGuide} className="p-6 overflow-y-auto space-y-4 text-xs">
-              {guideFormError && (
-                <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold rounded-xl flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-rose-500 shrink-0" />
-                  <span>{guideFormError}</span>
-                </div>
-              )}
+            <form onSubmit={handleSaveGuide} className="flex-1 min-h-0 flex flex-col overflow-hidden">
+              {/* Scrollable Content */}
+              <div className="flex-1 min-h-0 overflow-y-auto p-5 sm:p-6 space-y-4 text-xs overscroll-contain">
+                {guideFormError && (
+                  <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold rounded-xl flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-rose-500 shrink-0" />
+                    <span>{guideFormError}</span>
+                  </div>
+                )}
 
-              <div>
-                <label className="block font-bold text-neutral-700 mb-1">Judul Panduan *</label>
-                <input
-                  type="text"
-                  required
-                  value={guideFormData.title || ''}
-                  onChange={(e) => {
-                    setGuideFormData({ ...guideFormData, title: e.target.value });
-                    if (guideFormError) setGuideFormError(null);
-                  }}
-                  placeholder="Contoh: The Ultimate Dual Monitor Desk Mount Guide"
-                  className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl font-medium"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-bold text-neutral-700 mb-1">Kategori Panduan</label>
+                  <label className="block font-bold text-neutral-700 mb-1">Judul Panduan *</label>
                   <input
                     type="text"
-                    value={guideFormData.category || ''}
-                    onChange={(e) => setGuideFormData({ ...guideFormData, category: e.target.value })}
-                    placeholder="Setup Advice, Cable Management"
+                    required
+                    value={guideFormData.title || ''}
+                    onChange={(e) => {
+                      setGuideFormData({ ...guideFormData, title: e.target.value });
+                      if (guideFormError) setGuideFormError(null);
+                    }}
+                    placeholder="Contoh: The Ultimate Dual Monitor Desk Mount Guide"
+                    className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl font-medium"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block font-bold text-neutral-700 mb-1">Kategori Panduan</label>
+                    <input
+                      type="text"
+                      value={guideFormData.category || ''}
+                      onChange={(e) => setGuideFormData({ ...guideFormData, category: e.target.value })}
+                      placeholder="Setup Advice, Cable Management"
+                      className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-neutral-700 mb-1">Waktu Baca (Read Time)</label>
+                    <input
+                      type="text"
+                      value={guideFormData.readTime || ''}
+                      onChange={(e) => setGuideFormData({ ...guideFormData, readTime: e.target.value })}
+                      placeholder="4 min read"
+                      className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block font-bold text-neutral-700 mb-1">Ringkasan / Excerpt</label>
+                  <textarea
+                    rows={2}
+                    value={guideFormData.excerpt || ''}
+                    onChange={(e) => setGuideFormData({ ...guideFormData, excerpt: e.target.value })}
+                    placeholder="Ringkasan singkat tentang panduan ini..."
                     className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-neutral-700 mb-1">Waktu Baca (Read Time)</label>
-                  <input
-                    type="text"
-                    value={guideFormData.readTime || ''}
-                    onChange={(e) => setGuideFormData({ ...guideFormData, readTime: e.target.value })}
-                    placeholder="4 min read"
-                    className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl"
+                  <AdminImageUploader
+                    label="URL Gambar Header"
+                    value={guideFormData.image || ''}
+                    onChange={(newUrl) => setGuideFormData({ ...guideFormData, image: newUrl })}
+                    presets={['/acer-nitro.png', '/acer-creator.png', '/powerpac.png', '/acer-portable.png']}
+                    placeholder="https://example.com/guide-header.jpg atau /acer-nitro.png"
                   />
                 </div>
               </div>
 
-              <div>
-                <label className="block font-bold text-neutral-700 mb-1">Ringkasan / Excerpt</label>
-                <textarea
-                  rows={2}
-                  value={guideFormData.excerpt || ''}
-                  onChange={(e) => setGuideFormData({ ...guideFormData, excerpt: e.target.value })}
-                  placeholder="Ringkasan singkat tentang panduan ini..."
-                  className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl"
-                />
-              </div>
-
-              <div>
-                <AdminImageUploader
-                  label="URL Gambar Header"
-                  value={guideFormData.image || ''}
-                  onChange={(newUrl) => setGuideFormData({ ...guideFormData, image: newUrl })}
-                  presets={['/acer-nitro.png', '/acer-creator.png', '/powerpac.png', '/acer-portable.png']}
-                  placeholder="https://example.com/guide-header.jpg atau /acer-nitro.png"
-                />
-              </div>
-
-              <div className="pt-4 border-t border-[#E9E9E6] flex items-center justify-end gap-3">
+              {/* Sticky Footer */}
+              <div className="shrink-0 sticky bottom-0 bg-[#F7F6F2] p-4 sm:p-5 border-t border-[#E9E9E6] flex items-center justify-end gap-3 z-10 shadow-xs">
                 <button
                   type="button"
                   onClick={() => setIsGuideModalOpen(false)}
-                  className="px-5 py-2 bg-[#F7F6F2] hover:bg-neutral-200 text-neutral-700 font-bold rounded-xl transition-all cursor-pointer"
+                  className="px-5 py-2 bg-white hover:bg-neutral-100 text-neutral-700 font-bold rounded-xl border border-[#E9E9E6] transition-all cursor-pointer shadow-2xs"
                 >
                   Batal
                 </button>
