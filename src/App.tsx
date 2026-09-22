@@ -356,6 +356,7 @@ export default function App() {
         onClose={() => setIsSearchOpen(false)}
         onNavigate={navigate}
         products={products}
+        categories={categories}
         guides={guides}
       />
 

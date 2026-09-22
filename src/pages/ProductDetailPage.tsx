@@ -33,16 +33,16 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
   if (!product) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-20 text-center space-y-6">
-        <div className="w-16 h-16 rounded-2xl bg-orange-50 border border-orange-200 flex items-center justify-center mx-auto text-[#FF6B00]">
+        <div className="w-16 h-16 rounded-2xl bg-orange-50 dark:bg-[#251E19] border border-orange-200 dark:border-orange-900/50 flex items-center justify-center mx-auto text-[#FF6B00]">
           <Layers className="w-8 h-8" />
         </div>
-        <h1 className="text-3xl font-extrabold text-[#111111]">Product Not Found</h1>
-        <p className="text-neutral-600 max-w-md mx-auto text-sm leading-relaxed">
+        <h1 className="text-3xl font-extrabold text-[#111111] dark:text-white">Product Not Found</h1>
+        <p className="text-neutral-600 dark:text-neutral-300 max-w-md mx-auto text-sm leading-relaxed">
           The accessory or monitor you are looking for might have been moved or updated in our catalog.
         </p>
         <button
           onClick={() => onNavigate({ page: 'recommendations' })}
-          className="inline-flex items-center gap-2 px-6 py-3 bg-[#111111] hover:bg-[#FF6B00] text-white text-sm font-semibold rounded-xl transition-all shadow-xs cursor-pointer"
+          className="inline-flex items-center gap-2 px-6 py-3 bg-[#111111] dark:bg-[#252832] hover:bg-[#FF6B00] dark:hover:bg-[#FF6B00] text-white text-sm font-semibold rounded-xl transition-all shadow-xs cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Browse All Recommendations</span>
@@ -93,36 +93,36 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-16">
       {/* 1. Breadcrumbs */}
-      <nav aria-label="Breadcrumbs" className="flex items-center gap-2 text-xs font-medium text-neutral-500 overflow-x-auto whitespace-nowrap pb-1">
+      <nav aria-label="Breadcrumbs" className="flex items-center gap-2 text-xs font-medium text-neutral-500 dark:text-neutral-400 overflow-x-auto whitespace-nowrap pb-1">
         <button
           onClick={() => onNavigate({ page: 'home' })}
-          className="hover:text-[#FF6B00] transition-colors cursor-pointer"
+          className="hover:text-[#FF6B00] dark:hover:text-[#FF6B00] transition-colors cursor-pointer"
         >
           Home
         </button>
         <ChevronRight className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
         <button
           onClick={() => onNavigate({ page: 'recommendations' })}
-          className="hover:text-[#FF6B00] transition-colors cursor-pointer"
+          className="hover:text-[#FF6B00] dark:hover:text-[#FF6B00] transition-colors cursor-pointer"
         >
           Recommendations
         </button>
         <ChevronRight className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
         <button
           onClick={() => onNavigate({ page: 'recommendations', categoryFilter: product.category })}
-          className="hover:text-[#FF6B00] transition-colors cursor-pointer"
+          className="hover:text-[#FF6B00] dark:hover:text-[#FF6B00] transition-colors cursor-pointer"
         >
           {product.category}
         </button>
         <ChevronRight className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
-        <span className="text-neutral-900 font-semibold truncate max-w-xs">{product.name}</span>
+        <span className="text-neutral-900 dark:text-neutral-200 font-semibold truncate max-w-xs">{product.name}</span>
       </nav>
 
       {/* 2. Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-start">
         {/* Left Column: Product Image & Highlights */}
         <div className="lg:col-span-6 space-y-8">
-          <div className="relative aspect-4/3 sm:aspect-16/11 bg-neutral-100 rounded-2xl border border-[#E9E9E6] overflow-hidden shadow-xs">
+          <div className="relative aspect-4/3 sm:aspect-16/11 bg-neutral-100 dark:bg-[#1D1F27] rounded-2xl border border-[#E9E9E6] dark:border-[#272932] overflow-hidden shadow-xs">
             <SafeImage
               src={activeImage}
               alt={product.name}
@@ -143,8 +143,8 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                   aria-label={`View photo angle ${idx + 1}`}
                   className={`w-20 h-16 sm:w-24 sm:h-18 rounded-xl overflow-hidden border-2 transition-all cursor-pointer shrink-0 ${
                     activeImage === img
-                      ? 'border-[#FF6B00] ring-2 ring-orange-200'
-                      : 'border-[#E9E9E6] opacity-70 hover:opacity-100'
+                      ? 'border-[#FF6B00] ring-2 ring-orange-200 dark:ring-orange-950'
+                      : 'border-[#E9E9E6] dark:border-[#272932] opacity-70 hover:opacity-100'
                   }`}
                 >
                   <SafeImage
@@ -161,10 +161,10 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
           {/* Product Highlights */}
           {product.highlights && product.highlights.length > 0 && (
             <div className="mt-8 pt-4">
-              <h3 className="text-xl font-bold text-[#111111] mb-4">Product Highlights</h3>
+              <h3 className="text-xl font-bold text-[#111111] dark:text-white mb-4">Product Highlights</h3>
               <ul className="space-y-3">
                 {product.highlights.map((highlight, idx) => (
-                  <li key={idx} className="flex items-start gap-3 text-sm text-neutral-700">
+                  <li key={idx} className="flex items-start gap-3 text-sm text-neutral-700 dark:text-neutral-300">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#FF6B00] mt-1.5 shrink-0" />
                     <span>{highlight}</span>
                   </li>
@@ -179,7 +179,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
           <div>
             {product.badge && (
               <div className="mb-4">
-                <span className="inline-flex items-center px-3 py-1.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-[#111111] text-white">
+                <span className="inline-flex items-center px-3 py-1.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-[#111111] dark:bg-[#252832] text-white">
                   {product.badge}
                 </span>
               </div>
@@ -191,11 +191,11 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
               </span>
             </div>
 
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#111111] tracking-tight leading-tight mb-4">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#111111] dark:text-white tracking-tight leading-tight mb-4">
               {product.name}
             </h1>
 
-            <p className="text-base text-neutral-600 leading-relaxed mb-6">
+            <p className="text-base text-neutral-600 dark:text-neutral-300 leading-relaxed mb-6">
               {product.shortBenefit}
             </p>
 
@@ -210,7 +210,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                   <span>View live product</span>
                   <ExternalLink className="w-4 h-4 shrink-0" />
                 </button>
-                <div className="flex items-center gap-1.5 text-xs text-neutral-500">
+                <div className="flex items-center gap-1.5 text-xs text-neutral-500 dark:text-neutral-400">
                   <ShieldCheck className="w-3.5 h-3.5 text-[#FF6B00] shrink-0" />
                   <span>Opens merchant partner in a new tab. Reader-supported commissions help keep our editorial independent.</span>
                 </div>
@@ -218,15 +218,15 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
             )}
           </div>
 
-          <hr className="border-neutral-200" />
+          <hr className="border-neutral-200 dark:border-[#272932]" />
 
           {/* Why We Recommend It */}
           {product.benefits && product.benefits.length > 0 && (
             <div>
-              <h2 className="text-xl font-bold text-[#111111] mb-4">Why we recommend it</h2>
+              <h2 className="text-xl font-bold text-[#111111] dark:text-white mb-4">Why we recommend it</h2>
               <ul className="space-y-3">
                 {product.benefits.map((benefit, idx) => (
-                  <li key={idx} className="flex items-start gap-3 text-sm text-neutral-700">
+                  <li key={idx} className="flex items-start gap-3 text-sm text-neutral-700 dark:text-neutral-300">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#FF6B00] mt-1.5 shrink-0" />
                     <span>{benefit}</span>
                   </li>
@@ -238,14 +238,14 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
           {/* Specifications */}
           {product.specifications && Object.keys(product.specifications).length > 0 && (
             <>
-              <hr className="border-neutral-200" />
+              <hr className="border-neutral-200 dark:border-[#272932]" />
               <div>
-                <h2 className="text-xl font-bold text-[#111111] mb-4">Specifications</h2>
+                <h2 className="text-xl font-bold text-[#111111] dark:text-white mb-4">Specifications</h2>
                 <div className="space-y-2">
                   {Object.entries(product.specifications).map(([key, value]) => (
-                    <div key={key} className="flex flex-col sm:flex-row sm:items-center py-2 border-b border-neutral-100 last:border-0">
-                      <span className="text-sm font-semibold text-neutral-500 sm:w-1/3">{key}</span>
-                      <span className="text-sm font-medium text-[#111111] sm:w-2/3">{value}</span>
+                    <div key={key} className="flex flex-col sm:flex-row sm:items-center py-2 border-b border-neutral-100 dark:border-[#23252E] last:border-0">
+                      <span className="text-sm font-semibold text-neutral-500 dark:text-neutral-400 sm:w-1/3">{key}</span>
+                      <span className="text-sm font-medium text-[#111111] dark:text-neutral-200 sm:w-2/3">{value}</span>
                     </div>
                   ))}
                 </div>
@@ -256,12 +256,12 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
           {/* Best For */}
           {product.greatFor && product.greatFor.length > 0 && (
             <>
-              <hr className="border-neutral-200" />
+              <hr className="border-neutral-200 dark:border-[#272932]" />
               <div>
-                <h2 className="text-xl font-bold text-[#111111] mb-4">Best For</h2>
+                <h2 className="text-xl font-bold text-[#111111] dark:text-white mb-4">Best For</h2>
                 <ul className="space-y-3">
                   {product.greatFor.map((item, idx) => (
-                    <li key={idx} className="flex items-start gap-3 text-sm text-neutral-700">
+                    <li key={idx} className="flex items-start gap-3 text-sm text-neutral-700 dark:text-neutral-300">
                       <span className="w-1.5 h-1.5 rounded-full bg-[#FF6B00] mt-1.5 shrink-0" />
                       <span>{item}</span>
                     </li>
@@ -274,12 +274,12 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
           {/* Setup Considerations */}
           {product.setupConsiderations && product.setupConsiderations.length > 0 && (
             <>
-              <hr className="border-neutral-200" />
+              <hr className="border-neutral-200 dark:border-[#272932]" />
               <div>
-                <h2 className="text-xl font-bold text-[#111111] mb-4">Setup Considerations</h2>
+                <h2 className="text-xl font-bold text-[#111111] dark:text-white mb-4">Setup Considerations</h2>
                 <ul className="space-y-3">
                   {product.setupConsiderations.map((note, idx) => (
-                    <li key={idx} className="flex items-start gap-3 text-sm text-neutral-700">
+                    <li key={idx} className="flex items-start gap-3 text-sm text-neutral-700 dark:text-neutral-300">
                       <span className="w-1.5 h-1.5 rounded-full bg-[#FF6B00] mt-1.5 shrink-0" />
                       <span>{note}</span>
                     </li>
@@ -292,8 +292,8 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
           {/* Our Take */}
           {product.verdict && (
             <>
-              <hr className="border-neutral-200" />
-              <div className="bg-[#111111] text-white rounded-xl p-6 shadow-sm">
+              <hr className="border-neutral-200 dark:border-[#272932]" />
+              <div className="bg-[#111111] dark:bg-[#16171E] text-white rounded-xl p-6 shadow-sm border border-neutral-800 dark:border-[#272932]">
                 <div className="flex items-center gap-2 mb-3">
                   <Sparkles className="w-4 h-4 text-[#FF6B00]" />
                   <h2 className="text-lg font-bold">Our Take</h2>
@@ -309,19 +309,19 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
 
       {/* 3. Related Products Section */}
       {relatedProducts.length > 0 && (
-        <section className="pt-12 border-t border-[#E9E9E6]">
+        <section className="pt-12 border-t border-[#E9E9E6] dark:border-[#272932]">
           <div className="flex items-center justify-between mb-8">
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-[#FF6B00] block mb-1">
                 Complementary Gear
               </span>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-[#111111]">
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-[#111111] dark:text-white">
                 Related Setup Accessories
               </h2>
             </div>
             <button
               onClick={() => onNavigate({ page: 'recommendations' })}
-              className="text-xs font-semibold text-[#111111] hover:text-[#FF6B00] transition-colors cursor-pointer"
+              className="text-xs font-semibold text-[#111111] dark:text-neutral-300 hover:text-[#FF6B00] dark:hover:text-[#FF6B00] transition-colors cursor-pointer"
             >
               View all gear →
             </button>
@@ -341,4 +341,3 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
     </div>
   );
 };
-

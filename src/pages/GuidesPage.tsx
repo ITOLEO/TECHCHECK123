@@ -53,16 +53,16 @@ export const GuidesPage: React.FC<GuidesPageProps> = ({ guides, onSelectGuide })
         <span className="text-xs font-bold uppercase tracking-wider text-[#FF6B00] block mb-2">
           Setup Architecture & Tutorials
         </span>
-        <h1 className="text-3xl sm:text-5xl font-extrabold text-[#111111] tracking-tight">
+        <h1 className="text-3xl sm:text-5xl font-extrabold text-[#111111] dark:text-white tracking-tight transition-colors">
           Guides for Better Setups.
         </h1>
-        <p className="mt-3 text-base text-neutral-600 leading-relaxed">
+        <p className="mt-3 text-base text-neutral-600 dark:text-neutral-300 leading-relaxed transition-colors">
           Practical ideas, mathematical spatial breakdowns, and blueprints for building a cleaner, smarter gaming setup with less space.
         </p>
       </div>
 
       {/* Category Tabs & Search */}
-      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 border-b border-[#E9E9E6] pb-4">
+      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 border-b border-[#E9E9E6] dark:border-[#272932] pb-4">
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
           {categories.map((cat) => (
             <button
@@ -70,8 +70,8 @@ export const GuidesPage: React.FC<GuidesPageProps> = ({ guides, onSelectGuide })
               onClick={() => setSelectedCategory(cat)}
               className={`px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
                 selectedCategory === cat
-                  ? 'bg-[#111111] text-white shadow-xs'
-                  : 'bg-white text-neutral-700 hover:bg-neutral-100 border border-[#E9E9E6]'
+                  ? 'bg-[#111111] dark:bg-[#252832] text-white shadow-xs'
+                  : 'bg-white dark:bg-[#16171D] text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-[#20222B] border border-[#E9E9E6] dark:border-[#272932]'
               }`}
             >
               {cat}
@@ -87,12 +87,12 @@ export const GuidesPage: React.FC<GuidesPageProps> = ({ guides, onSelectGuide })
             placeholder="Search guides & tutorials..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-8 py-2 text-xs bg-white border border-[#E9E9E6] rounded-xl focus:outline-none focus:border-neutral-400 text-neutral-800"
+            className="w-full pl-9 pr-8 py-2 text-xs bg-white dark:bg-[#1A1C24] border border-[#E9E9E6] dark:border-[#2A2C37] rounded-xl focus:outline-none focus:border-neutral-400 text-neutral-800 dark:text-neutral-100 placeholder-neutral-400 dark:placeholder-neutral-500"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 cursor-pointer"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 cursor-pointer"
               aria-label="Clear guide search"
             >
               <X className="w-3.5 h-3.5" />
@@ -111,7 +111,7 @@ export const GuidesPage: React.FC<GuidesPageProps> = ({ guides, onSelectGuide })
           tabIndex={0}
           role="button"
           aria-label={`Read featured guide: ${featuredGuide.title}`}
-          className="group bg-white rounded-3xl border border-[#E9E9E6] hover:border-[#FF6B00] shadow-md overflow-hidden cursor-pointer grid grid-cols-1 lg:grid-cols-12 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
+          className="group bg-white dark:bg-[#16171D] rounded-3xl border border-[#E9E9E6] dark:border-[#272932] hover:border-[#FF6B00] dark:hover:border-[#FF6B00] shadow-md overflow-hidden cursor-pointer grid grid-cols-1 lg:grid-cols-12 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
         >
           <div className="lg:col-span-7 relative min-h-[300px] lg:min-h-[420px] overflow-hidden bg-neutral-900">
             <SafeImage
@@ -130,7 +130,7 @@ export const GuidesPage: React.FC<GuidesPageProps> = ({ guides, onSelectGuide })
 
           <div className="lg:col-span-5 p-8 sm:p-12 flex flex-col justify-between">
             <div>
-              <div className="flex items-center gap-3 text-xs text-neutral-500 mb-3 font-medium">
+              <div className="flex items-center gap-3 text-xs text-neutral-500 dark:text-neutral-400 mb-3 font-medium">
                 <span className="font-bold uppercase tracking-wider text-[#FF6B00]">
                   {featuredGuide.category}
                 </span>
@@ -143,18 +143,18 @@ export const GuidesPage: React.FC<GuidesPageProps> = ({ guides, onSelectGuide })
                 <span>{featuredGuide.publishDate}</span>
               </div>
 
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-[#111111] group-hover:text-[#FF6B00] transition-colors leading-tight">
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-[#111111] dark:text-white group-hover:text-[#FF6B00] transition-colors leading-tight">
                 {featuredGuide.title}
               </h2>
 
-              <p className="mt-4 text-sm text-neutral-600 leading-relaxed">
+              <p className="mt-4 text-sm text-neutral-600 dark:text-neutral-300 leading-relaxed">
                 {featuredGuide.excerpt}
               </p>
             </div>
 
-            <div className="mt-8 pt-6 border-t border-neutral-100 flex items-center justify-between">
+            <div className="mt-8 pt-6 border-t border-neutral-100 dark:border-[#252832] flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full overflow-hidden shrink-0 border border-neutral-200">
+                <div className="w-9 h-9 rounded-full overflow-hidden shrink-0 border border-neutral-200 dark:border-neutral-700">
                   <SafeImage
                     src={featuredGuide.author.avatar}
                     alt={featuredGuide.author.name}
@@ -163,16 +163,16 @@ export const GuidesPage: React.FC<GuidesPageProps> = ({ guides, onSelectGuide })
                   />
                 </div>
                 <div>
-                  <span className="text-xs font-bold text-neutral-900 block">
+                  <span className="text-xs font-bold text-neutral-900 dark:text-neutral-200 block">
                     {featuredGuide.author.name}
                   </span>
-                  <span className="text-[10px] text-neutral-500 block">
+                  <span className="text-[10px] text-neutral-500 dark:text-neutral-400 block">
                     {featuredGuide.author.role}
                   </span>
                 </div>
               </div>
 
-              <span className="text-sm font-bold text-[#111111] group-hover:text-[#FF6B00] transition-colors flex items-center gap-1.5">
+              <span className="text-sm font-bold text-[#111111] dark:text-white group-hover:text-[#FF6B00] transition-colors flex items-center gap-1.5">
                 <span>Read Guide</span>
                 <ArrowRight className="w-4 h-4" />
               </span>
@@ -184,10 +184,10 @@ export const GuidesPage: React.FC<GuidesPageProps> = ({ guides, onSelectGuide })
       {/* 3-Column Article Grid */}
       <div>
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-[#111111]">
+          <h2 className="text-xl font-bold text-[#111111] dark:text-white">
             {selectedCategory === 'All' ? 'All Editorial Articles' : `${selectedCategory} Articles`}
           </h2>
-          <span className="text-xs text-neutral-500">
+          <span className="text-xs text-neutral-500 dark:text-neutral-400">
             {filteredGuides.length} {filteredGuides.length === 1 ? 'article' : 'articles'} available
           </span>
         </div>
@@ -204,9 +204,9 @@ export const GuidesPage: React.FC<GuidesPageProps> = ({ guides, onSelectGuide })
                 tabIndex={0}
                 role="button"
                 aria-label={`Read guide: ${guide.title}`}
-                className="group bg-white rounded-2xl border border-[#E9E9E6] hover:border-[#FF6B00] shadow-xs hover:shadow-md transition-all overflow-hidden cursor-pointer flex flex-col justify-between focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
+                className="group bg-white dark:bg-[#16171D] rounded-2xl border border-[#E9E9E6] dark:border-[#272932] hover:border-[#FF6B00] dark:hover:border-[#FF6B00] shadow-xs hover:shadow-md transition-all overflow-hidden cursor-pointer flex flex-col justify-between focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
               >
-                <div className="aspect-16/10 overflow-hidden bg-neutral-100 relative">
+                <div className="aspect-16/10 overflow-hidden bg-neutral-100 dark:bg-[#1D1F27] relative">
                   <SafeImage
                     src={guide.image}
                     alt={guide.title}
@@ -223,7 +223,7 @@ export const GuidesPage: React.FC<GuidesPageProps> = ({ guides, onSelectGuide })
 
                 <div className="p-6 flex-1 flex flex-col justify-between">
                   <div>
-                    <div className="flex items-center gap-2 text-[11px] text-neutral-400 mb-2 font-medium">
+                    <div className="flex items-center gap-2 text-[11px] text-neutral-400 dark:text-neutral-500 mb-2 font-medium">
                       <span className="flex items-center gap-1">
                         <Clock className="w-3 h-3" />
                         <span>{guide.readTime}</span>
@@ -232,16 +232,16 @@ export const GuidesPage: React.FC<GuidesPageProps> = ({ guides, onSelectGuide })
                       <span>{guide.publishDate}</span>
                     </div>
 
-                    <h3 className="text-lg font-bold text-[#111111] group-hover:text-[#FF6B00] transition-colors leading-snug">
+                    <h3 className="text-lg font-bold text-[#111111] dark:text-white group-hover:text-[#FF6B00] transition-colors leading-snug">
                       {guide.title}
                     </h3>
 
-                    <p className="mt-2.5 text-xs text-neutral-600 line-clamp-2 leading-relaxed">
+                    <p className="mt-2.5 text-xs text-neutral-600 dark:text-neutral-400 line-clamp-2 leading-relaxed">
                       {guide.excerpt}
                     </p>
                   </div>
 
-                  <div className="mt-6 pt-4 border-t border-neutral-100 flex items-center justify-between text-xs font-bold text-[#111111] group-hover:text-[#FF6B00]">
+                  <div className="mt-6 pt-4 border-t border-neutral-100 dark:border-[#252832] flex items-center justify-between text-xs font-bold text-[#111111] dark:text-neutral-200 group-hover:text-[#FF6B00]">
                     <span>Read Full Guide</span>
                     <ArrowRight className="w-4 h-4" />
                   </div>
@@ -250,12 +250,12 @@ export const GuidesPage: React.FC<GuidesPageProps> = ({ guides, onSelectGuide })
             ))}
           </div>
         ) : (
-          <div className="bg-white rounded-2xl border border-[#E9E9E6] p-12 text-center space-y-4 max-w-md mx-auto">
-            <div className="w-12 h-12 rounded-2xl bg-orange-50 border border-orange-200 flex items-center justify-center mx-auto text-[#FF6B00]">
+          <div className="bg-white dark:bg-[#16171D] rounded-2xl border border-[#E9E9E6] dark:border-[#272932] p-12 text-center space-y-4 max-w-md mx-auto">
+            <div className="w-12 h-12 rounded-2xl bg-orange-50 dark:bg-[#251E19] border border-orange-200 dark:border-orange-900/50 flex items-center justify-center mx-auto text-[#FF6B00]">
               <BookOpen className="w-6 h-6" />
             </div>
-            <h3 className="text-lg font-bold text-neutral-900">No matching guides</h3>
-            <p className="text-xs text-neutral-500 leading-relaxed">
+            <h3 className="text-lg font-bold text-neutral-900 dark:text-neutral-100">No matching guides</h3>
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed">
               {searchQuery
                 ? `No articles match your search "${searchQuery}". Try searching for setup, monitor, or cable.`
                 : 'No guides found in this category yet.'}
@@ -266,7 +266,7 @@ export const GuidesPage: React.FC<GuidesPageProps> = ({ guides, onSelectGuide })
                   setSearchQuery('');
                   setSelectedCategory('All');
                 }}
-                className="px-4 py-2 text-xs font-semibold text-white bg-[#111111] hover:bg-[#FF6B00] rounded-xl transition-all cursor-pointer"
+                className="px-4 py-2 text-xs font-semibold text-white bg-[#111111] dark:bg-[#252832] hover:bg-[#FF6B00] dark:hover:bg-[#FF6B00] rounded-xl transition-all cursor-pointer"
               >
                 Reset filters
               </button>
@@ -277,4 +277,3 @@ export const GuidesPage: React.FC<GuidesPageProps> = ({ guides, onSelectGuide })
     </div>
   );
 };
-

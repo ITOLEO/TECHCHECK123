@@ -70,10 +70,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelectProdu
       tabIndex={0}
       role="button"
       aria-label={`View review for ${product.name}`}
-      className="group flex flex-col bg-white rounded-2xl border border-[#E9E9E6] hover:border-[#FF6B00] shadow-xs hover:shadow-md transition-all duration-200 overflow-hidden cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
+      className="group flex flex-col bg-white dark:bg-[#16171C] rounded-2xl border border-[#E9E9E6] dark:border-[#272932] hover:border-[#FF6B00] dark:hover:border-[#FF6B00] shadow-xs hover:shadow-md transition-all duration-200 overflow-hidden cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
     >
       {/* Product Image Stage */}
-      <div className="relative aspect-4/3 sm:aspect-16/10 bg-neutral-100 overflow-hidden">
+      <div className="relative aspect-4/3 sm:aspect-16/10 bg-neutral-100 dark:bg-[#1C1E25] overflow-hidden">
         <SafeImage
           src={product.image}
           alt={product.name}
@@ -104,12 +104,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelectProdu
           </div>
 
           {/* Product Name */}
-          <h3 className="text-xl font-bold text-[#111111] leading-snug group-hover:text-[#FF6B00] transition-colors mb-3">
+          <h3 className="text-xl font-bold text-[#111111] dark:text-neutral-100 leading-snug group-hover:text-[#FF6B00] transition-colors mb-3">
             {product.name}
           </h3>
 
           {/* Short Benefit Statement */}
-          <p className="text-sm text-neutral-600 leading-relaxed mb-6 line-clamp-3">
+          <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed mb-6 line-clamp-3">
             {product.shortBenefit}
           </p>
         </div>
@@ -122,7 +122,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelectProdu
               e.stopPropagation();
               handleCardClick();
             }}
-            className="flex-1 px-3 py-2.5 text-[13px] whitespace-nowrap font-semibold text-[#111111] bg-white border border-[#E9E9E6] group-hover:border-[#FF6B00] group-hover:text-[#FF6B00] rounded-lg transition-all flex items-center justify-center gap-1.5 focus-visible:ring-2 focus-visible:ring-[#FF6B00] cursor-pointer"
+            className="flex-1 px-3 py-2.5 text-[13px] whitespace-nowrap font-semibold text-[#111111] dark:text-neutral-200 bg-white dark:bg-[#1D1F27] border border-[#E9E9E6] dark:border-[#2C2F3A] group-hover:border-[#FF6B00] group-hover:text-[#FF6B00] rounded-xl transition-all flex items-center justify-center gap-1.5 focus-visible:ring-2 focus-visible:ring-[#FF6B00] cursor-pointer"
           >
             <span>Read Review</span>
             <ArrowRight className="w-3.5 h-3.5 shrink-0 transform group-hover:translate-x-1 transition-transform" />
@@ -133,7 +133,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelectProdu
               onClick={handleAffiliateClick}
               title={`View ${product.name} on partner retailer`}
               aria-label={`View ${product.name} live on merchant store (opens new window)`}
-              className="flex-1 px-3 py-2.5 text-[13px] whitespace-nowrap font-semibold text-white bg-[#111111] hover:bg-black rounded-lg transition-all flex items-center justify-center gap-1.5 focus-visible:ring-2 focus-visible:ring-[#FF6B00] cursor-pointer"
+              className="flex-1 px-3 py-2.5 text-[13px] whitespace-nowrap font-semibold text-white bg-[#111111] dark:bg-[#272A35] hover:bg-black dark:hover:bg-[#FF6B00] rounded-xl transition-all flex items-center justify-center gap-1.5 focus-visible:ring-2 focus-visible:ring-[#FF6B00] cursor-pointer"
             >
               <span>View Live</span>
               <ExternalLink className="w-3.5 h-3.5 shrink-0" />

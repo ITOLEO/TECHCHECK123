@@ -18,22 +18,22 @@ export const AffiliateModal: React.FC<AffiliateModalProps> = ({ product, isOpen,
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/65 backdrop-blur-xs animate-in fade-in duration-150">
       <div
-        className="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-[#E9E9E6] overflow-hidden"
+        className="w-full max-w-md bg-white dark:bg-[#16171D] rounded-2xl shadow-2xl border border-[#E9E9E6] dark:border-[#272932] overflow-hidden transition-colors"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-neutral-100">
+        <div className="flex items-center justify-between p-4 border-b border-neutral-100 dark:border-[#252832]">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-[#FF6B00]" />
-            <span className="text-xs font-bold uppercase tracking-wider text-neutral-500">
+            <span className="text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
               Partner Store Redirect
             </span>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition-colors"
+            className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-[#20222B] transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -41,7 +41,7 @@ export const AffiliateModal: React.FC<AffiliateModalProps> = ({ product, isOpen,
 
         {/* Product Snapshot */}
         <div className="p-6 text-center space-y-4">
-          <div className="w-24 h-24 mx-auto rounded-xl overflow-hidden bg-neutral-100 border border-neutral-200">
+          <div className="w-24 h-24 mx-auto rounded-xl overflow-hidden bg-neutral-100 dark:bg-[#1F2128] border border-neutral-200 dark:border-[#2C2E38]">
             <img
               src={product.image}
               alt={product.name}
@@ -53,20 +53,20 @@ export const AffiliateModal: React.FC<AffiliateModalProps> = ({ product, isOpen,
             <span className="text-[11px] font-bold uppercase tracking-wider text-[#FF6B00] block mb-1">
               {product.category}
             </span>
-            <h3 className="text-lg font-bold text-[#111111] leading-tight">
+            <h3 className="text-lg font-bold text-[#111111] dark:text-white leading-tight">
               {product.name}
             </h3>
-            <p className="text-xs text-neutral-600 mt-2 max-w-sm mx-auto leading-relaxed">
+            <p className="text-xs text-neutral-600 dark:text-neutral-400 mt-2 max-w-sm mx-auto leading-relaxed">
               You are about to view the live product listing, detailed dimensions, and current stock availability through our verified merchant partner.
             </p>
           </div>
 
-          <div className="bg-neutral-50 rounded-xl p-3 text-left border border-neutral-200 space-y-2 text-xs text-neutral-600">
-            <div className="flex items-center gap-2 text-neutral-800 font-semibold">
+          <div className="bg-neutral-50 dark:bg-[#1C1E26] rounded-xl p-3 text-left border border-neutral-200 dark:border-[#2A2C37] space-y-2 text-xs text-neutral-600 dark:text-neutral-300">
+            <div className="flex items-center gap-2 text-neutral-800 dark:text-neutral-200 font-semibold">
               <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
               <span>TechCheck Direct Affiliate Referral</span>
             </div>
-            <p className="text-[11px] text-neutral-500 leading-normal pl-6">
+            <p className="text-[11px] text-neutral-500 dark:text-neutral-400 leading-normal pl-6">
               TechCheck may earn a small referral commission if you choose to make a purchase, at no extra cost to you.
             </p>
           </div>
@@ -84,7 +84,7 @@ export const AffiliateModal: React.FC<AffiliateModalProps> = ({ product, isOpen,
 
             <button
               onClick={onClose}
-              className="w-full py-2 text-xs font-semibold text-neutral-500 hover:text-neutral-800 transition-colors"
+              className="w-full py-2 text-xs font-semibold text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200 transition-colors cursor-pointer"
             >
               Return to Review
             </button>
