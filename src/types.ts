@@ -72,9 +72,34 @@ export interface SiteSettings {
   heroHeadline1: string;
   heroHeadline2: string;
   heroSubtext: string;
+  heroCtaPrimaryText?: string;
+  heroCtaPrimaryUrl?: string;
+  heroCtaSecondaryText?: string;
+  heroCtaSecondaryUrl?: string;
+  heroImage?: string;
+  heroImageAlt?: string;
+  heroBadgeEyebrow?: string;
+  heroBadgeTitle?: string;
+  heroBadgeStat?: string;
   supportEmail: string;
   defaultAffiliateSubId: string;
   adminPasscode: string;
+  categoriesHeading?: string;
+  categoriesSubtext?: string;
+  featuredHeading?: string;
+  featuredSubtext?: string;
+  recommendationsHeading?: string;
+  recommendationsSubtext?: string;
+  guidesHeading?: string;
+  guidesSubtext?: string;
+}
+
+export interface RecommendationGoal {
+  id: string;
+  title: string;
+  description: string;
+  category: ProductCategory;
+  tag: string;
 }
 
 export type ViewRoute = 

@@ -8,6 +8,8 @@ const STORAGE_KEYS = {
   GUIDES: 'techcheck_guides_v2',
   SETTINGS: 'techcheck_settings_v2',
   ADMIN_AUTH: 'techcheck_admin_session_v1',
+  DRAFT: 'techcheck_draft_v1',
+  AUDIT_LOG: 'techcheck_audit_log_v1',
 };
 
 // Clean up legacy dummy data in browser localStorage
@@ -29,9 +31,26 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   heroHeadline1: 'Better Gear.',
   heroHeadline2: 'Smarter Spaces.',
   heroSubtext: 'Discover space-saving tech and accessories that help you build a cleaner, more functional gaming setup — without the clutter.',
+  heroCtaPrimaryText: 'Explore Products',
+  heroCtaPrimaryUrl: 'recommendations',
+  heroCtaSecondaryText: 'Read Our Guides',
+  heroCtaSecondaryUrl: 'guides',
+  heroImage: '/acer-nitro.png',
+  heroImageAlt: 'Curated compact gaming setup with dual elevated monitors and clean cable management',
+  heroBadgeEyebrow: 'Setup Architecture #04',
+  heroBadgeTitle: '100cm Compact Studio Desk',
+  heroBadgeStat: '65% Surface Cleared',
   supportEmail: 'itleo4444@gmail.com',
   defaultAffiliateSubId: '14139310000',
   adminPasscode: '654321',
+  categoriesHeading: 'Find the right upgrade by category.',
+  categoriesSubtext: 'Explore space-saving accessories based on what your setup needs most.',
+  featuredHeading: 'Top Picks for Your Setup.',
+  featuredSubtext: 'Every item tested and verified for compact desk footprints, solid build quality, and spatial utility.',
+  recommendationsHeading: 'Find the right upgrade for your desk.',
+  recommendationsSubtext: 'Select your immediate setup goal to view curated, compatible gear.',
+  guidesHeading: 'Make your setup work harder.',
+  guidesSubtext: 'In-depth articles and blueprints on optimizing desk ergonomics, cable routing, and spatial layout.',
 };
 
 // Safe JSON parser
@@ -359,4 +378,68 @@ export const dataStorage = {
     }
     return valid;
   },
+
+  // Visual CMS Draft & Autosave
+  getDraftState(): VisualDraftState | null {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEYS.DRAFT);
+      if (!raw) return null;
+      return JSON.parse(raw) as VisualDraftState;
+    } catch {
+      return null;
+    }
+  },
+
+  saveDraftState(draft: VisualDraftState): void {
+    try {
+      localStorage.setItem(STORAGE_KEYS.DRAFT, JSON.stringify(draft));
+    } catch (e) {
+      console.warn('Failed to save draft state to localStorage', e);
+    }
+  },
+
+  clearDraftState(): void {
+    try {
+      localStorage.removeItem(STORAGE_KEYS.DRAFT);
+    } catch {
+      // ignore
+    }
+  },
+
+  // Audit Logs
+  getAuditLogs(): AuditLogEntry[] {
+    return safeParse<AuditLogEntry[]>(STORAGE_KEYS.AUDIT_LOG, []);
+  },
+
+  addAuditLog(entry: Omit<AuditLogEntry, 'id' | 'timestamp'>): void {
+    try {
+      const existing = this.getAuditLogs();
+      const newEntry: AuditLogEntry = {
+        id: `audit-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+        timestamp: new Date().toISOString(),
+        ...entry,
+      };
+      const updated = [newEntry, ...existing].slice(0, 50); // keep last 50
+      localStorage.setItem(STORAGE_KEYS.AUDIT_LOG, JSON.stringify(updated));
+    } catch (e) {
+      console.warn('Failed to write audit log', e);
+    }
+  },
 };
+
+export interface VisualDraftState {
+  settings?: SiteSettings;
+  products?: Product[];
+  categories?: CategoryInfo[];
+  guides?: Guide[];
+  lastModified: string;
+}
+
+export interface AuditLogEntry {
+  id: string;
+  field: string;
+  target: string;
+  oldValue?: string;
+  newValue?: string;
+  timestamp: string;
+}
