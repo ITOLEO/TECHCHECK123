@@ -238,7 +238,7 @@ export default function App() {
   const isSuperadminView = currentRoute.page === 'superadmin';
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F7F6F2] text-[#111111] antialiased">
+    <div className="min-h-screen flex flex-col bg-[#F7F6F2] dark:bg-[#0E0F12] text-[#111111] dark:text-[#EDEDED] antialiased transition-colors duration-150">
       {/* Optional Top Announcement Bar */}
       {siteSettings.announcementEnabled && siteSettings.announcementText && !isSuperadminView && (
         <div className="bg-[#111111] text-white text-xs font-semibold py-2.5 px-4 text-center flex items-center justify-center gap-2 border-b border-neutral-800">
