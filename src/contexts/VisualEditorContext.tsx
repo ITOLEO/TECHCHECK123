@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { Product, CategoryInfo, Guide, SiteSettings } from '../types';
-import { dataStorage, VisualDraftState } from '../services/dataStorage';
+import { dataStorage, VisualDraftState, DEFAULT_SITE_SETTINGS } from '../services/dataStorage';
 import { EditTarget } from '../components/visual-editor/ContextualEditorModal';
 import { DeviceViewport } from '../components/visual-editor/VisualEditorToolbar';
 
@@ -471,10 +471,42 @@ export const VisualEditorProvider: React.FC<VisualEditorProviderProps> = ({
   );
 };
 
+const fallbackVisualEditorContext: VisualEditorContextType = {
+  isVisualEditMode: false,
+  enterVisualEditMode: () => {},
+  exitVisualEditMode: () => {},
+  deviceViewport: 'desktop',
+  setDeviceViewport: () => {},
+  activeSettings: DEFAULT_SITE_SETTINGS,
+  activeProducts: [],
+  activeCategories: [],
+  activeGuides: [],
+  hasUnsavedChanges: false,
+  changesSummary: [],
+  changesCount: 0,
+  activeTarget: null,
+  openEditor: () => {},
+  closeEditor: () => {},
+  applyEdit: () => {},
+  saveDraftLocally: () => {},
+  publishToLive: async () => {},
+  discardDraft: () => {},
+  isPublishing: false,
+  isPublishModalOpen: false,
+  setIsPublishModalOpen: () => {},
+  isUnsavedWarningOpen: false,
+  setIsUnsavedWarningOpen: () => {},
+  pendingExitAction: null,
+  setPendingExitAction: () => {},
+  canUndo: false,
+  canRedo: false,
+  undo: () => {},
+  redo: () => {},
+  toastMessage: null,
+  showToast: () => {},
+};
+
 export const useVisualEditor = () => {
   const context = useContext(VisualEditorContext);
-  if (!context) {
-    throw new Error('useVisualEditor must be used within a VisualEditorProvider');
-  }
-  return context;
+  return context || fallbackVisualEditorContext;
 };
