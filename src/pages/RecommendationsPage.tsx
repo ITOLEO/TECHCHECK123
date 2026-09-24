@@ -3,6 +3,7 @@ import { Filter, X, Search, Sparkles, CheckCircle2 } from 'lucide-react';
 import { Product, ProductCategory } from '../types';
 import { ProductCard } from '../components/ProductCard';
 import { analytics } from '../services/analytics';
+import { updateSEO, buildBreadcrumbSchema } from '../services/seo';
 
 interface RecommendationsPageProps {
   products: Product[];
@@ -34,10 +35,30 @@ export const RecommendationsPage: React.FC<RecommendationsPageProps> = ({
   }, [initialCategory]);
 
   useEffect(() => {
-    document.title =
+    const pageTitle =
       selectedCategory === 'All'
         ? 'Curated Space-Saving Recommendations | TechCheck'
         : `${selectedCategory} Hardware Recommendations | TechCheck`;
+
+    const breadcrumbs = [
+      { name: 'Home', path: '' },
+      { name: 'Recommendations', path: 'recommendations' },
+    ];
+    if (selectedCategory !== 'All') {
+      breadcrumbs.push({
+        name: selectedCategory,
+        path: `recommendations?category=${encodeURIComponent(selectedCategory)}`,
+      });
+    }
+
+    updateSEO({
+      title: pageTitle,
+      description: `Explore curated ${selectedCategory === 'All' ? 'compact setup gear' : selectedCategory} tested for desk footprints between 80cm and 140cm.`,
+      canonicalPath: `recommendations${selectedCategory !== 'All' ? `?category=${encodeURIComponent(selectedCategory)}` : ''}`,
+      ogType: 'website',
+      jsonLd: buildBreadcrumbSchema(breadcrumbs),
+    });
+
     analytics.track('category_view', { category: selectedCategory });
     return () => {
       document.title = 'TechCheck — Small Space. Serious Setup.';

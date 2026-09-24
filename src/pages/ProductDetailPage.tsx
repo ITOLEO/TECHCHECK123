@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronRight, ExternalLink, ArrowLeft, ShieldCheck, Sparkles, Layers } from 'lucide-react';
+import { ChevronRight, ExternalLink, ArrowLeft, ShieldCheck, Sparkles, Layers, CheckCircle } from 'lucide-react';
 import { Product, ViewRoute } from '../types';
 import { SafeImage } from '../components/SafeImage';
 import { ProductCard } from '../components/ProductCard';
 import { analytics } from '../services/analytics';
+import { updateSEO, buildProductSchema, buildBreadcrumbSchema } from '../services/seo';
 
 interface ProductDetailPageProps {
   product?: Product;
@@ -53,10 +54,27 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
 
   const [activeImage, setActiveImage] = useState<string>(product.image);
 
-  // Sync document title and active image
+  // Sync document title, dynamic SEO metadata, JSON-LD and active image
   useEffect(() => {
     setActiveImage(product.image);
-    document.title = `${product.name} | TechCheck Review & Setup Compatibility`;
+
+    const productSchema = buildProductSchema(product);
+    const breadcrumbSchema = buildBreadcrumbSchema([
+      { name: 'Home', path: '' },
+      { name: 'Recommendations', path: 'recommendations' },
+      { name: product.category, path: `recommendations?category=${encodeURIComponent(product.category)}` },
+      { name: product.name, path: `recommendations/${product.slug}` },
+    ]);
+
+    updateSEO({
+      title: `${product.name} Review & Spatial Compatibility | TechCheck`,
+      description: `${product.shortBenefit} Independent review, specifications, and small space setup suitability for ${product.name}.`,
+      canonicalPath: `recommendations/${product.slug}`,
+      ogType: 'product',
+      ogImage: product.image,
+      jsonLd: [productSchema, breadcrumbSchema],
+    });
+
     analytics.track('product_view', {
       productId: product.id,
       productName: product.name,
@@ -77,7 +95,6 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
       category: product.category,
       affiliateUrl: safeAffiliateUrl,
     });
-    window.open(safeAffiliateUrl, '_blank', 'noopener,noreferrer');
   };
 
   // Related products (same category or others, excluding current product)
@@ -202,14 +219,16 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
             {/* Affiliate CTA button + FTC Disclosure */}
             {safeAffiliateUrl && (
               <div className="space-y-3">
-                <button
-                  type="button"
+                <a
+                  href={safeAffiliateUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   onClick={handleAffiliateClick}
-                  className="w-full sm:w-auto px-7 py-3.5 bg-[#FF6B00] hover:bg-[#E05E00] text-white text-sm font-bold rounded-xl transition-all shadow-sm hover:shadow-md cursor-pointer flex items-center justify-center gap-2 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#FF6B00]"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-[#FF6B00] hover:bg-[#E05E00] text-white text-sm font-bold rounded-xl transition-all shadow-sm hover:shadow-md cursor-pointer focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#FF6B00]"
                 >
                   <span>View live product</span>
                   <ExternalLink className="w-4 h-4 shrink-0" />
-                </button>
+                </a>
                 <div className="flex items-center gap-1.5 text-xs text-neutral-500 dark:text-neutral-400">
                   <ShieldCheck className="w-3.5 h-3.5 text-[#FF6B00] shrink-0" />
                   <span>Opens merchant partner in a new tab. Reader-supported commissions help keep our editorial independent.</span>

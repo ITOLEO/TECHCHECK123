@@ -3,6 +3,7 @@ import { BookOpen, ArrowRight, Clock, Search, X } from 'lucide-react';
 import { Guide } from '../types';
 import { SafeImage } from '../components/SafeImage';
 import { analytics } from '../services/analytics';
+import { updateSEO, buildBreadcrumbSchema } from '../services/seo';
 
 interface GuidesPageProps {
   guides: Guide[];
@@ -14,7 +15,16 @@ export const GuidesPage: React.FC<GuidesPageProps> = ({ guides, onSelectGuide })
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    document.title = 'Setup Guides & Spatial Blueprints | TechCheck';
+    updateSEO({
+      title: 'Setup Guides & Spatial Blueprints | TechCheck',
+      description: 'Practical tutorials, ergonomic blueprints, and cable management strategies for building high-performance setups on compact desks.',
+      canonicalPath: 'guides',
+      ogType: 'website',
+      jsonLd: buildBreadcrumbSchema([
+        { name: 'Home', path: '' },
+        { name: 'Guides', path: 'guides' },
+      ]),
+    });
     analytics.track('guide_view', { route: 'guides' });
     return () => {
       document.title = 'TechCheck — Small Space. Serious Setup.';

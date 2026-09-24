@@ -209,7 +209,29 @@ export const dataStorage = {
   },
 
   getProducts(): Product[] {
-    return safeParse<Product[]>(STORAGE_KEYS.PRODUCTS, INITIAL_PRODUCTS);
+    const raw = safeParse<Product[]>(STORAGE_KEYS.PRODUCTS, INITIAL_PRODUCTS);
+    const inventedIds = new Set([
+      'prod-gas-spring-arm',
+      'prod-mesh-cable-tray',
+      'prod-screenbar-light',
+      'prod-vertical-laptop-stand',
+      'prod-slim-soundbar',
+    ]);
+    const clean = raw.filter((p) => !inventedIds.has(p.id)).map((p) => {
+      if (p.id === 'prod-acer-nitro-kg271u') {
+        return {
+          ...p,
+          name: 'Acer Nitro KG271U Z2 27-Inch WQHD IPS Gaming Monitor',
+        };
+      }
+      return p;
+    });
+
+    if (raw.some((p) => inventedIds.has(p.id)) || (clean.length > 0 && clean[0].name !== raw[0]?.name)) {
+      this.saveProducts(clean.length > 0 ? clean : INITIAL_PRODUCTS);
+      return clean.length > 0 ? clean : INITIAL_PRODUCTS;
+    }
+    return clean.length > 0 ? clean : INITIAL_PRODUCTS;
   },
 
   saveProducts(products: Product[]): void {

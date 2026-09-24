@@ -1,5 +1,105 @@
 import { Product, CategoryInfo } from '../types';
 
-export const CATEGORIES: CategoryInfo[] = [];
+export const CATEGORIES: CategoryInfo[] = [
+  {
+    id: 'cat-desk-setup',
+    name: 'Desk Setup',
+    slug: 'desk-setup',
+    description: 'Monitor arms, desk shelves, and ergonomic elevation accessories that maximize usable desk real estate.',
+    productCount: 1,
+    image: '/acer-nitro.png',
+  },
+  {
+    id: 'cat-cable-management',
+    name: 'Cable Management',
+    slug: 'cable-management',
+    description: 'Under-desk trays, wire channels, and magnetic clips to eliminate tangled cords on compact desks.',
+    productCount: 0,
+    image: '/powerpac.png',
+  },
+  {
+    id: 'cat-lighting',
+    name: 'Lighting',
+    slug: 'lighting',
+    description: 'Screenbars and bias lights designed to mount on monitors without consuming any desktop surface.',
+    productCount: 0,
+    image: '/acer-creator.png',
+  },
+  {
+    id: 'cat-storage',
+    name: 'Storage',
+    slug: 'storage',
+    description: 'Vertical laptop docks, headphone hangers, and modular organizers for clean vertical space.',
+    productCount: 0,
+    image: '/acer-portable.png',
+  },
+  {
+    id: 'cat-audio',
+    name: 'Audio',
+    slug: 'audio',
+    description: 'Low-profile desktop speakers, wireless DACs, and slim soundbars that tuck neatly under displays.',
+    productCount: 0,
+    image: '/acer-nitro.png',
+  },
+  {
+    id: 'cat-ergonomics',
+    name: 'Ergonomics',
+    slug: 'ergonomics',
+    description: 'Compact wrist rests, posture supports, and footrests tailored for space-conscious workstations.',
+    productCount: 0,
+    image: '/acer-creator.png',
+  },
+];
 
-export const PRODUCTS: Product[] = [];
+export const PRODUCTS: Product[] = [
+  {
+    id: 'prod-acer-nitro-kg271u',
+    slug: 'acer-nitro-kg271u-z2',
+    name: 'Acer Nitro KG271U Z2 27-Inch WQHD IPS Gaming Monitor',
+    category: 'Desk Setup',
+    rating: 4.8,
+    reviewCount: 38,
+    image: '/acer-nitro.png',
+    gallery: ['/acer-nitro.png'],
+    badge: 'BEST GAMING MONITOR',
+    shortBenefit: '27" WQHD 250Hz Fast IPS gaming display with ultra-slim bezels, engineered for compact monitor arms.',
+    description: 'High-refresh 27-inch 1440p gaming monitor engineered with an agile IPS panel, 250Hz overclocked refresh rate, and 0.5ms response time. Its minimal chassis footprint and 100x100mm VESA compatibility make it an ideal anchor for dual-monitor compact workstation desks.',
+    benefits: [
+      'Crisp 2560x1440 resolution without overwhelming desk depth',
+      '250Hz high refresh rate with AMD FreeSync Premium for fluid competitive gameplay',
+      '100x100mm VESA mount compatibility eliminates bulky stock plastic desk stands',
+      'ZeroFrame bezel design maximizes multi-monitor alignment on narrow tabletops',
+    ],
+    highlights: [
+      '27-inch WQHD (2560 x 1440) Fast IPS Panel',
+      'Up to 250Hz Refresh Rate (DisplayPort)',
+      '0.5ms (G to G, Min.) Rapid Response Time',
+      'Standard 100 x 100 mm VESA Mount Pattern',
+    ],
+    specifications: {
+      'Screen Size': '27 inches',
+      'Resolution': '2560 x 1440 (WQHD)',
+      'Refresh Rate': '250Hz (DP) / 144Hz (HDMI)',
+      'Panel Type': 'Agile-Splendor IPS',
+      'Response Time': '0.5ms (Min. G-to-G)',
+      'Ports': '2x HDMI 2.0, 1x DisplayPort 1.2, Audio Out',
+      'VESA Mounting': '100 x 100 mm',
+      'Weight without stand': '3.9 kg',
+    },
+    bestFor: 'Gamers and remote professionals working on 100cm–140cm desks',
+    greatFor: [
+      'Competitive FPS and esports titles',
+      'Dual-screen workstation mounting',
+      'Small apartment gaming setups',
+    ],
+    setupConsiderations: [
+      'Pair with a gas-spring desk clamp arm rather than the stock stand to reclaim up to 25% of front desk surface.',
+      'Ensure your GPU supports DisplayPort 1.2 or higher to reach the full 250Hz refresh rate.',
+    ],
+    verdict: 'The Acer Nitro KG271U Z2 delivers an optimal balance of pixel density and high-refresh responsiveness, making it a standout choice for space-conscious setups.',
+    affiliateUrl: 'https://shopee.sg/',
+    featured: true,
+    productType: 'Gaming Monitor',
+    deskSizeCompatibility: 'Desks 100cm to 140cm',
+  },
+];

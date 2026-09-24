@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   ArrowRight,
   ArrowUpRight,
@@ -15,6 +15,7 @@ import { ProductCard } from '../components/ProductCard';
 import { SafeImage } from '../components/SafeImage';
 import { useVisualEditor } from '../contexts/VisualEditorContext';
 import { EditableElement } from '../components/visual-editor/EditableElement';
+import { updateSEO } from '../services/seo';
 
 interface HomePageProps {
   products: Product[];
@@ -36,6 +37,15 @@ export const HomePage: React.FC<HomePageProps> = ({
   onSelectGuide,
 }) => {
   const { isVisualEditMode, openEditor } = useVisualEditor();
+
+  useEffect(() => {
+    updateSEO({
+      title: 'TechCheck — Small Space. Serious Setup.',
+      description: 'Curated space-saving gaming monitors, ergonomic arms, cable management, and audio gear for compact desks (80cm–140cm). Singapore setup reviews & blueprints.',
+      canonicalPath: '',
+      ogType: 'website',
+    });
+  }, []);
 
   const featuredProducts = products.filter((p) => p.featured).slice(0, 4);
   const displayProducts = featuredProducts.length > 0 ? featuredProducts : products.slice(0, 4);

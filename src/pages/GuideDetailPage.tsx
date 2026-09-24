@@ -14,6 +14,7 @@ import {
 import { Guide, Product, ViewRoute } from '../types';
 import { SafeImage } from '../components/SafeImage';
 import { analytics } from '../services/analytics';
+import { updateSEO, buildGuideSchema, buildBreadcrumbSchema } from '../services/seo';
 
 interface GuideDetailPageProps {
   guide?: Guide;
@@ -36,7 +37,22 @@ export const GuideDetailPage: React.FC<GuideDetailPageProps> = ({
 
   useEffect(() => {
     if (guide) {
-      document.title = `${guide.title} | TechCheck Setup Guides`;
+      const guideSchema = buildGuideSchema(guide);
+      const breadcrumbSchema = buildBreadcrumbSchema([
+        { name: 'Home', path: '' },
+        { name: 'Guides', path: 'guides' },
+        { name: guide.title, path: `guides/${guide.slug}` },
+      ]);
+
+      updateSEO({
+        title: `${guide.title} | TechCheck Setup Guides`,
+        description: guide.excerpt || guide.intro,
+        canonicalPath: `guides/${guide.slug}`,
+        ogType: 'article',
+        ogImage: guide.image,
+        jsonLd: [guideSchema, breadcrumbSchema],
+      });
+
       analytics.track('guide_view', {
         guideId: guide.id,
         guideTitle: guide.title,

@@ -3,6 +3,7 @@ import { ArrowUpRight, FolderTree } from 'lucide-react';
 import { CategoryInfo, ViewRoute, ProductCategory, Product } from '../types';
 import { SafeImage } from '../components/SafeImage';
 import { analytics } from '../services/analytics';
+import { updateSEO, buildBreadcrumbSchema } from '../services/seo';
 
 interface CategoriesPageProps {
   categories: CategoryInfo[];
@@ -12,7 +13,16 @@ interface CategoriesPageProps {
 
 export const CategoriesPage: React.FC<CategoriesPageProps> = ({ categories, products = [], onNavigate }) => {
   useEffect(() => {
-    document.title = 'Hardware Categories | TechCheck Space-Saving Catalog';
+    updateSEO({
+      title: 'Hardware Categories | TechCheck Space-Saving Taxonomy',
+      description: 'Explore curated workspace categories organized by functional challenge: Monitor Arms, Cable Trays, Screenbars, and Vertical Storage.',
+      canonicalPath: 'categories',
+      ogType: 'website',
+      jsonLd: buildBreadcrumbSchema([
+        { name: 'Home', path: '' },
+        { name: 'Categories', path: 'categories' },
+      ]),
+    });
     analytics.track('category_view', { route: 'categories' });
     return () => {
       document.title = 'TechCheck — Small Space. Serious Setup.';

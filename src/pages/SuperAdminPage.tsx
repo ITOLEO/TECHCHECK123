@@ -808,8 +808,8 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
   // ----------------------------------------------------
   if (!isAuthenticated) {
     return (
-      <div className="min-h-[85vh] flex items-center justify-center px-4 py-12 bg-[#F7F6F2]">
-        <div className="w-full max-w-md bg-white rounded-3xl border border-[#E9E9E6] shadow-xl p-8 sm:p-10">
+      <div className="min-h-[85vh] flex items-center justify-center px-4 py-12 bg-[#F7F6F2] dark:bg-[#0E0F12] transition-colors">
+        <div className="w-full max-w-md bg-white dark:bg-[#16171D] rounded-3xl border border-[#E9E9E6] dark:border-[#272932] shadow-xl p-8 sm:p-10 transition-colors">
           <div className="flex flex-col items-center text-center mb-8">
             <div className="w-14 h-14 bg-[#111111] rounded-2xl flex items-center justify-center mb-4 shadow-md">
               <svg width="34" height="34" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -817,14 +817,14 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                 <path d="M10 16L14 20L22 12" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-orange-50 text-[#FF6B00] border border-orange-200/80 mb-2">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-orange-50 dark:bg-orange-950/40 text-[#FF6B00] border border-orange-200/80 dark:border-orange-900/50 mb-2">
               <Shield className="w-3.5 h-3.5" />
               PORTAL ADMINTECHCHECK
             </div>
-            <h1 className="text-2xl font-extrabold text-[#111111] tracking-tight">
+            <h1 className="text-2xl font-extrabold text-[#111111] dark:text-white tracking-tight">
               Verifikasi Password Superadmin
             </h1>
-            <p className="text-sm text-neutral-500 mt-1">
+            <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
               Masukkan password keamanan untuk mengakses mode super admin TechCheck
             </p>
           </div>
@@ -884,7 +884,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
   // SUPERADMIN DASHBOARD
   // ----------------------------------------------------
   return (
-    <div className="min-h-screen bg-[#F7F6F2] pb-24">
+    <div className="min-h-screen bg-[#F7F6F2] dark:bg-[#0E0F12] text-[#111111] dark:text-[#EDEDED] pb-24 transition-colors">
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 bg-[#111111] text-white text-sm px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3 border border-neutral-800 animate-in fade-in slide-in-from-bottom-3">
@@ -894,7 +894,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
       )}
 
       {/* Admin Subheader Bar */}
-      <div className="bg-white border-b border-[#E9E9E6] sticky top-20 z-30 shadow-xs">
+      <div className="bg-white dark:bg-[#16171D] border-b border-[#E9E9E6] dark:border-[#272932] sticky top-20 z-30 shadow-xs transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
@@ -903,14 +903,14 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h1 className="text-base font-extrabold text-[#111111]">
+                  <h1 className="text-base font-extrabold text-[#111111] dark:text-white">
                     admintechcheck Dashboard
                   </h1>
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#FF6B00] text-white">
                     LIVE
                   </span>
                 </div>
-                <p className="text-xs text-neutral-500">
+                <p className="text-xs text-neutral-500 dark:text-neutral-400">
                   TechCheck Media Content & Affiliate Management System
                 </p>
               </div>

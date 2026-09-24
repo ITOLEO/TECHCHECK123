@@ -3,13 +3,43 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TechCheck — Space-Saving Gaming Accessories</title>
-    <meta name="description" content="TechCheck is a modern affiliate media platform curating space-saving gaming accessories for cleaner, ergonomic, and more functional compact setups." />
+    <title>TechCheck — Space-Saving Gaming Accessories & Setup Blueprints</title>
+    <meta name="description" content="TechCheck is an independent media platform curating space-saving gaming accessories, ergonomic monitor arms, and cable management for compact 80cm–140cm desks in Singapore." />
     <meta name="google-site-verification" content="googlebf09fd737c25f2c1" />
-    <meta property="og:title" content="TechCheck — Space-Saving Gaming Accessories" />
-    <meta property="og:description" content="TechCheck is a modern affiliate media platform curating space-saving gaming accessories for cleaner, ergonomic, and more functional compact setups." />
+    <link rel="canonical" href="https://techcheck.media/" />
+    <meta name="geo.region" content="SG" />
+    <meta name="geo.placename" content="Singapore" />
+    <meta property="og:title" content="TechCheck — Space-Saving Gaming Accessories & Setup Blueprints" />
+    <meta property="og:description" content="Curated space-saving gaming monitors, ergonomic arms, cable trays, and audio gear for compact desks (80cm–140cm)." />
     <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://techcheck.media/" />
+    <meta property="og:site_name" content="TechCheck" />
+    <meta property="og:locale" content="en_SG" />
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="TechCheck — Space-Saving Gaming Accessories" />
+    <meta name="twitter:description" content="Independent curation of space-saving gear for compact setups (80cm–140cm)." />
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://techcheck.media/#website",
+          "url": "https://techcheck.media/",
+          "name": "TechCheck",
+          "description": "Curated space-saving gaming monitors, ergonomic arms, and setup blueprints for compact desks.",
+          "inLanguage": "en-SG"
+        },
+        {
+          "@type": "Organization",
+          "@id": "https://techcheck.media/#organization",
+          "name": "TechCheck Media",
+          "url": "https://techcheck.media/",
+          "description": "Independent editorial publication dedicated to small space gaming setup architecture."
+        }
+      ]
+    }
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
@@ -26,11 +56,25 @@
       (function() {
         try {
           var saved = localStorage.getItem('techcheck_theme');
-          var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-          if (saved === 'dark' || (!saved && prefersDark)) {
-            document.documentElement.classList.add('dark');
+          var isDark = false;
+          if (saved === 'dark') {
+            isDark = true;
+          } else if (saved === 'light') {
+            isDark = false;
           } else {
-            document.documentElement.classList.remove('dark');
+            // No saved preference or invalid value: default to system preference
+            isDark = !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          }
+
+          var root = document.documentElement;
+          if (isDark) {
+            root.classList.add('dark');
+            root.setAttribute('data-theme', 'dark');
+            root.style.colorScheme = 'dark';
+          } else {
+            root.classList.remove('dark');
+            root.setAttribute('data-theme', 'light');
+            root.style.colorScheme = 'light';
           }
         } catch (e) {}
       })();

@@ -28,6 +28,26 @@ app.get('/googlebf09fd737c25f2c1.html', (req: Request, res: Response) => {
   res.type('text/html').send('google-site-verification: googlebf09fd737c25f2c1.html');
 });
 
+// Robots.txt
+app.get('/robots.txt', (req: Request, res: Response) => {
+  const robotsPath = path.join(process.cwd(), 'public', 'robots.txt');
+  if (fs.existsSync(robotsPath)) {
+    res.type('text/plain').sendFile(robotsPath);
+    return;
+  }
+  res.type('text/plain').send('User-agent: *\nAllow: /\nSitemap: https://techcheck.media/sitemap.xml\n');
+});
+
+// Sitemap.xml
+app.get('/sitemap.xml', (req: Request, res: Response) => {
+  const sitemapPath = path.join(process.cwd(), 'public', 'sitemap.xml');
+  if (fs.existsSync(sitemapPath)) {
+    res.type('application/xml').sendFile(sitemapPath);
+    return;
+  }
+  res.status(404).send('Not found');
+});
+
 // Lazy Supabase Client
 let supabaseClient: SupabaseClient | null = null;
 

@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /admintechcheck
+Disallow: /superadmin
+Disallow: /api/
+
+Sitemap: https://techcheck.media/sitemap.xml

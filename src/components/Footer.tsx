@@ -83,10 +83,13 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenInfoModal, onR
             <p className="text-sm text-neutral-400 max-w-sm leading-relaxed">
               Small space. Serious setup.
             </p>
-            <div className="pt-2">
+            <div className="pt-2 flex flex-wrap gap-2">
               <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-neutral-900 text-neutral-300 border border-neutral-800">
                 <span className="w-2 h-2 rounded-full bg-[#FF6B00] animate-pulse" />
                 Curated for desks 80cm – 140cm
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-neutral-900 text-neutral-400 border border-neutral-800">
+                Singapore & Regional Edition
               </span>
             </div>
           </div>
