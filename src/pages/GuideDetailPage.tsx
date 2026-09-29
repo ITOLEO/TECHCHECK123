@@ -10,6 +10,7 @@ import {
   Check,
   ArrowLeft,
   BookOpen,
+  Plus,
 } from 'lucide-react';
 import { Guide, Product, ViewRoute } from '../types';
 import { SafeImage } from '../components/SafeImage';
@@ -264,9 +265,14 @@ export const GuideDetailPage: React.FC<GuideDetailPageProps> = ({
               label={`Step ${step.number}: ${step.title}`}
               onEdit={() =>
                 visualEditor.openEditor({
-                  type: 'guide',
-                  title: `Edit Guide: ${guide.title}`,
-                  data: guide,
+                  type: 'guide-step',
+                  title: `Edit Step ${step.number}: ${step.title}`,
+                  data: {
+                    guideId: guide.id,
+                    guideTitle: guide.title,
+                    stepIndex: idx,
+                    step: { ...step },
+                  },
                 })
               }
             >
@@ -351,6 +357,36 @@ export const GuideDetailPage: React.FC<GuideDetailPageProps> = ({
             </EditableElement>
           );
         })}
+
+        {visualEditor.isVisualEditMode && (
+          <div className="pt-2 flex justify-center">
+            <button
+              type="button"
+              onClick={() =>
+                visualEditor.openEditor({
+                  type: 'guide-step',
+                  title: `Tambah Langkah Baru: ${guide.title}`,
+                  data: {
+                    guideId: guide.id,
+                    guideTitle: guide.title,
+                    stepIndex: guide.steps.length,
+                    step: {
+                      number: String(guide.steps.length + 1).padStart(2, '0'),
+                      title: '',
+                      text: '',
+                      image: '',
+                    },
+                    isNew: true,
+                  },
+                })
+              }
+              className="px-5 py-2.5 bg-[#FF6B00] hover:bg-[#E05E00] text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-2 cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              <span>+ Tambah Langkah Baru</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* 6. Summary / Conclusion */}

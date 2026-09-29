@@ -299,6 +299,26 @@ export const VisualEditorProvider: React.FC<VisualEditorProviderProps> = ({
           summaryText = `Guide/Artikel: ${updatedData.title || updatedData.id}`;
           break;
 
+        case 'guide-step': {
+          const { guideId, guideTitle, stepIndex, step, isDelete } = updatedData;
+          nextGuides = nextGuides.map((g) => {
+            if (g.id === guideId || g.title === guideTitle) {
+              const updatedSteps = Array.isArray(g.steps) ? [...g.steps] : [];
+              if (isDelete) {
+                updatedSteps.splice(stepIndex, 1);
+              } else if (stepIndex >= 0 && stepIndex < updatedSteps.length) {
+                updatedSteps[stepIndex] = { ...updatedSteps[stepIndex], ...step };
+              } else {
+                updatedSteps.push(step);
+              }
+              return { ...g, steps: updatedSteps };
+            }
+            return g;
+          });
+          summaryText = `Langkah #${step?.number || stepIndex + 1}: ${step?.title || 'Diperbarui'}`;
+          break;
+        }
+
         case 'recommendation':
           summaryText = `Goal Rekomendasi: ${updatedData.title}`;
           break;

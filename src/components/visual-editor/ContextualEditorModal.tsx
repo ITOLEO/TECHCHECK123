@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Check, Eye, AlertCircle, Sparkles } from 'lucide-react';
+import { X, Check, Eye, AlertCircle, Sparkles, Trash2 } from 'lucide-react';
 import { Product, CategoryInfo, Guide, SiteSettings, RecommendationGoal } from '../../types';
 import { AdminImageUploader } from '../AdminImageUploader';
 
@@ -11,6 +11,7 @@ export type EditTargetType =
   | 'product'
   | 'category'
   | 'guide'
+  | 'guide-step'
   | 'recommendation';
 
 export interface EditTarget {
@@ -587,24 +588,138 @@ export const ContextualEditorModal: React.FC<ContextualEditorModalProps> = ({
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-neutral-600 dark:text-neutral-400 mb-1.5">
-                  Kesimpulan / Summary
-                </label>
-                <textarea
-                  rows={2}
-                  value={formData.summary || ''}
-                  onChange={(e) => handleFieldChange('summary', e.target.value)}
-                  className="w-full px-4 py-2.5 bg-[#F7F6F2] dark:bg-[#1D1F27] border border-[#E9E9E6] dark:border-[#2C2F3A] rounded-xl text-sm focus:border-[#FF6B00] focus:outline-none"
-                />
-              </div>
-
               <AdminImageUploader
                 label="Cover Image Artikel"
                 value={formData.image || ''}
                 onChange={(img) => handleFieldChange('image', img)}
                 placeholder="/acer-nitro.png atau upload gambar"
               />
+            </div>
+          )}
+
+          {/* ========================================================
+              TARGET: GUIDE / ARTICLE STEP (INDIVIDUAL CONTENT BLOCK)
+              ======================================================== */}
+          {target.type === 'guide-step' && (
+            <div className="space-y-4">
+              <div className="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 rounded-xl text-xs font-semibold text-amber-800 dark:text-amber-300 flex items-center justify-between">
+                <span>Mengedit Konten Langkah Khusus #{formData.step?.number || (formData.stepIndex + 1)}</span>
+                <span className="font-mono text-[10px] bg-amber-200/60 dark:bg-amber-900/60 px-2 py-0.5 rounded">
+                  Artikel: {formData.guideTitle || formData.guideId}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-neutral-600 dark:text-neutral-400 mb-1.5">
+                    Nomor Langkah *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.step?.number || ''}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        step: { ...formData.step, number: e.target.value },
+                      })
+                    }
+                    placeholder="01"
+                    className="w-full px-4 py-2.5 bg-[#F7F6F2] dark:bg-[#1D1F27] border border-[#E9E9E6] dark:border-[#2C2F3A] rounded-xl text-sm font-mono font-bold focus:border-[#FF6B00] focus:outline-none"
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-bold uppercase tracking-wider text-neutral-600 dark:text-neutral-400 mb-1.5">
+                    Judul / Heading Langkah *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.step?.title || ''}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        step: { ...formData.step, title: e.target.value },
+                      })
+                    }
+                    placeholder="Contoh: Preparation & Spatial Planning"
+                    className="w-full px-4 py-2.5 bg-[#F7F6F2] dark:bg-[#1D1F27] border border-[#E9E9E6] dark:border-[#2C2F3A] rounded-xl text-sm font-bold focus:border-[#FF6B00] focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-neutral-600 dark:text-neutral-400 mb-1.5">
+                  Isi Paragraf / Instruksi Langkah *
+                </label>
+                <textarea
+                  rows={4}
+                  required
+                  value={formData.step?.text || ''}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      step: { ...formData.step, text: e.target.value },
+                    })
+                  }
+                  placeholder="Tuliskan instruksi langkah secara mendalam..."
+                  className="w-full px-4 py-2.5 bg-[#F7F6F2] dark:bg-[#1D1F27] border border-[#E9E9E6] dark:border-[#2C2F3A] rounded-xl text-sm leading-relaxed focus:border-[#FF6B00] focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <AdminImageUploader
+                  label="Gambar Langkah Ini (Step Image)"
+                  value={formData.step?.image || ''}
+                  onChange={(imgUrl) =>
+                    setFormData({
+                      ...formData,
+                      step: { ...formData.step, image: imgUrl },
+                    })
+                  }
+                  presets={['/acer-nitro.png', '/acer-creator.png', '/powerpac.png', '/acer-portable.png']}
+                  placeholder="/acer-nitro.png atau upload gambar langkah"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-neutral-600 dark:text-neutral-400 mb-1.5">
+                  Produk Rekomendasi Tertaut (Opsional)
+                </label>
+                <select
+                  value={formData.step?.recommendedProductSlug || ''}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      step: { ...formData.step, recommendedProductSlug: e.target.value },
+                    })
+                  }
+                  className="w-full px-4 py-2.5 bg-[#F7F6F2] dark:bg-[#1D1F27] border border-[#E9E9E6] dark:border-[#2C2F3A] rounded-xl text-sm focus:border-[#FF6B00] focus:outline-none"
+                >
+                  <option value="">-- Tanpa Produk Tertaut --</option>
+                  {allProductsList.map((p) => (
+                    <option key={p.id} value={p.slug}>
+                      {p.name} ({p.category})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {!formData.isNew && (
+                <div className="pt-2 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onApply({ ...formData, isDelete: true });
+                    }}
+                    className="px-3.5 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/20 border border-rose-200 dark:border-rose-900/50 rounded-xl transition-colors cursor-pointer flex items-center gap-1.5"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Hapus Langkah Ini</span>
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
