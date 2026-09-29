@@ -46,12 +46,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelectProdu
   return (
     <article
       id={`product-card-${product.slug}`}
-      className="group flex flex-col bg-white dark:bg-[#16171C] rounded-2xl border border-[#E9E9E6] dark:border-[#272932] hover:border-[#FF6B00] dark:hover:border-[#FF6B00] shadow-xs hover:shadow-md transition-all duration-200 overflow-hidden"
+      className="group flex flex-col h-full bg-white dark:bg-[#16171C] rounded-2xl border border-[#E9E9E6] dark:border-[#272932] hover:border-[#FF6B00] dark:hover:border-[#FF6B00] shadow-xs hover:shadow-md transition-all duration-200 overflow-hidden"
     >
-      {/* Product Image Stage */}
+      {/* Product Image Stage - Fixed uniform container */}
       <div
         onClick={handleCardClick}
-        className="relative aspect-4/3 sm:aspect-16/10 bg-neutral-100 dark:bg-[#1C1E25] overflow-hidden cursor-pointer"
+        className="relative h-48 sm:h-52 w-full bg-neutral-100 dark:bg-[#1C1E25] overflow-hidden cursor-pointer flex items-center justify-center p-4 shrink-0"
         role="button"
         tabIndex={0}
         onKeyDown={(e) => {
@@ -63,28 +63,28 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelectProdu
           src={product.image}
           alt={product.name}
           fallbackText={product.name}
-          className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300 ease-out"
+          className="max-h-full max-w-full w-auto h-auto object-contain group-hover:scale-105 transition-transform duration-300 ease-out"
           loading="lazy"
         />
       </div>
 
-      {/* Card Content */}
+      {/* Card Content - Uniform vertical alignment */}
       <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between">
-        <div>
+        <div className="flex-1 flex flex-col">
           {/* Category & Zero-Pill Badge */}
-          <div className="flex items-center justify-between gap-2 mb-2">
+          <div className="flex items-center justify-between gap-2 mb-2 min-h-[1.25rem]">
             <span className="text-[11px] font-bold uppercase tracking-wider text-[#FF6B00]">
               {product.category}
             </span>
-            {product.badge && (
+            {product.badge ? (
               <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-neutral-100 dark:bg-[#252832] text-neutral-700 dark:text-neutral-300 border border-neutral-200/80 dark:border-neutral-700/80">
                 {product.badge}
               </span>
-            )}
+            ) : null}
           </div>
 
-          {/* Product Name */}
-          <h3 className="text-base sm:text-lg font-bold text-[#111111] dark:text-neutral-100 leading-snug group-hover:text-[#FF6B00] transition-colors mb-2 line-clamp-2 min-h-[2.8rem]">
+          {/* Product Name - Uniform height */}
+          <h3 className="text-base sm:text-lg font-bold text-[#111111] dark:text-neutral-100 leading-snug group-hover:text-[#FF6B00] transition-colors mb-2 line-clamp-2 min-h-[2.8rem] flex items-center">
             <a
               href={`#/recommendations/${product.slug}`}
               onClick={(e) => {
@@ -97,13 +97,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelectProdu
             </a>
           </h3>
 
-          {/* Short Benefit Statement */}
-          <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed mb-4 line-clamp-2">
+          {/* Short Benefit Statement - Uniform height */}
+          <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed mb-4 line-clamp-2 min-h-[2.5rem]">
             {product.shortBenefit}
           </p>
         </div>
 
-        {/* Action Buttons */}
+        {/* Action Buttons - Uniform height and bottom alignment */}
         <div className="mt-auto flex flex-row items-center gap-2 pt-3 border-t border-neutral-100 dark:border-[#23252E]">
           <button
             type="button"

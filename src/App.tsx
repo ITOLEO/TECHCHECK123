@@ -67,16 +67,19 @@ const AppContent: React.FC<AppContentProps> = ({
 }) => {
   const visualEditor = useVisualEditor();
 
-  const effectiveProducts = visualEditor.isVisualEditMode && visualEditor.activeProducts.length > 0
+  const isSuperadminView = currentRoute.page === 'superadmin';
+
+  // Public context strictly uses published live data. Draft visual data is only active in admin view.
+  const effectiveProducts = isSuperadminView && visualEditor.isVisualEditMode && visualEditor.activeProducts.length > 0
     ? visualEditor.activeProducts
     : products;
-  const effectiveCategories = visualEditor.isVisualEditMode && visualEditor.activeCategories.length > 0
+  const effectiveCategories = isSuperadminView && visualEditor.isVisualEditMode && visualEditor.activeCategories.length > 0
     ? visualEditor.activeCategories
     : categories;
-  const effectiveGuides = visualEditor.isVisualEditMode && visualEditor.activeGuides.length > 0
+  const effectiveGuides = isSuperadminView && visualEditor.isVisualEditMode && visualEditor.activeGuides.length > 0
     ? visualEditor.activeGuides
     : guides;
-  const effectiveSettings = visualEditor.isVisualEditMode
+  const effectiveSettings = isSuperadminView && visualEditor.isVisualEditMode
     ? visualEditor.activeSettings
     : siteSettings;
 
@@ -88,10 +91,8 @@ const AppContent: React.FC<AppContentProps> = ({
     navigate({ page: 'guide-detail', slug });
   };
 
-  const isSuperadminView = currentRoute.page === 'superadmin';
-
   const viewportContainerClass =
-    visualEditor.isVisualEditMode && !isSuperadminView
+    isSuperadminView && visualEditor.isVisualEditMode
       ? visualEditor.deviceViewport === 'mobile'
         ? 'max-w-[420px] mx-auto min-h-screen my-4 rounded-3xl shadow-2xl border border-neutral-300 dark:border-neutral-800 overflow-hidden bg-[#F7F6F2] dark:bg-[#0E0F12]'
         : visualEditor.deviceViewport === 'tablet'
@@ -101,8 +102,8 @@ const AppContent: React.FC<AppContentProps> = ({
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F7F6F2] dark:bg-[#0E0F12] text-[#111111] dark:text-[#EDEDED] antialiased transition-colors duration-150">
-      {/* Visual Editor Toolbar when active */}
-      {visualEditor.isVisualEditMode && !isSuperadminView && (
+      {/* Visual Editor Toolbar when active inside Admin Context */}
+      {isSuperadminView && visualEditor.isVisualEditMode && (
         <VisualEditorToolbar
           deviceViewport={visualEditor.deviceViewport}
           onSelectViewport={visualEditor.setDeviceViewport}
@@ -272,7 +273,7 @@ const AppContent: React.FC<AppContentProps> = ({
       />
 
       {/* Visual Editor Modals */}
-      {visualEditor.isVisualEditMode && (
+      {isSuperadminView && visualEditor.isVisualEditMode && (
         <>
           <ContextualEditorModal
             target={visualEditor.activeTarget}

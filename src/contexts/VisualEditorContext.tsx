@@ -86,17 +86,8 @@ export const VisualEditorProvider: React.FC<VisualEditorProviderProps> = ({
   onCommitCategories,
   onCommitGuides,
 }) => {
-  const [isVisualEditMode, setIsVisualEditMode] = useState<boolean>(() => {
-    // Check if session storage or local storage requested developer mode or admin is authenticated
-    if (typeof window !== 'undefined') {
-      const devMode = sessionStorage.getItem('techcheck_developer_mode') || localStorage.getItem('techcheck_developer_mode');
-      const visMode = sessionStorage.getItem('techcheck_visual_mode') || localStorage.getItem('techcheck_visual_mode');
-      if (devMode === 'false' || visMode === 'false') return false;
-      if (devMode === 'true' || visMode === 'true') return true;
-      if (dataStorage.isAdminAuthenticated()) return true;
-    }
-    return false;
-  });
+  // Visual edit mode is strictly false on initial load so public routes remain 100% clean public UI
+  const [isVisualEditMode, setIsVisualEditMode] = useState<boolean>(false);
 
   const [deviceViewport, setDeviceViewport] = useState<DeviceViewport>('desktop');
 
