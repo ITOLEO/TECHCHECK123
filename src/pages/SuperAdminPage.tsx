@@ -1007,19 +1007,19 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                   onNavigate({ page: 'home' });
                 }}
                 className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#FF6B00] hover:bg-[#e05e00] shadow-sm flex items-center gap-1.5 transition-all cursor-pointer"
-                title="Buka Edit Preview / Visual Editor"
+                title="Buka Layer 3: Edit Website / Visual Editor"
               >
-                <Eye className="w-4 h-4" />
-                <span>Edit Preview</span>
+                <Edit className="w-4 h-4" />
+                <span>Edit Website</span>
               </button>
 
               <button
                 onClick={handleLogout}
                 className="px-4 py-2 rounded-xl text-xs font-bold text-neutral-700 dark:text-neutral-200 bg-[#F7F6F2] dark:bg-[#23252E] hover:bg-neutral-200 dark:hover:bg-[#2C2F3A] border border-[#E9E9E6] dark:border-[#2C2F3A] flex items-center gap-1.5 transition-all cursor-pointer"
-                title="Keluar dari Developer Mode dan buka Website Publik"
+                title="Keluar dari Developer Mode dan buka Layer 1: Website Publik"
               >
                 <LogOut className="w-4 h-4 text-rose-500" />
-                <span>View Live Website</span>
+                <span>Exit Developer Mode</span>
               </button>
             </div>
           </div>
