@@ -114,9 +114,26 @@ const AppContent: React.FC<AppContentProps> = ({
           onRedo={visualEditor.redo}
           onSaveDraft={visualEditor.saveDraftLocally}
           onOpenPublishModal={() => visualEditor.setIsPublishModalOpen(true)}
-          onDiscardChanges={() => visualEditor.setIsUnsavedWarningOpen(true)}
-          onGoToDashboard={() => navigate({ page: 'superadmin' })}
-          onExitEditor={visualEditor.exitVisualEditMode}
+          onDiscardChanges={() => {
+            visualEditor.setPendingExitAction(null);
+            visualEditor.setIsUnsavedWarningOpen(true);
+          }}
+          onGoToDashboard={() => {
+            if (visualEditor.hasUnsavedChanges) {
+              visualEditor.setPendingExitAction(() => navigate({ page: 'superadmin' }));
+              visualEditor.setIsUnsavedWarningOpen(true);
+            } else {
+              navigate({ page: 'superadmin' });
+            }
+          }}
+          onExitEditor={() => {
+            if (visualEditor.hasUnsavedChanges) {
+              visualEditor.setPendingExitAction(() => navigate({ page: 'superadmin' }));
+              visualEditor.setIsUnsavedWarningOpen(true);
+            } else {
+              navigate({ page: 'superadmin' });
+            }
+          }}
         />
       )}
 
@@ -276,7 +293,10 @@ const AppContent: React.FC<AppContentProps> = ({
 
           <UnsavedChangesModal
             isOpen={visualEditor.isUnsavedWarningOpen}
-            onContinueEditing={() => visualEditor.setIsUnsavedWarningOpen(false)}
+            onContinueEditing={() => {
+              visualEditor.setIsUnsavedWarningOpen(false);
+              visualEditor.setPendingExitAction(null);
+            }}
             onDiscardChanges={visualEditor.discardDraft}
           />
         </>

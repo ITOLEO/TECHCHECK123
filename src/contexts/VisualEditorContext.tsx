@@ -163,19 +163,20 @@ export const VisualEditorProvider: React.FC<VisualEditorProviderProps> = ({
   }, [showToast]);
 
   const exitVisualEditMode = useCallback(() => {
-    const doExit = () => {
-      setIsVisualEditMode(false);
-      sessionStorage.setItem('techcheck_developer_mode', 'false');
-      sessionStorage.setItem('techcheck_visual_mode', 'false');
-      localStorage.setItem('techcheck_developer_mode', 'false');
-      localStorage.setItem('techcheck_visual_mode', 'false');
+    const doExitToAdmin = () => {
+      // Keep developer mode active
+      dataStorage.setAdminAuthenticated(true);
+      sessionStorage.setItem('techcheck_developer_mode', 'true');
+      sessionStorage.setItem('techcheck_visual_mode', 'true');
+      localStorage.setItem('techcheck_developer_mode', 'true');
+      localStorage.setItem('techcheck_visual_mode', 'true');
     };
 
     if (hasUnsavedChanges) {
-      setPendingExitAction(() => doExit);
+      setPendingExitAction(() => doExitToAdmin);
       setIsUnsavedWarningOpen(true);
     } else {
-      doExit();
+      doExitToAdmin();
     }
   }, [hasUnsavedChanges]);
 
@@ -323,6 +324,7 @@ export const VisualEditorProvider: React.FC<VisualEditorProviderProps> = ({
       guides: draftGuides,
       lastModified: new Date().toISOString(),
     });
+    setHasUnsavedChanges(false);
     showToast('Draft berhasil disimpan lokal. Belum dipublikasikan ke publik.');
   }, [draftSettings, draftProducts, draftCategories, draftGuides, showToast]);
 
@@ -398,8 +400,16 @@ export const VisualEditorProvider: React.FC<VisualEditorProviderProps> = ({
     setHistory([]);
     setHistoryIndex(-1);
     dataStorage.clearDraftState();
+    setIsUnsavedWarningOpen(false);
+
+    if (pendingExitAction) {
+      const action = pendingExitAction;
+      setPendingExitAction(null);
+      action();
+    }
+
     showToast('Semua draft perubahan dibatalkan.');
-  }, [publishedSettings, publishedProducts, publishedCategories, publishedGuides, showToast]);
+  }, [publishedSettings, publishedProducts, publishedCategories, publishedGuides, pendingExitAction, showToast]);
 
   // Undo / Redo
   const canUndo = historyIndex > 0;

@@ -135,6 +135,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
   const [isGuideModalOpen, setIsGuideModalOpen] = useState(false);
   const [editingGuide, setEditingGuide] = useState<Guide | null>(null);
   const [guideFormData, setGuideFormData] = useState<Partial<Guide>>({});
+  const [initialGuideData, setInitialGuideData] = useState<string>('{}');
   const [guideFormError, setGuideFormError] = useState<string | null>(null);
   const [guideModalTab, setGuideModalTab] = useState<'basic' | 'editorial' | 'steps'>('basic');
 
@@ -559,7 +560,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
     setEditingGuide(null);
     setGuideFormError(null);
     setGuideModalTab('basic');
-    setGuideFormData({
+    const initialData: Partial<Guide> = {
       id: `guide-${Date.now()}`,
       slug: '',
       title: '',
@@ -581,7 +582,9 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
       ],
       callout: '',
       summary: 'A clean and efficient space leads to better focus and comfort.',
-    });
+    };
+    setGuideFormData(initialData);
+    setInitialGuideData(JSON.stringify(initialData));
     setIsGuideModalOpen(true);
   };
 
@@ -589,8 +592,26 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
     setEditingGuide(g);
     setGuideFormError(null);
     setGuideModalTab('basic');
-    setGuideFormData(JSON.parse(JSON.stringify(g)));
+    const copy = JSON.parse(JSON.stringify(g));
+    setGuideFormData(copy);
+    setInitialGuideData(JSON.stringify(copy));
     setIsGuideModalOpen(true);
+  };
+
+  const handleCloseGuideModal = () => {
+    const isFormDirty = JSON.stringify(guideFormData) !== initialGuideData;
+    if (isFormDirty) {
+      visualEditor.setPendingExitAction(() => {
+        setIsGuideModalOpen(false);
+        setGuideFormData({});
+        setGuideFormError(null);
+      });
+      visualEditor.setIsUnsavedWarningOpen(true);
+    } else {
+      setIsGuideModalOpen(false);
+      setGuideFormData({});
+      setGuideFormError(null);
+    }
   };
 
   const handleAddGuideStep = () => {
@@ -2232,7 +2253,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                 </div>
                 <button
                   type="button"
-                  onClick={() => setIsGuideModalOpen(false)}
+                  onClick={handleCloseGuideModal}
                   className="p-2 text-neutral-400 hover:text-[#111111] rounded-xl hover:bg-neutral-200 transition-colors cursor-pointer"
                 >
                   ✕
@@ -2649,7 +2670,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                 <div className="flex items-center gap-3">
                   <button
                     type="button"
-                    onClick={() => setIsGuideModalOpen(false)}
+                    onClick={handleCloseGuideModal}
                     className="px-5 py-2 bg-white hover:bg-neutral-100 text-neutral-700 font-bold rounded-xl border border-[#E9E9E6] transition-all cursor-pointer shadow-2xs text-xs"
                   >
                     Batal
