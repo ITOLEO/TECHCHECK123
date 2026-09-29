@@ -97,21 +97,21 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelectProdu
             </a>
           </h3>
 
-          {/* Short Benefit Statement - Uniform height */}
-          <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed mb-4 line-clamp-2 min-h-[2.5rem]">
+          {/* Short Benefit Statement - Uniform height with soft medium weight */}
+          <p className="text-xs sm:text-sm font-medium text-neutral-600 dark:text-neutral-300 leading-relaxed mb-4 line-clamp-2 min-h-[2.5rem]">
             {product.shortBenefit}
           </p>
         </div>
 
-        {/* Action Buttons - Uniform height and bottom alignment */}
-        <div className="mt-auto flex flex-row items-center gap-2 pt-3 border-t border-neutral-100 dark:border-[#23252E]">
+        {/* Action Buttons - Centered button group with synchronized dimensions */}
+        <div className="mt-auto flex flex-row items-center justify-center gap-2.5 pt-3.5 border-t border-neutral-100 dark:border-[#23252E] w-full">
           <button
             type="button"
             onClick={handleCardClick}
-            className="flex-1 h-10 px-3.5 text-xs sm:text-[13px] font-semibold text-[#111111] dark:text-neutral-200 bg-neutral-50 dark:bg-[#1D1F27] hover:bg-neutral-100 dark:hover:bg-[#262833] border border-[#E9E9E6] dark:border-[#2C2F3A] rounded-xl transition-all flex items-center justify-center gap-1.5 focus-visible:ring-2 focus-visible:ring-[#FF6B00] cursor-pointer whitespace-nowrap"
+            className="flex-1 max-w-[150px] sm:max-w-[160px] h-10 px-3 text-xs sm:text-[13px] font-semibold text-[#111111] dark:text-neutral-200 bg-neutral-50 dark:bg-[#1D1F27] hover:bg-neutral-100 dark:hover:bg-[#262833] border border-[#E9E9E6] dark:border-[#2C2F3A] rounded-xl transition-all flex items-center justify-center gap-1.5 focus-visible:ring-2 focus-visible:ring-[#FF6B00] cursor-pointer whitespace-nowrap"
           >
             <span>Review & Specs</span>
-            <ArrowRight className="w-3.5 h-3.5 shrink-0 transform group-hover:translate-x-1 transition-transform" />
+            <ArrowRight className="w-3.5 h-3.5 shrink-0 transform group-hover:translate-x-0.5 transition-transform" />
           </button>
           {safeAffiliateUrl && (
             <a
@@ -121,7 +121,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelectProdu
               onClick={handleAffiliateClick}
               title={`View ${product.name} on partner store`}
               aria-label={`View ${product.name} live on merchant store (opens new window)`}
-              className="flex-1 h-10 px-3.5 text-xs sm:text-[13px] font-semibold text-white bg-[#111111] dark:bg-[#272A35] hover:bg-[#FF6B00] dark:hover:bg-[#FF6B00] border border-transparent rounded-xl transition-all flex items-center justify-center gap-1.5 focus-visible:ring-2 focus-visible:ring-[#FF6B00] cursor-pointer whitespace-nowrap"
+              className="flex-1 max-w-[150px] sm:max-w-[160px] h-10 px-3 text-xs sm:text-[13px] font-semibold text-white bg-[#111111] dark:bg-[#272A35] hover:bg-[#FF6B00] dark:hover:bg-[#FF6B00] border border-transparent rounded-xl transition-all flex items-center justify-center gap-1.5 focus-visible:ring-2 focus-visible:ring-[#FF6B00] cursor-pointer whitespace-nowrap"
             >
               <span>View Live</span>
               <ExternalLink className="w-3.5 h-3.5 shrink-0" />

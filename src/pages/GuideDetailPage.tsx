@@ -286,7 +286,7 @@ export const GuideDetailPage: React.FC<GuideDetailPageProps> = ({
                   </h2>
                 </div>
 
-                <p className="text-sm sm:text-base text-neutral-700 dark:text-neutral-300 leading-relaxed pl-12 sm:pl-16">
+                <p className="text-sm sm:text-base font-medium text-neutral-700 dark:text-neutral-300 leading-relaxed pl-12 sm:pl-16">
                   {step.text}
                 </p>
 

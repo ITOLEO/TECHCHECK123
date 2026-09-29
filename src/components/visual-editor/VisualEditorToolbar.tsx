@@ -191,26 +191,15 @@ export const VisualEditorToolbar: React.FC<VisualEditorToolbarProps> = ({
 
           <div className="w-px h-4 bg-neutral-800 mx-1 hidden sm:block" />
 
-          {/* Switch to Mode 1: Traditional Admin Dashboard */}
+          {/* Single Return Action: Back to Dashboard */}
           <button
             type="button"
             onClick={onGoToDashboard}
-            className="px-3 py-1.5 text-xs font-semibold text-neutral-300 hover:text-white bg-neutral-900 border border-neutral-700 hover:border-neutral-500 rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer"
-            title="Beralih ke Dashboard Tradisional Superadmin"
+            className="px-3.5 py-1.5 text-xs font-bold text-neutral-100 bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 hover:border-neutral-500 rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Kembali ke Developer Dashboard"
           >
             <LayoutDashboard className="w-3.5 h-3.5 text-[#FF6B00]" />
-            <span className="hidden xl:inline">Dashboard</span>
-          </button>
-
-          {/* Exit Visual Editor */}
-          <button
-            type="button"
-            onClick={onExitEditor}
-            className="px-2.5 py-1.5 text-xs font-semibold text-neutral-400 hover:text-white rounded-lg hover:bg-neutral-800 transition-colors cursor-pointer flex items-center gap-1"
-            title="Keluar dari Visual Editor ke Website Publik"
-          >
-            <LogOut className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Exit</span>
+            <span>Back to Dashboard</span>
           </button>
         </div>
       </div>
