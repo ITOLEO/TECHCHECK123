@@ -25,7 +25,7 @@ export const AdminImageUploader: React.FC<AdminImageUploaderProps> = ({
   value,
   onChange,
   presets = ['/acer-nitro.png', '/acer-creator.png', '/powerpac.png', '/acer-portable.png'],
-  placeholder = 'https://example.com/product-image.jpg atau /acer-nitro.png',
+  placeholder = 'https://example.com/product-image.jpg atau upload file gambar',
   helperText,
 }) => {
   // Determine initial mode: if value starts with data: or /uploads/, prefer 'upload', otherwise 'url' if already a web url
@@ -94,6 +94,9 @@ export const AdminImageUploader: React.FC<AdminImageUploaderProps> = ({
     } else {
       setMetaInfo({});
       setErrorMessage(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   }, [value]);
 

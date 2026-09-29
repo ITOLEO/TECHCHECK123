@@ -29,7 +29,7 @@ interface VisualEditorToolbarProps {
   canRedo: boolean;
   onUndo: () => void;
   onRedo: () => void;
-  onSaveDraft: () => void;
+  onSaveDraft?: () => void;
   onOpenPublishModal: () => void;
   onDiscardChanges: () => void;
   onGoToDashboard: () => void;
@@ -179,15 +179,6 @@ export const VisualEditorToolbar: React.FC<VisualEditorToolbarProps> = ({
               <span>Reset</span>
             </button>
           )}
-
-          <button
-            type="button"
-            onClick={onSaveDraft}
-            className="px-3 py-1.5 text-xs font-bold text-neutral-300 hover:text-white bg-neutral-800 hover:bg-neutral-700 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer"
-          >
-            <Save className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Save Draft</span>
-          </button>
 
           <button
             type="button"

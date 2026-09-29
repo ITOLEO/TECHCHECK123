@@ -284,26 +284,26 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
       id: `prod-${Date.now()}`,
       slug: '',
       name: '',
-      category: categories[0]?.name || 'Monitors',
-      rating: 4.8,
-      reviewCount: 1,
-      image: '/acer-nitro.png',
-      gallery: ['/acer-nitro.png'],
-      badge: 'BEST GAMING MONITOR',
+      category: categories[0]?.name || '',
+      rating: 5.0,
+      reviewCount: 0,
+      image: '',
+      gallery: [],
+      badge: '',
       shortBenefit: '',
-      description: 'View the current product listing, details, and availability through our partner store.',
-      bestFor: 'Compact setup enthusiasts',
-      verdict: 'A great choice for modern minimalist gaming and workstation setups.',
+      description: '',
+      bestFor: '',
+      verdict: '',
       affiliateUrl: '',
-      featured: true,
-      productType: categories[0]?.name || 'Monitors',
-      deskSizeCompatibility: 'Desks 100cm to 140cm',
+      featured: false,
+      productType: categories[0]?.name || '',
+      deskSizeCompatibility: '',
     });
-    setHighlightsText("27' WQHD IPS display\n275Hz refresh rate\n0.5ms response time");
-    setBenefitsText("High quality build and materials\nCompact footprint perfect for small desks");
-    setSpecsText("Screen Size: 27'\nResolution: 2560 x 1440 (WQHD)\nRefresh Rate: 275Hz\nPanel Type: IPS");
-    setGreatForText("Small desks\nClean setups");
-    setSetupConsiderationsText("Check available desk clearance before mounting.");
+    setHighlightsText('');
+    setBenefitsText('');
+    setSpecsText('');
+    setGreatForText('');
+    setSetupConsiderationsText('');
     setIsProductModalOpen(true);
   };
 
@@ -371,19 +371,19 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
       slug,
       name: productFormData.name.trim(),
       category: chosenCategory,
-      rating: Number(productFormData.rating) || 4.8,
-      reviewCount: Number(productFormData.reviewCount) || 10,
-      image: productFormData.image || '/acer-nitro.png',
+      rating: Number(productFormData.rating) || 5.0,
+      reviewCount: Number(productFormData.reviewCount) || 0,
+      image: productFormData.image || '',
       gallery:
         productFormData.gallery && productFormData.gallery.length > 0
           ? productFormData.gallery
-          : [productFormData.image || '/acer-nitro.png'],
-      badge: productFormData.badge || 'BEST VALUE',
+          : (productFormData.image ? [productFormData.image] : []),
+      badge: productFormData.badge || '',
       shortBenefit: productFormData.shortBenefit || '',
       description: productFormData.description || '',
-      benefits: parsedBenefits.length > 0 ? parsedBenefits : ['Quality construction'],
-      highlights: parsedHighlights.length > 0 ? parsedHighlights : ['Space-saving design'],
-      specifications: Object.keys(parsedSpecs).length > 0 ? parsedSpecs : { Build: 'Premium' },
+      benefits: parsedBenefits,
+      highlights: parsedHighlights,
+      specifications: parsedSpecs,
       bestFor: productFormData.bestFor || '',
       greatFor: parsedGreatFor,
       setupConsiderations: parsedSetupConsiderations,
@@ -475,7 +475,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
       slug: '',
       description: '',
       productCount: 0,
-      image: '/acer-nitro.png',
+      image: '',
     });
     setIsCategoryModalOpen(true);
   };
@@ -507,7 +507,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
       slug,
       description: categoryFormData.description || '',
       productCount: count,
-      image: categoryFormData.image || '/acer-nitro.png',
+      image: categoryFormData.image || '',
     };
 
     let updatedList: CategoryInfo[];
@@ -565,23 +565,20 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
       slug: '',
       title: '',
       category: 'Setup Advice',
-      readTime: '4 min read',
+      readTime: '5 min read',
       publishDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
       excerpt: '',
-      image: '/acer-nitro.png',
+      image: '',
       featured: false,
       author: {
         name: 'TechCheck Editorial',
         role: 'Setup Specialist',
-        avatar: '/acer-nitro.png',
+        avatar: '',
       },
       intro: '',
-      steps: [
-        { number: '01', title: 'Preparation', text: 'Plan and measure your desktop area.' },
-        { number: '02', title: 'Execution', text: 'Mount display accessories and route cables neatly.' },
-      ],
+      steps: [],
       callout: '',
-      summary: 'A clean and efficient space leads to better focus and comfort.',
+      summary: '',
     };
     setGuideFormData(initialData);
     setInitialGuideData(JSON.stringify(initialData));
@@ -678,12 +675,12 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
       readTime: guideFormData.readTime || '4 min read',
       publishDate: guideFormData.publishDate || 'Recent',
       excerpt: guideFormData.excerpt || '',
-      image: guideFormData.image || '/acer-nitro.png',
+      image: guideFormData.image || '',
       featured: !!guideFormData.featured,
       author: guideFormData.author || {
         name: 'TechCheck Editorial',
         role: 'Setup Specialist',
-        avatar: '/acer-nitro.png',
+        avatar: '',
       },
       intro: guideFormData.intro || '',
       steps: Array.isArray(guideFormData.steps) ? guideFormData.steps : [],
@@ -2017,7 +2014,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                   });
                 }}
                 presets={['/acer-nitro.png', '/acer-creator.png', '/powerpac.png', '/acer-portable.png']}
-                placeholder="https://example.com/product-image.jpg atau /acer-nitro.png"
+                placeholder="https://example.com/product-image.jpg atau upload gambar"
               />
 
               {/* Product Highlights (Line by line) */}
@@ -2208,7 +2205,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                     value={categoryFormData.image || ''}
                     onChange={(newUrl) => setCategoryFormData({ ...categoryFormData, image: newUrl })}
                     presets={['/acer-nitro.png', '/acer-creator.png', '/powerpac.png', '/acer-portable.png']}
-                    placeholder="https://example.com/category-cover.jpg atau /acer-nitro.png"
+                    placeholder="https://example.com/category-cover.jpg atau upload gambar"
                   />
                 </div>
               </div>
@@ -2406,7 +2403,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                         value={guideFormData.image || ''}
                         onChange={(newUrl) => setGuideFormData({ ...guideFormData, image: newUrl })}
                         presets={['/acer-nitro.png', '/acer-creator.png', '/powerpac.png', '/acer-portable.png']}
-                        placeholder="https://example.com/guide-header.jpg atau /acer-nitro.png"
+                        placeholder="https://example.com/guide-header.jpg atau upload gambar"
                       />
                     </div>
                   </div>
@@ -2427,7 +2424,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                               author: {
                                 name: e.target.value,
                                 role: guideFormData.author?.role || 'Setup Specialist',
-                                avatar: guideFormData.author?.avatar || '/acer-nitro.png',
+                                avatar: guideFormData.author?.avatar || '',
                               },
                             })
                           }
@@ -2447,7 +2444,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                               author: {
                                 name: guideFormData.author?.name || 'TechCheck Editorial',
                                 role: e.target.value,
-                                avatar: guideFormData.author?.avatar || '/acer-nitro.png',
+                                avatar: guideFormData.author?.avatar || '',
                               },
                             })
                           }
@@ -2472,7 +2469,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                           })
                         }
                         presets={['/acer-nitro.png', '/acer-creator.png', '/powerpac.png', '/acer-portable.png']}
-                        placeholder="/acer-nitro.png atau upload avatar"
+                        placeholder="https://example.com/avatar.jpg atau upload avatar"
                       />
                     </div>
 
