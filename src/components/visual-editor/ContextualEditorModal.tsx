@@ -556,9 +556,45 @@ export const ContextualEditorModal: React.FC<ContextualEditorModalProps> = ({
                   Ringkasan / Excerpt
                 </label>
                 <textarea
-                  rows={3}
+                  rows={2}
                   value={formData.excerpt || ''}
                   onChange={(e) => handleFieldChange('excerpt', e.target.value)}
+                  className="w-full px-4 py-2.5 bg-[#F7F6F2] dark:bg-[#1D1F27] border border-[#E9E9E6] dark:border-[#2C2F3A] rounded-xl text-sm focus:border-[#FF6B00] focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-neutral-600 dark:text-neutral-400 mb-1.5">
+                  Paragraf Pengantar (Intro)
+                </label>
+                <textarea
+                  rows={3}
+                  value={formData.intro || ''}
+                  onChange={(e) => handleFieldChange('intro', e.target.value)}
+                  className="w-full px-4 py-2.5 bg-[#F7F6F2] dark:bg-[#1D1F27] border border-[#E9E9E6] dark:border-[#2C2F3A] rounded-xl text-sm focus:border-[#FF6B00] focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-neutral-600 dark:text-neutral-400 mb-1.5">
+                  Prinsip Utama / Callout Box
+                </label>
+                <textarea
+                  rows={2}
+                  value={formData.callout || ''}
+                  onChange={(e) => handleFieldChange('callout', e.target.value)}
+                  className="w-full px-4 py-2.5 bg-[#F7F6F2] dark:bg-[#1D1F27] border border-[#E9E9E6] dark:border-[#2C2F3A] rounded-xl text-sm focus:border-[#FF6B00] focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-neutral-600 dark:text-neutral-400 mb-1.5">
+                  Kesimpulan / Summary
+                </label>
+                <textarea
+                  rows={2}
+                  value={formData.summary || ''}
+                  onChange={(e) => handleFieldChange('summary', e.target.value)}
                   className="w-full px-4 py-2.5 bg-[#F7F6F2] dark:bg-[#1D1F27] border border-[#E9E9E6] dark:border-[#2C2F3A] rounded-xl text-sm focus:border-[#FF6B00] focus:outline-none"
                 />
               </div>

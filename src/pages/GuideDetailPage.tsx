@@ -15,6 +15,8 @@ import { Guide, Product, ViewRoute } from '../types';
 import { SafeImage } from '../components/SafeImage';
 import { analytics } from '../services/analytics';
 import { updateSEO, buildGuideSchema, buildBreadcrumbSchema } from '../services/seo';
+import { useVisualEditor } from '../contexts/VisualEditorContext';
+import { EditableElement } from '../components/visual-editor/EditableElement';
 
 interface GuideDetailPageProps {
   guide?: Guide;
@@ -33,6 +35,7 @@ export const GuideDetailPage: React.FC<GuideDetailPageProps> = ({
   onSelectProduct,
   onSelectGuide,
 }) => {
+  const visualEditor = useVisualEditor();
   const [copiedShare, setCopiedShare] = useState(false);
 
   useEffect(() => {
@@ -132,73 +135,85 @@ export const GuideDetailPage: React.FC<GuideDetailPageProps> = ({
       </nav>
 
       {/* 2. Article Header */}
-      <header className="space-y-6">
-        <div className="flex items-center justify-between gap-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-orange-50 dark:bg-[#251E19] text-[#FF6B00] border border-orange-200 dark:border-orange-900/50">
-            {guide.category}
-          </div>
-          <button
-            type="button"
-            onClick={handleShare}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-neutral-700 dark:text-neutral-300 bg-white dark:bg-[#16171D] border border-[#E9E9E6] dark:border-[#272932] hover:border-neutral-300 dark:hover:border-neutral-500 shadow-2xs transition-colors cursor-pointer"
-            aria-label="Share article"
-          >
-            {copiedShare ? (
-              <>
-                <Check className="w-3.5 h-3.5 text-emerald-600" />
-                <span className="text-emerald-700 dark:text-emerald-400">Link Copied!</span>
-              </>
-            ) : (
-              <>
-                <Share2 className="w-3.5 h-3.5" />
-                <span>Share Guide</span>
-              </>
-            )}
-          </button>
-        </div>
-
-        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#111111] dark:text-white tracking-tight leading-[1.12]">
-          {guide.title}
-        </h1>
-
-        <p className="text-base sm:text-lg text-neutral-600 dark:text-neutral-300 leading-relaxed font-normal">
-          {guide.intro}
-        </p>
-
-        {/* Metadata & Author Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-4 py-4 border-y border-[#E9E9E6] dark:border-[#272932]">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full overflow-hidden border border-neutral-200 dark:border-neutral-700 shrink-0">
-              <SafeImage
-                src={guide.author.avatar}
-                alt={guide.author.name}
-                fallbackText={guide.author.name}
-                className="w-full h-full object-cover"
-              />
+      <EditableElement
+        isEditMode={visualEditor.isVisualEditMode}
+        label={`Article Overview: ${guide.title}`}
+        onEdit={() =>
+          visualEditor.openEditor({
+            type: 'guide',
+            title: `Edit Guide: ${guide.title}`,
+            data: guide,
+          })
+        }
+      >
+        <header className="space-y-6">
+          <div className="flex items-center justify-between gap-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-orange-50 dark:bg-[#251E19] text-[#FF6B00] border border-orange-200 dark:border-orange-900/50">
+              {guide.category}
             </div>
-            <div>
-              <span className="text-xs font-bold text-neutral-900 dark:text-neutral-100 block">
-                {guide.author.name}
+            <button
+              type="button"
+              onClick={handleShare}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-neutral-700 dark:text-neutral-300 bg-white dark:bg-[#16171D] border border-[#E9E9E6] dark:border-[#272932] hover:border-neutral-300 dark:hover:border-neutral-500 shadow-2xs transition-colors cursor-pointer"
+              aria-label="Share article"
+            >
+              {copiedShare ? (
+                <>
+                  <Check className="w-3.5 h-3.5 text-emerald-600" />
+                  <span className="text-emerald-700 dark:text-emerald-400">Link Copied!</span>
+                </>
+              ) : (
+                <>
+                  <Share2 className="w-3.5 h-3.5" />
+                  <span>Share Guide</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#111111] dark:text-white tracking-tight leading-[1.12]">
+            {guide.title}
+          </h1>
+
+          <p className="text-base sm:text-lg text-neutral-600 dark:text-neutral-300 leading-relaxed font-normal">
+            {guide.intro}
+          </p>
+
+          {/* Metadata & Author Bar */}
+          <div className="flex flex-wrap items-center justify-between gap-4 py-4 border-y border-[#E9E9E6] dark:border-[#272932]">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full overflow-hidden border border-neutral-200 dark:border-neutral-700 shrink-0">
+                <SafeImage
+                  src={guide.author.avatar}
+                  alt={guide.author.name}
+                  fallbackText={guide.author.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div>
+                <span className="text-xs font-bold text-neutral-900 dark:text-neutral-100 block">
+                  {guide.author.name}
+                </span>
+                <span className="text-[11px] text-neutral-500 dark:text-neutral-400 block">
+                  {guide.author.role}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4 text-xs text-neutral-500 dark:text-neutral-400">
+              <span className="flex items-center gap-1.5">
+                <Clock className="w-4 h-4 text-neutral-400" />
+                <span>{guide.readTime}</span>
               </span>
-              <span className="text-[11px] text-neutral-500 dark:text-neutral-400 block">
-                {guide.author.role}
+              <span>•</span>
+              <span className="flex items-center gap-1.5">
+                <Calendar className="w-4 h-4 text-neutral-400" />
+                <span>{guide.publishDate}</span>
               </span>
             </div>
           </div>
-
-          <div className="flex items-center gap-4 text-xs text-neutral-500 dark:text-neutral-400">
-            <span className="flex items-center gap-1.5">
-              <Clock className="w-4 h-4 text-neutral-400" />
-              <span>{guide.readTime}</span>
-            </span>
-            <span>•</span>
-            <span className="flex items-center gap-1.5">
-              <Calendar className="w-4 h-4 text-neutral-400" />
-              <span>{guide.publishDate}</span>
-            </span>
-          </div>
-        </div>
-      </header>
+        </header>
+      </EditableElement>
 
       {/* 3. Hero Image */}
       <div className="aspect-16/9 rounded-3xl overflow-hidden shadow-sm border border-[#E9E9E6] dark:border-[#272932] bg-neutral-100 dark:bg-[#1D1F27]">
@@ -213,14 +228,26 @@ export const GuideDetailPage: React.FC<GuideDetailPageProps> = ({
 
       {/* 4. Editorial Callout Box */}
       {guide.callout && (
-        <div className="p-6 rounded-2xl bg-[#111111] dark:bg-[#16171E] text-white border-l-4 border-[#FF6B00] shadow-sm">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-[#FF6B00] block mb-1">
-            Core Spatial Principle
-          </span>
-          <p className="text-sm sm:text-base font-medium leading-relaxed text-neutral-200">
-            {guide.callout}
-          </p>
-        </div>
+        <EditableElement
+          isEditMode={visualEditor.isVisualEditMode}
+          label="Core Principle Callout"
+          onEdit={() =>
+            visualEditor.openEditor({
+              type: 'guide',
+              title: `Edit Guide Callout: ${guide.title}`,
+              data: guide,
+            })
+          }
+        >
+          <div className="p-6 rounded-2xl bg-[#111111] dark:bg-[#16171E] text-white border-l-4 border-[#FF6B00] shadow-sm">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#FF6B00] block mb-1">
+              Core Spatial Principle
+            </span>
+            <p className="text-sm sm:text-base font-medium leading-relaxed text-neutral-200">
+              {guide.callout}
+            </p>
+          </div>
+        </EditableElement>
       )}
 
       {/* 5. Numbered Steps / Guide Body */}
@@ -231,101 +258,126 @@ export const GuideDetailPage: React.FC<GuideDetailPageProps> = ({
             : null;
 
           return (
-            <section key={idx} className="space-y-5">
-              <div className="flex items-baseline gap-4">
-                <span className="text-3xl sm:text-4xl font-extrabold text-[#FF6B00] font-mono shrink-0">
-                  {step.number}
-                </span>
-                <h2 className="text-xl sm:text-2xl font-bold text-[#111111] dark:text-white leading-tight">
-                  {step.title}
-                </h2>
-              </div>
-
-              <p className="text-sm sm:text-base text-neutral-700 dark:text-neutral-300 leading-relaxed pl-12 sm:pl-16">
-                {step.text}
-              </p>
-
-              {step.image && (
-                <div className="pl-12 sm:pl-16">
-                  <div className="aspect-16/9 rounded-2xl overflow-hidden border border-[#E9E9E6] dark:border-[#272932] bg-neutral-100 dark:bg-[#1D1F27]">
-                    <SafeImage
-                      src={step.image}
-                      alt={step.title}
-                      fallbackText={step.title}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                    />
-                  </div>
+            <EditableElement
+              key={idx}
+              isEditMode={visualEditor.isVisualEditMode}
+              label={`Step ${step.number}: ${step.title}`}
+              onEdit={() =>
+                visualEditor.openEditor({
+                  type: 'guide',
+                  title: `Edit Guide: ${guide.title}`,
+                  data: guide,
+                })
+              }
+            >
+              <section className="space-y-5">
+                <div className="flex items-baseline gap-4">
+                  <span className="text-3xl sm:text-4xl font-extrabold text-[#FF6B00] font-mono shrink-0">
+                    {step.number}
+                  </span>
+                  <h2 className="text-xl sm:text-2xl font-bold text-[#111111] dark:text-white leading-tight">
+                    {step.title}
+                  </h2>
                 </div>
-              )}
 
-              {/* IN-ARTICLE PRODUCT RECOMMENDATION */}
-              {recProduct && (
-                <div className="pl-12 sm:pl-16 pt-2">
-                  <div className="bg-white dark:bg-[#16171D] rounded-2xl border border-orange-200/90 dark:border-orange-900/40 p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 hover:border-[#FF6B00] dark:hover:border-[#FF6B00] transition-colors">
-                    <div className="flex items-center gap-4">
-                      <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden shrink-0 bg-neutral-100 dark:bg-[#1F2128]">
-                        <SafeImage
-                          src={recProduct.image}
-                          alt={recProduct.name}
-                          fallbackText={recProduct.name}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-[#FF6B00]">
-                            Recommended for this step
-                          </span>
-                          {recProduct.badge && (
-                            <span className="text-[10px] px-1.5 py-0.2 rounded bg-neutral-100 dark:bg-[#23252E] text-neutral-700 dark:text-neutral-300 font-medium">
-                              {recProduct.badge}
-                            </span>
-                          )}
-                        </div>
-                        <h4 className="text-sm sm:text-base font-bold text-[#111111] dark:text-white mt-0.5">
-                          {recProduct.name}
-                        </h4>
-                        <div className="flex items-center gap-1.5 mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-                          <div className="flex items-center text-amber-500">
-                            <Star className="w-3.5 h-3.5 fill-current" />
-                          </div>
-                          <span className="font-semibold text-neutral-800 dark:text-neutral-200">{recProduct.rating.toFixed(1)}</span>
-                          <span>•</span>
-                          <span className="truncate max-w-xs">{recProduct.shortBenefit}</span>
-                        </div>
-                      </div>
+                <p className="text-sm sm:text-base text-neutral-700 dark:text-neutral-300 leading-relaxed pl-12 sm:pl-16">
+                  {step.text}
+                </p>
+
+                {step.image && (
+                  <div className="pl-12 sm:pl-16">
+                    <div className="aspect-16/9 rounded-2xl overflow-hidden border border-[#E9E9E6] dark:border-[#272932] bg-neutral-100 dark:bg-[#1D1F27]">
+                      <SafeImage
+                        src={step.image}
+                        alt={step.title}
+                        fallbackText={step.title}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
                     </div>
-
-                    <button
-                      type="button"
-                      onClick={() => onSelectProduct(recProduct.slug)}
-                      className="shrink-0 px-5 py-2.5 bg-[#111111] dark:bg-[#252832] hover:bg-[#FF6B00] dark:hover:bg-[#FF6B00] text-white text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs self-stretch sm:self-auto justify-center focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
-                    >
-                      <span>View Details</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
                   </div>
-                </div>
-              )}
-            </section>
+                )}
+
+                {/* IN-ARTICLE PRODUCT RECOMMENDATION */}
+                {recProduct && (
+                  <div className="pl-12 sm:pl-16 pt-2">
+                    <div className="bg-white dark:bg-[#16171D] rounded-2xl border border-orange-200/90 dark:border-orange-900/40 p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 hover:border-[#FF6B00] dark:hover:border-[#FF6B00] transition-colors">
+                      <div className="flex items-center gap-4">
+                        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden shrink-0 bg-neutral-100 dark:bg-[#1F2128]">
+                          <SafeImage
+                            src={recProduct.image}
+                            alt={recProduct.name}
+                            fallbackText={recProduct.name}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[#FF6B00]">
+                              Recommended for this step
+                            </span>
+                            {recProduct.badge && (
+                              <span className="text-[10px] px-1.5 py-0.2 rounded bg-neutral-100 dark:bg-[#23252E] text-neutral-700 dark:text-neutral-300 font-medium">
+                                {recProduct.badge}
+                              </span>
+                            )}
+                          </div>
+                          <h4 className="text-sm sm:text-base font-bold text-[#111111] dark:text-white mt-0.5">
+                            {recProduct.name}
+                          </h4>
+                          <div className="flex items-center gap-1.5 mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+                            <div className="flex items-center text-amber-500">
+                              <Star className="w-3.5 h-3.5 fill-current" />
+                            </div>
+                            <span className="font-semibold text-neutral-800 dark:text-neutral-200">{recProduct.rating.toFixed(1)}</span>
+                            <span>•</span>
+                            <span className="truncate max-w-xs">{recProduct.shortBenefit}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => onSelectProduct(recProduct.slug)}
+                        className="shrink-0 px-5 py-2.5 bg-[#111111] dark:bg-[#252832] hover:bg-[#FF6B00] dark:hover:bg-[#FF6B00] text-white text-xs font-bold rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs self-stretch sm:self-auto justify-center focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
+                      >
+                        <span>View Details</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </section>
+            </EditableElement>
           );
         })}
       </div>
 
       {/* 6. Summary / Conclusion */}
       {guide.summary && (
-        <div className="p-8 rounded-2xl bg-white dark:bg-[#16171D] border border-[#E9E9E6] dark:border-[#272932] shadow-xs space-y-3">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-[#FF6B00]" />
-            <h3 className="text-lg font-bold text-[#111111] dark:text-white">
-              Editorial Takeaway
-            </h3>
+        <EditableElement
+          isEditMode={visualEditor.isVisualEditMode}
+          label="Editorial Takeaway"
+          onEdit={() =>
+            visualEditor.openEditor({
+              type: 'guide',
+              title: `Edit Guide Summary: ${guide.title}`,
+              data: guide,
+            })
+          }
+        >
+          <div className="p-8 rounded-2xl bg-white dark:bg-[#16171D] border border-[#E9E9E6] dark:border-[#272932] shadow-xs space-y-3">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-[#FF6B00]" />
+              <h3 className="text-lg font-bold text-[#111111] dark:text-white">
+                Editorial Takeaway
+              </h3>
+            </div>
+            <p className="text-sm text-neutral-600 dark:text-neutral-300 leading-relaxed">
+              {guide.summary}
+            </p>
           </div>
-          <p className="text-sm text-neutral-600 dark:text-neutral-300 leading-relaxed">
-            {guide.summary}
-          </p>
-        </div>
+        </EditableElement>
       )}
 
       {/* 7. Related Articles */}

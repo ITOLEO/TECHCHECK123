@@ -4,6 +4,8 @@ import { Guide } from '../types';
 import { SafeImage } from '../components/SafeImage';
 import { analytics } from '../services/analytics';
 import { updateSEO, buildBreadcrumbSchema } from '../services/seo';
+import { useVisualEditor } from '../contexts/VisualEditorContext';
+import { EditableElement } from '../components/visual-editor/EditableElement';
 
 interface GuidesPageProps {
   guides: Guide[];
@@ -11,6 +13,7 @@ interface GuidesPageProps {
 }
 
 export const GuidesPage: React.FC<GuidesPageProps> = ({ guides, onSelectGuide }) => {
+  const visualEditor = useVisualEditor();
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -113,82 +116,94 @@ export const GuidesPage: React.FC<GuidesPageProps> = ({ guides, onSelectGuide })
 
       {/* Featured Guide Banner (Large) */}
       {selectedCategory === 'All' && !searchQuery && featuredGuide && (
-        <div
-          onClick={() => onSelectGuide(featuredGuide.slug)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') onSelectGuide(featuredGuide.slug);
-          }}
-          tabIndex={0}
-          role="button"
-          aria-label={`Read featured guide: ${featuredGuide.title}`}
-          className="group bg-white dark:bg-[#16171D] rounded-3xl border border-[#E9E9E6] dark:border-[#272932] hover:border-[#FF6B00] dark:hover:border-[#FF6B00] shadow-md overflow-hidden cursor-pointer grid grid-cols-1 lg:grid-cols-12 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
+        <EditableElement
+          isEditMode={visualEditor.isVisualEditMode}
+          label={`Edit Guide: ${featuredGuide.title}`}
+          onEdit={() =>
+            visualEditor.openEditor({
+              type: 'guide',
+              title: `Edit Guide: ${featuredGuide.title}`,
+              data: featuredGuide,
+            })
+          }
         >
-          <div className="lg:col-span-7 relative min-h-[300px] lg:min-h-[420px] overflow-hidden bg-neutral-900">
-            <SafeImage
-              src={featuredGuide.image}
-              alt={featuredGuide.title}
-              fallbackText={featuredGuide.title}
-              className="w-full h-full object-cover object-center group-hover:scale-103 transition-transform duration-500"
-              loading="eager"
-            />
-            <div className="absolute top-4 left-4">
-              <span className="px-3 py-1 rounded-lg text-xs font-bold tracking-wider uppercase bg-[#FF6B00] text-white">
-                Featured Cover Story
-              </span>
+          <div
+            onClick={() => onSelectGuide(featuredGuide.slug)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') onSelectGuide(featuredGuide.slug);
+            }}
+            tabIndex={0}
+            role="button"
+            aria-label={`Read featured guide: ${featuredGuide.title}`}
+            className="group bg-white dark:bg-[#16171D] rounded-3xl border border-[#E9E9E6] dark:border-[#272932] hover:border-[#FF6B00] dark:hover:border-[#FF6B00] shadow-md overflow-hidden cursor-pointer grid grid-cols-1 lg:grid-cols-12 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
+          >
+            <div className="lg:col-span-7 relative min-h-[300px] lg:min-h-[420px] overflow-hidden bg-neutral-900">
+              <SafeImage
+                src={featuredGuide.image}
+                alt={featuredGuide.title}
+                fallbackText={featuredGuide.title}
+                className="w-full h-full object-cover object-center group-hover:scale-103 transition-transform duration-500"
+                loading="eager"
+              />
+              <div className="absolute top-4 left-4">
+                <span className="px-3 py-1 rounded-lg text-xs font-bold tracking-wider uppercase bg-[#FF6B00] text-white">
+                  Featured Cover Story
+                </span>
+              </div>
             </div>
-          </div>
 
-          <div className="lg:col-span-5 p-8 sm:p-12 flex flex-col justify-between">
-            <div>
-              <div className="flex items-center gap-3 text-xs text-neutral-500 dark:text-neutral-400 mb-3 font-medium">
-                <span className="font-bold uppercase tracking-wider text-[#FF6B00]">
-                  {featuredGuide.category}
-                </span>
-                <span>•</span>
-                <span className="flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5" />
-                  <span>{featuredGuide.readTime}</span>
-                </span>
-                <span>•</span>
-                <span>{featuredGuide.publishDate}</span>
+            <div className="lg:col-span-5 p-8 sm:p-12 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center gap-3 text-xs text-neutral-500 dark:text-neutral-400 mb-3 font-medium">
+                  <span className="font-bold uppercase tracking-wider text-[#FF6B00]">
+                    {featuredGuide.category}
+                  </span>
+                  <span>•</span>
+                  <span className="flex items-center gap-1">
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>{featuredGuide.readTime}</span>
+                  </span>
+                  <span>•</span>
+                  <span>{featuredGuide.publishDate}</span>
+                </div>
+
+                <h2 className="text-2xl sm:text-3xl font-extrabold text-[#111111] dark:text-white group-hover:text-[#FF6B00] transition-colors leading-tight">
+                  {featuredGuide.title}
+                </h2>
+
+                <p className="mt-4 text-sm text-neutral-600 dark:text-neutral-300 leading-relaxed">
+                  {featuredGuide.excerpt}
+                </p>
               </div>
 
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-[#111111] dark:text-white group-hover:text-[#FF6B00] transition-colors leading-tight">
-                {featuredGuide.title}
-              </h2>
-
-              <p className="mt-4 text-sm text-neutral-600 dark:text-neutral-300 leading-relaxed">
-                {featuredGuide.excerpt}
-              </p>
-            </div>
-
-            <div className="mt-8 pt-6 border-t border-neutral-100 dark:border-[#252832] flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full overflow-hidden shrink-0 border border-neutral-200 dark:border-neutral-700">
-                  <SafeImage
-                    src={featuredGuide.author.avatar}
-                    alt={featuredGuide.author.name}
-                    fallbackText={featuredGuide.author.name}
-                    className="w-full h-full object-cover"
-                  />
+              <div className="mt-8 pt-6 border-t border-neutral-100 dark:border-[#252832] flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full overflow-hidden shrink-0 border border-neutral-200 dark:border-neutral-700">
+                    <SafeImage
+                      src={featuredGuide.author.avatar}
+                      alt={featuredGuide.author.name}
+                      fallbackText={featuredGuide.author.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-neutral-900 dark:text-neutral-200 block">
+                      {featuredGuide.author.name}
+                    </span>
+                    <span className="text-[10px] text-neutral-500 dark:text-neutral-400 block">
+                      {featuredGuide.author.role}
+                    </span>
+                  </div>
                 </div>
-                <div>
-                  <span className="text-xs font-bold text-neutral-900 dark:text-neutral-200 block">
-                    {featuredGuide.author.name}
-                  </span>
-                  <span className="text-[10px] text-neutral-500 dark:text-neutral-400 block">
-                    {featuredGuide.author.role}
-                  </span>
-                </div>
+
+                <span className="text-sm font-bold text-[#111111] dark:text-white group-hover:text-[#FF6B00] transition-colors flex items-center gap-1.5">
+                  <span>Read Guide</span>
+                  <ArrowRight className="w-4 h-4" />
+                </span>
               </div>
-
-              <span className="text-sm font-bold text-[#111111] dark:text-white group-hover:text-[#FF6B00] transition-colors flex items-center gap-1.5">
-                <span>Read Guide</span>
-                <ArrowRight className="w-4 h-4" />
-              </span>
             </div>
           </div>
-        </div>
+        </EditableElement>
       )}
 
       {/* 3-Column Article Grid */}
@@ -205,58 +220,70 @@ export const GuidesPage: React.FC<GuidesPageProps> = ({ guides, onSelectGuide })
         {filteredGuides.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredGuides.map((guide) => (
-              <div
+              <EditableElement
                 key={guide.id}
-                onClick={() => onSelectGuide(guide.slug)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') onSelectGuide(guide.slug);
-                }}
-                tabIndex={0}
-                role="button"
-                aria-label={`Read guide: ${guide.title}`}
-                className="group bg-white dark:bg-[#16171D] rounded-2xl border border-[#E9E9E6] dark:border-[#272932] hover:border-[#FF6B00] dark:hover:border-[#FF6B00] shadow-xs hover:shadow-md transition-all overflow-hidden cursor-pointer flex flex-col justify-between focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
+                isEditMode={visualEditor.isVisualEditMode}
+                label={`Edit Guide: ${guide.title}`}
+                onEdit={() =>
+                  visualEditor.openEditor({
+                    type: 'guide',
+                    title: `Edit Guide: ${guide.title}`,
+                    data: guide,
+                  })
+                }
               >
-                <div className="aspect-16/10 overflow-hidden bg-neutral-100 dark:bg-[#1D1F27] relative">
-                  <SafeImage
-                    src={guide.image}
-                    alt={guide.title}
-                    fallbackText={guide.title}
-                    className="w-full h-full object-cover group-hover:scale-104 transition-transform duration-300"
-                    loading="lazy"
-                  />
-                  <div className="absolute top-3 left-3">
-                    <span className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-black/70 text-white backdrop-blur-xs">
-                      {guide.category}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="p-6 flex-1 flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-center gap-2 text-[11px] text-neutral-400 dark:text-neutral-500 mb-2 font-medium">
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        <span>{guide.readTime}</span>
+                <div
+                  onClick={() => onSelectGuide(guide.slug)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') onSelectGuide(guide.slug);
+                  }}
+                  tabIndex={0}
+                  role="button"
+                  aria-label={`Read guide: ${guide.title}`}
+                  className="group bg-white dark:bg-[#16171D] rounded-2xl border border-[#E9E9E6] dark:border-[#272932] hover:border-[#FF6B00] dark:hover:border-[#FF6B00] shadow-xs hover:shadow-md transition-all overflow-hidden cursor-pointer flex flex-col justify-between focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] h-full"
+                >
+                  <div className="aspect-16/10 overflow-hidden bg-neutral-100 dark:bg-[#1D1F27] relative">
+                    <SafeImage
+                      src={guide.image}
+                      alt={guide.title}
+                      fallbackText={guide.title}
+                      className="w-full h-full object-cover group-hover:scale-104 transition-transform duration-300"
+                      loading="lazy"
+                    />
+                    <div className="absolute top-3 left-3">
+                      <span className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-black/70 text-white backdrop-blur-xs">
+                        {guide.category}
                       </span>
-                      <span>•</span>
-                      <span>{guide.publishDate}</span>
+                    </div>
+                  </div>
+
+                  <div className="p-6 flex-1 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 text-[11px] text-neutral-400 dark:text-neutral-500 mb-2 font-medium">
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          <span>{guide.readTime}</span>
+                        </span>
+                        <span>•</span>
+                        <span>{guide.publishDate}</span>
+                      </div>
+
+                      <h3 className="text-lg font-bold text-[#111111] dark:text-white group-hover:text-[#FF6B00] transition-colors leading-snug">
+                        {guide.title}
+                      </h3>
+
+                      <p className="mt-2.5 text-xs text-neutral-600 dark:text-neutral-400 line-clamp-2 leading-relaxed">
+                        {guide.excerpt}
+                      </p>
                     </div>
 
-                    <h3 className="text-lg font-bold text-[#111111] dark:text-white group-hover:text-[#FF6B00] transition-colors leading-snug">
-                      {guide.title}
-                    </h3>
-
-                    <p className="mt-2.5 text-xs text-neutral-600 dark:text-neutral-400 line-clamp-2 leading-relaxed">
-                      {guide.excerpt}
-                    </p>
-                  </div>
-
-                  <div className="mt-6 pt-4 border-t border-neutral-100 dark:border-[#252832] flex items-center justify-between text-xs font-bold text-[#111111] dark:text-neutral-200 group-hover:text-[#FF6B00]">
-                    <span>Read Full Guide</span>
-                    <ArrowRight className="w-4 h-4" />
+                    <div className="mt-6 pt-4 border-t border-neutral-100 dark:border-[#252832] flex items-center justify-between text-xs font-bold text-[#111111] dark:text-neutral-200 group-hover:text-[#FF6B00]">
+                      <span>Read Full Guide</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </div>
                   </div>
                 </div>
-              </div>
+              </EditableElement>
             ))}
           </div>
         ) : (

@@ -31,9 +31,10 @@ import {
   Table,
   Eye
 } from 'lucide-react';
-import { Product, CategoryInfo, Guide, SiteSettings, ViewRoute } from '../types';
+import { Product, CategoryInfo, Guide, GuideStep, SiteSettings, ViewRoute } from '../types';
 import { dataStorage, DEFAULT_SITE_SETTINGS } from '../services/dataStorage';
 import { AdminImageUploader } from '../components/AdminImageUploader';
+import { useVisualEditor } from '../contexts/VisualEditorContext';
 
 interface SuperAdminPageProps {
   products: Product[];
@@ -58,6 +59,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
   onUpdateSettings,
   onNavigate,
 }) => {
+  const visualEditor = useVisualEditor();
   // Authentication state
   const initialAuth = dataStorage.isAdminAuthenticated();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(initialAuth);
@@ -134,6 +136,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
   const [editingGuide, setEditingGuide] = useState<Guide | null>(null);
   const [guideFormData, setGuideFormData] = useState<Partial<Guide>>({});
   const [guideFormError, setGuideFormError] = useState<string | null>(null);
+  const [guideModalTab, setGuideModalTab] = useState<'basic' | 'editorial' | 'steps'>('basic');
 
   // In-app Confirmation Modal state (Replaces window.confirm to function in iframe sandbox)
   const [deleteTarget, setDeleteTarget] = useState<{
@@ -157,8 +160,11 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
   React.useEffect(() => {
     if (isAuthenticated) {
       dataStorage.checkSupabaseStatus().then(setSupabaseStatus);
+      if (!visualEditor.isVisualEditMode) {
+        visualEditor.enterVisualEditMode();
+      }
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, visualEditor]);
 
   // Lock background body scrolling when any modal is open, and restore when closed
   const isAnyAdminModalOpen =
@@ -242,6 +248,11 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
     const cleanInput = loginPasscode.trim();
     if (cleanInput === '654321' || dataStorage.verifyPasscode(cleanInput)) {
       dataStorage.setAdminAuthenticated(true);
+      sessionStorage.setItem('techcheck_developer_mode', 'true');
+      sessionStorage.setItem('techcheck_visual_mode', 'true');
+      localStorage.setItem('techcheck_developer_mode', 'true');
+      localStorage.setItem('techcheck_visual_mode', 'true');
+      visualEditor.enterVisualEditMode();
       setIsAuthenticated(true);
       setLoginError('');
       showToast('Berhasil masuk ke Dashboard admintechcheck');
@@ -252,10 +263,16 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
 
   const handleLogout = () => {
     dataStorage.setAdminAuthenticated(false);
+    sessionStorage.removeItem('techcheck_developer_mode');
+    sessionStorage.removeItem('techcheck_visual_mode');
+    localStorage.removeItem('techcheck_developer_mode');
+    localStorage.removeItem('techcheck_visual_mode');
+    visualEditor.exitVisualEditMode();
     setIsAuthenticated(false);
     setLoginPasscode('');
     setShowSplashLoading(false);
     showToast('Berhasil keluar dari mode superadmin');
+    onNavigate({ page: 'home' });
   };
 
   // --- PRODUCT ACTIONS ---
@@ -541,6 +558,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
   const handleOpenCreateGuide = () => {
     setEditingGuide(null);
     setGuideFormError(null);
+    setGuideModalTab('basic');
     setGuideFormData({
       id: `guide-${Date.now()}`,
       slug: '',
@@ -561,6 +579,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
         { number: '01', title: 'Preparation', text: 'Plan and measure your desktop area.' },
         { number: '02', title: 'Execution', text: 'Mount display accessories and route cables neatly.' },
       ],
+      callout: '',
       summary: 'A clean and efficient space leads to better focus and comfort.',
     });
     setIsGuideModalOpen(true);
@@ -569,8 +588,54 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
   const handleOpenEditGuide = (g: Guide) => {
     setEditingGuide(g);
     setGuideFormError(null);
-    setGuideFormData({ ...g });
+    setGuideModalTab('basic');
+    setGuideFormData(JSON.parse(JSON.stringify(g)));
     setIsGuideModalOpen(true);
+  };
+
+  const handleAddGuideStep = () => {
+    const currentSteps = Array.isArray(guideFormData.steps) ? [...guideFormData.steps] : [];
+    const nextNumber = String(currentSteps.length + 1).padStart(2, '0');
+    currentSteps.push({
+      number: nextNumber,
+      title: `Step ${nextNumber}`,
+      text: '',
+      image: '',
+      recommendedProductSlug: '',
+    });
+    setGuideFormData((prev) => ({ ...prev, steps: currentSteps }));
+  };
+
+  const handleUpdateGuideStep = (index: number, updatedFields: Partial<GuideStep>) => {
+    const currentSteps = Array.isArray(guideFormData.steps) ? [...guideFormData.steps] : [];
+    if (currentSteps[index]) {
+      currentSteps[index] = { ...currentSteps[index], ...updatedFields };
+      setGuideFormData((prev) => ({ ...prev, steps: currentSteps }));
+    }
+  };
+
+  const handleDeleteGuideStep = (index: number) => {
+    const currentSteps = Array.isArray(guideFormData.steps) ? [...guideFormData.steps] : [];
+    currentSteps.splice(index, 1);
+    const renumbered = currentSteps.map((step, idx) => ({
+      ...step,
+      number: String(idx + 1).padStart(2, '0'),
+    }));
+    setGuideFormData((prev) => ({ ...prev, steps: renumbered }));
+  };
+
+  const handleMoveGuideStep = (index: number, direction: 'up' | 'down') => {
+    const currentSteps = Array.isArray(guideFormData.steps) ? [...guideFormData.steps] : [];
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= currentSteps.length) return;
+    const temp = currentSteps[index];
+    currentSteps[index] = currentSteps[targetIndex];
+    currentSteps[targetIndex] = temp;
+    const renumbered = currentSteps.map((step, idx) => ({
+      ...step,
+      number: String(idx + 1).padStart(2, '0'),
+    }));
+    setGuideFormData((prev) => ({ ...prev, steps: renumbered }));
   };
 
   const handleSaveGuide = async (e: React.FormEvent) => {
@@ -600,7 +665,8 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
         avatar: '/acer-nitro.png',
       },
       intro: guideFormData.intro || '',
-      steps: guideFormData.steps || [],
+      steps: Array.isArray(guideFormData.steps) ? guideFormData.steps : [],
+      callout: guideFormData.callout || '',
       summary: guideFormData.summary || '',
     };
 
@@ -918,7 +984,10 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
 
             <div className="flex items-center gap-2.5">
               <button
-                onClick={() => onNavigate({ page: 'home' })}
+                onClick={() => {
+                  visualEditor.enterVisualEditMode();
+                  onNavigate({ page: 'home' });
+                }}
                 className="px-3.5 py-2 rounded-lg text-xs font-bold text-neutral-700 bg-[#F7F6F2] hover:bg-neutral-200/80 border border-[#E9E9E6] flex items-center gap-1.5 transition-all cursor-pointer"
               >
                 <Eye className="w-3.5 h-3.5 text-[#FF6B00]" />
@@ -1143,7 +1212,10 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                           <td className="py-3.5 px-4 text-right">
                             <div className="flex items-center justify-end gap-1.5">
                               <button
-                                onClick={() => onNavigate({ page: 'product-detail', slug: prod.slug })}
+                                onClick={() => {
+                                  visualEditor.enterVisualEditMode();
+                                  onNavigate({ page: 'product-detail', slug: prod.slug });
+                                }}
                                 className="p-1.5 text-neutral-500 hover:text-[#111111] hover:bg-neutral-100 rounded-lg transition-colors cursor-pointer"
                                 title="Lihat di Web"
                               >
@@ -1313,7 +1385,10 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
 
                     <div className="mt-6 pt-4 border-t border-[#E9E9E6] flex items-center justify-between">
                       <button
-                        onClick={() => onNavigate({ page: 'guide-detail', slug: guide.slug })}
+                        onClick={() => {
+                          visualEditor.enterVisualEditMode();
+                          onNavigate({ page: 'guide-detail', slug: guide.slug });
+                        }}
                         className="text-xs font-semibold text-neutral-600 hover:text-[#FF6B00] flex items-center gap-1 cursor-pointer"
                       >
                         <Eye className="w-3.5 h-3.5" />
@@ -2139,23 +2214,70 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
       )}
 
       {/* ==================================================== */}
-      {/* GUIDE FORM MODAL (CREATE / EDIT) */}
+      {/* GUIDE FORM MODAL (CREATE / EDIT) - COMPLETE ARTICLE EDITOR */}
       {/* ==================================================== */}
       {isGuideModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-hidden">
-          <div className="bg-white rounded-3xl border border-[#E9E9E6] shadow-2xl w-full max-w-2xl max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-2.5rem)] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+          <div className="bg-white rounded-3xl border border-[#E9E9E6] shadow-2xl w-full max-w-3xl max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-2.5rem)] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
             {/* Modal Header */}
-            <div className="shrink-0 p-5 sm:p-6 border-b border-[#E9E9E6] flex items-center justify-between bg-[#F7F6F2]">
-              <h3 className="text-lg font-extrabold text-[#111111]">
-                {editingGuide ? `Edit Panduan: ${editingGuide.title}` : 'Tambah Panduan Baru'}
-              </h3>
-              <button
-                type="button"
-                onClick={() => setIsGuideModalOpen(false)}
-                className="p-2 text-neutral-400 hover:text-[#111111] rounded-xl hover:bg-neutral-200 transition-colors cursor-pointer"
-              >
-                ✕
-              </button>
+            <div className="shrink-0 p-5 sm:p-6 border-b border-[#E9E9E6] bg-[#F7F6F2]">
+              <div className="flex items-center justify-between">
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#FF6B00]">
+                    Developer Article Editor
+                  </span>
+                  <h3 className="text-lg font-extrabold text-[#111111]">
+                    {editingGuide ? `Edit Panduan: ${editingGuide.title}` : 'Tambah Panduan Baru'}
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsGuideModalOpen(false)}
+                  className="p-2 text-neutral-400 hover:text-[#111111] rounded-xl hover:bg-neutral-200 transition-colors cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Editor Tabs */}
+              <div className="flex items-center gap-2 mt-4 pt-3 border-t border-neutral-200">
+                <button
+                  type="button"
+                  onClick={() => setGuideModalTab('basic')}
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    guideModalTab === 'basic'
+                      ? 'bg-[#111111] text-white shadow-xs'
+                      : 'bg-white text-neutral-600 hover:text-neutral-900 border border-[#E9E9E6]'
+                  }`}
+                >
+                  1. Informasi Dasar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setGuideModalTab('editorial')}
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    guideModalTab === 'editorial'
+                      ? 'bg-[#111111] text-white shadow-xs'
+                      : 'bg-white text-neutral-600 hover:text-neutral-900 border border-[#E9E9E6]'
+                  }`}
+                >
+                  2. Penulis & Editorial
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setGuideModalTab('steps')}
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                    guideModalTab === 'steps'
+                      ? 'bg-[#111111] text-white shadow-xs'
+                      : 'bg-white text-neutral-600 hover:text-neutral-900 border border-[#E9E9E6]'
+                  }`}
+                >
+                  <span>3. Langkah Artikel</span>
+                  <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-[#FF6B00] text-white">
+                    {guideFormData.steps?.length || 0}
+                  </span>
+                </button>
+              </div>
             </div>
 
             <form onSubmit={handleSaveGuide} className="flex-1 min-h-0 flex flex-col overflow-hidden">
@@ -2168,82 +2290,378 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                   </div>
                 )}
 
-                <div>
-                  <label className="block font-bold text-neutral-700 mb-1">Judul Panduan *</label>
-                  <input
-                    type="text"
-                    required
-                    value={guideFormData.title || ''}
-                    onChange={(e) => {
-                      setGuideFormData({ ...guideFormData, title: e.target.value });
-                      if (guideFormError) setGuideFormError(null);
-                    }}
-                    placeholder="Contoh: The Ultimate Dual Monitor Desk Mount Guide"
-                    className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl font-medium"
-                  />
-                </div>
+                {/* TAB 1: BASIC INFORMATION */}
+                {guideModalTab === 'basic' && (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block font-bold text-neutral-700 mb-1">Judul Panduan *</label>
+                      <input
+                        type="text"
+                        required
+                        value={guideFormData.title || ''}
+                        onChange={(e) => {
+                          setGuideFormData({ ...guideFormData, title: e.target.value });
+                          if (guideFormError) setGuideFormError(null);
+                        }}
+                        placeholder="Contoh: The Ultimate Dual Monitor Desk Mount Guide"
+                        className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl font-medium"
+                      />
+                    </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block font-bold text-neutral-700 mb-1">Kategori Panduan</label>
-                    <input
-                      type="text"
-                      value={guideFormData.category || ''}
-                      onChange={(e) => setGuideFormData({ ...guideFormData, category: e.target.value })}
-                      placeholder="Setup Advice, Cable Management"
-                      className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl"
-                    />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block font-bold text-neutral-700 mb-1">Slug URL (Opsional)</label>
+                        <input
+                          type="text"
+                          value={guideFormData.slug || ''}
+                          onChange={(e) => setGuideFormData({ ...guideFormData, slug: e.target.value })}
+                          placeholder="dual-monitor-setup (otomatis jika kosong)"
+                          className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl font-mono"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block font-bold text-neutral-700 mb-1">Kategori Panduan</label>
+                        <input
+                          type="text"
+                          value={guideFormData.category || ''}
+                          onChange={(e) => setGuideFormData({ ...guideFormData, category: e.target.value })}
+                          placeholder="Setup Advice, Cable Management"
+                          className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block font-bold text-neutral-700 mb-1">Waktu Baca (Read Time)</label>
+                        <input
+                          type="text"
+                          value={guideFormData.readTime || ''}
+                          onChange={(e) => setGuideFormData({ ...guideFormData, readTime: e.target.value })}
+                          placeholder="4 min read"
+                          className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block font-bold text-neutral-700 mb-1">Tanggal Publikasi</label>
+                        <input
+                          type="text"
+                          value={guideFormData.publishDate || ''}
+                          onChange={(e) => setGuideFormData({ ...guideFormData, publishDate: e.target.value })}
+                          placeholder="Oct 14, 2026"
+                          className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl"
+                        />
+                      </div>
+
+                      <div className="flex items-center pt-5">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={!!guideFormData.featured}
+                            onChange={(e) => setGuideFormData({ ...guideFormData, featured: e.target.checked })}
+                            className="w-4 h-4 rounded text-[#FF6B00] focus:ring-[#FF6B00]"
+                          />
+                          <span className="font-bold text-neutral-800">Featured Article</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-neutral-700 mb-1">Ringkasan / Excerpt</label>
+                      <textarea
+                        rows={2}
+                        value={guideFormData.excerpt || ''}
+                        onChange={(e) => setGuideFormData({ ...guideFormData, excerpt: e.target.value })}
+                        placeholder="Ringkasan singkat tentang panduan ini..."
+                        className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl"
+                      />
+                    </div>
+
+                    <div>
+                      <AdminImageUploader
+                        label="URL Gambar Header / Cover"
+                        value={guideFormData.image || ''}
+                        onChange={(newUrl) => setGuideFormData({ ...guideFormData, image: newUrl })}
+                        presets={['/acer-nitro.png', '/acer-creator.png', '/powerpac.png', '/acer-portable.png']}
+                        placeholder="https://example.com/guide-header.jpg atau /acer-nitro.png"
+                      />
+                    </div>
                   </div>
+                )}
 
-                  <div>
-                    <label className="block font-bold text-neutral-700 mb-1">Waktu Baca (Read Time)</label>
-                    <input
-                      type="text"
-                      value={guideFormData.readTime || ''}
-                      onChange={(e) => setGuideFormData({ ...guideFormData, readTime: e.target.value })}
-                      placeholder="4 min read"
-                      className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl"
-                    />
+                {/* TAB 2: EDITORIAL & AUTHOR */}
+                {guideModalTab === 'editorial' && (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block font-bold text-neutral-700 mb-1">Nama Penulis</label>
+                        <input
+                          type="text"
+                          value={guideFormData.author?.name || ''}
+                          onChange={(e) =>
+                            setGuideFormData({
+                              ...guideFormData,
+                              author: {
+                                name: e.target.value,
+                                role: guideFormData.author?.role || 'Setup Specialist',
+                                avatar: guideFormData.author?.avatar || '/acer-nitro.png',
+                              },
+                            })
+                          }
+                          placeholder="TechCheck Editorial"
+                          className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl font-medium"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block font-bold text-neutral-700 mb-1">Peran Penulis</label>
+                        <input
+                          type="text"
+                          value={guideFormData.author?.role || ''}
+                          onChange={(e) =>
+                            setGuideFormData({
+                              ...guideFormData,
+                              author: {
+                                name: guideFormData.author?.name || 'TechCheck Editorial',
+                                role: e.target.value,
+                                avatar: guideFormData.author?.avatar || '/acer-nitro.png',
+                              },
+                            })
+                          }
+                          placeholder="Setup Specialist"
+                          className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl font-medium"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <AdminImageUploader
+                        label="Avatar Penulis"
+                        value={guideFormData.author?.avatar || ''}
+                        onChange={(newUrl) =>
+                          setGuideFormData({
+                            ...guideFormData,
+                            author: {
+                              name: guideFormData.author?.name || 'TechCheck Editorial',
+                              role: guideFormData.author?.role || 'Setup Specialist',
+                              avatar: newUrl,
+                            },
+                          })
+                        }
+                        presets={['/acer-nitro.png', '/acer-creator.png', '/powerpac.png', '/acer-portable.png']}
+                        placeholder="/acer-nitro.png atau upload avatar"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-neutral-700 mb-1">Paragraf Pengantar (Intro)</label>
+                      <textarea
+                        rows={3}
+                        value={guideFormData.intro || ''}
+                        onChange={(e) => setGuideFormData({ ...guideFormData, intro: e.target.value })}
+                        placeholder="Paragraf pembuka artikel secara mendalam..."
+                        className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-neutral-700 mb-1">
+                        Prinsip Utama / Core Spatial Principle (Callout Box)
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={guideFormData.callout || ''}
+                        onChange={(e) => setGuideFormData({ ...guideFormData, callout: e.target.value })}
+                        placeholder="Prinsip spatial kunci yang ingin ditekankan..."
+                        className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block font-bold text-neutral-700 mb-1">Kesimpulan Akhir (Summary)</label>
+                      <textarea
+                        rows={3}
+                        value={guideFormData.summary || ''}
+                        onChange={(e) => setGuideFormData({ ...guideFormData, summary: e.target.value })}
+                        placeholder="Ringkasan akhir dan rekomendasi kesimpulan..."
+                        className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl"
+                      />
+                    </div>
                   </div>
-                </div>
+                )}
 
-                <div>
-                  <label className="block font-bold text-neutral-700 mb-1">Ringkasan / Excerpt</label>
-                  <textarea
-                    rows={2}
-                    value={guideFormData.excerpt || ''}
-                    onChange={(e) => setGuideFormData({ ...guideFormData, excerpt: e.target.value })}
-                    placeholder="Ringkasan singkat tentang panduan ini..."
-                    className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl"
-                  />
-                </div>
+                {/* TAB 3: GUIDE STEPS */}
+                {guideModalTab === 'steps' && (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between pb-2 border-b border-[#E9E9E6]">
+                      <div>
+                        <h4 className="font-extrabold text-neutral-900 text-sm">
+                          Langkah Panduan ({guideFormData.steps?.length || 0})
+                        </h4>
+                        <p className="text-[11px] text-neutral-500">
+                          Tambahkan tahapan instruksi, gambar langkah, dan produk yang direkomendasikan
+                        </p>
+                      </div>
 
-                <div>
-                  <AdminImageUploader
-                    label="URL Gambar Header"
-                    value={guideFormData.image || ''}
-                    onChange={(newUrl) => setGuideFormData({ ...guideFormData, image: newUrl })}
-                    presets={['/acer-nitro.png', '/acer-creator.png', '/powerpac.png', '/acer-portable.png']}
-                    placeholder="https://example.com/guide-header.jpg atau /acer-nitro.png"
-                  />
-                </div>
+                      <button
+                        type="button"
+                        onClick={handleAddGuideStep}
+                        className="px-3.5 py-1.5 bg-[#FF6B00] hover:bg-[#E05E00] text-white font-bold text-xs rounded-xl transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Tambah Langkah</span>
+                      </button>
+                    </div>
+
+                    {(!guideFormData.steps || guideFormData.steps.length === 0) ? (
+                      <div className="p-8 text-center bg-[#F7F6F2] rounded-2xl border border-dashed border-[#E9E9E6] text-neutral-500">
+                        <p className="text-xs">Belum ada langkah panduan.</p>
+                        <button
+                          type="button"
+                          onClick={handleAddGuideStep}
+                          className="mt-2 text-xs font-bold text-[#FF6B00] hover:underline"
+                        >
+                          + Tambah Langkah Pertama
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {guideFormData.steps.map((step, idx) => (
+                          <div
+                            key={idx}
+                            className="bg-[#F7F6F2] rounded-2xl p-4 border border-[#E9E9E6] space-y-3"
+                          >
+                            <div className="flex items-center justify-between pb-2 border-b border-neutral-200">
+                              <div className="flex items-center gap-2">
+                                <span className="w-7 h-7 rounded-lg bg-[#FF6B00] text-white font-black font-mono flex items-center justify-center text-xs">
+                                  {step.number || String(idx + 1).padStart(2, '0')}
+                                </span>
+                                <span className="font-extrabold text-neutral-800 text-xs">
+                                  Langkah #{idx + 1}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center gap-1">
+                                <button
+                                  type="button"
+                                  disabled={idx === 0}
+                                  onClick={() => handleMoveGuideStep(idx, 'up')}
+                                  title="Pindah ke Atas"
+                                  className="p-1 rounded text-neutral-400 hover:text-neutral-700 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                                >
+                                  ▲
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={idx === (guideFormData.steps?.length || 0) - 1}
+                                  onClick={() => handleMoveGuideStep(idx, 'down')}
+                                  title="Pindah ke Bawah"
+                                  className="p-1 rounded text-neutral-400 hover:text-neutral-700 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                                >
+                                  ▼
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteGuideStep(idx)}
+                                  title="Hapus Langkah Ini"
+                                  className="p-1 rounded text-rose-500 hover:bg-rose-100 transition-colors cursor-pointer ml-1"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </div>
+
+                            <div>
+                              <label className="block font-bold text-neutral-700 mb-1">
+                                Judul Langkah
+                              </label>
+                              <input
+                                type="text"
+                                value={step.title || ''}
+                                onChange={(e) => handleUpdateGuideStep(idx, { title: e.target.value })}
+                                placeholder="Contoh: Mengatur Posisi dan Ketinggian Monitor"
+                                className="w-full p-2 bg-white border border-[#E9E9E6] rounded-xl text-xs font-semibold"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block font-bold text-neutral-700 mb-1">
+                                Instruksi / Deskripsi Langkah
+                              </label>
+                              <textarea
+                                rows={3}
+                                value={step.text || ''}
+                                onChange={(e) => handleUpdateGuideStep(idx, { text: e.target.value })}
+                                placeholder="Jelaskan detail langkah secara teknis dan praktis..."
+                                className="w-full p-2 bg-white border border-[#E9E9E6] rounded-xl text-xs"
+                              />
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              <div>
+                                <label className="block font-bold text-neutral-700 mb-1">
+                                  Rekomendasi Produk untuk Langkah Ini (Opsional)
+                                </label>
+                                <select
+                                  value={step.recommendedProductSlug || ''}
+                                  onChange={(e) => handleUpdateGuideStep(idx, { recommendedProductSlug: e.target.value })}
+                                  className="w-full p-2 bg-white border border-[#E9E9E6] rounded-xl text-xs font-medium"
+                                >
+                                  <option value="">-- Tidak Ada Produk Tertaut --</option>
+                                  {products.map((p) => (
+                                    <option key={p.id} value={p.slug}>
+                                      {p.name} ({p.category})
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+
+                              <div>
+                                <label className="block font-bold text-neutral-700 mb-1">
+                                  URL Gambar Langkah (Opsional)
+                                </label>
+                                <input
+                                  type="text"
+                                  value={step.image || ''}
+                                  onChange={(e) => handleUpdateGuideStep(idx, { image: e.target.value })}
+                                  placeholder="/acer-nitro.png atau URL gambar"
+                                  className="w-full p-2 bg-white border border-[#E9E9E6] rounded-xl text-xs"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Sticky Footer */}
-              <div className="shrink-0 sticky bottom-0 bg-[#F7F6F2] p-4 sm:p-5 border-t border-[#E9E9E6] flex items-center justify-end gap-3 z-10 shadow-xs">
-                <button
-                  type="button"
-                  onClick={() => setIsGuideModalOpen(false)}
-                  className="px-5 py-2 bg-white hover:bg-neutral-100 text-neutral-700 font-bold rounded-xl border border-[#E9E9E6] transition-all cursor-pointer shadow-2xs"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 bg-[#FF6B00] hover:bg-[#E05E00] text-white font-bold rounded-xl transition-all shadow-xs cursor-pointer"
-                >
-                  Simpan Panduan
-                </button>
+              <div className="shrink-0 sticky bottom-0 bg-[#F7F6F2] p-4 sm:p-5 border-t border-[#E9E9E6] flex items-center justify-between z-10 shadow-xs">
+                <div className="flex items-center gap-1.5 text-xs text-neutral-500">
+                  <span>Tab: </span>
+                  <span className="font-bold text-neutral-800 capitalize">{guideModalTab}</span>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setIsGuideModalOpen(false)}
+                    className="px-5 py-2 bg-white hover:bg-neutral-100 text-neutral-700 font-bold rounded-xl border border-[#E9E9E6] transition-all cursor-pointer shadow-2xs text-xs"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-6 py-2 bg-[#FF6B00] hover:bg-[#E05E00] text-white font-bold rounded-xl transition-all shadow-xs cursor-pointer text-xs flex items-center gap-1.5"
+                  >
+                    <Check className="w-3.5 h-3.5" />
+                    <span>Simpan Panduan</span>
+                  </button>
+                </div>
               </div>
             </form>
           </div>

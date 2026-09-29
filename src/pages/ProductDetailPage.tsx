@@ -5,6 +5,8 @@ import { SafeImage } from '../components/SafeImage';
 import { ProductCard } from '../components/ProductCard';
 import { analytics } from '../services/analytics';
 import { updateSEO, buildProductSchema, buildBreadcrumbSchema } from '../services/seo';
+import { useVisualEditor } from '../contexts/VisualEditorContext';
+import { EditableElement } from '../components/visual-editor/EditableElement';
 
 interface ProductDetailPageProps {
   product?: Product;
@@ -30,6 +32,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
   onNavigate,
   onSelectProduct,
 }) => {
+  const visualEditor = useVisualEditor();
   // If product is missing or invalid slug
   if (!product) {
     return (
@@ -193,28 +196,41 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
 
         {/* Right Column: All Details */}
         <div className="lg:col-span-6 space-y-8">
-          <div>
-            {product.badge && (
-              <div className="mb-4">
-                <span className="inline-flex items-center px-3 py-1.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-[#111111] dark:bg-[#252832] text-white">
-                  {product.badge}
+          <EditableElement
+            isEditMode={visualEditor.isVisualEditMode}
+            label={`Edit Product: ${product.name}`}
+            onEdit={() =>
+              visualEditor.openEditor({
+                type: 'product',
+                title: `Edit Product: ${product.name}`,
+                data: product,
+              })
+            }
+          >
+            <div>
+              {product.badge && (
+                <div className="mb-4">
+                  <span className="inline-flex items-center px-3 py-1.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-[#111111] dark:bg-[#252832] text-white">
+                    {product.badge}
+                  </span>
+                </div>
+              )}
+
+              <div className="mb-2">
+                <span className="text-sm font-bold uppercase tracking-wider text-[#FF6B00]">
+                  {product.category}
                 </span>
               </div>
-            )}
 
-            <div className="mb-2">
-              <span className="text-sm font-bold uppercase tracking-wider text-[#FF6B00]">
-                {product.category}
-              </span>
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#111111] dark:text-white tracking-tight leading-tight mb-4">
+                {product.name}
+              </h1>
+
+              <p className="text-base text-neutral-600 dark:text-neutral-300 leading-relaxed mb-6">
+                {product.shortBenefit}
+              </p>
             </div>
-
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#111111] dark:text-white tracking-tight leading-tight mb-4">
-              {product.name}
-            </h1>
-
-            <p className="text-base text-neutral-600 dark:text-neutral-300 leading-relaxed mb-6">
-              {product.shortBenefit}
-            </p>
+          </EditableElement>
 
             {/* Affiliate CTA button + FTC Disclosure */}
             {safeAffiliateUrl && (
@@ -235,7 +251,6 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                 </div>
               </div>
             )}
-          </div>
 
           <hr className="border-neutral-200 dark:border-[#272932]" />
 

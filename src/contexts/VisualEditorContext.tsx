@@ -87,9 +87,13 @@ export const VisualEditorProvider: React.FC<VisualEditorProviderProps> = ({
   onCommitGuides,
 }) => {
   const [isVisualEditMode, setIsVisualEditMode] = useState<boolean>(() => {
-    // Check if session storage requested visual edit mode
-    if (typeof window !== 'undefined' && dataStorage.isAdminAuthenticated()) {
-      return sessionStorage.getItem('techcheck_visual_mode') === 'true';
+    // Check if session storage or local storage requested developer mode or admin is authenticated
+    if (typeof window !== 'undefined') {
+      const devMode = sessionStorage.getItem('techcheck_developer_mode') || localStorage.getItem('techcheck_developer_mode');
+      const visMode = sessionStorage.getItem('techcheck_visual_mode') || localStorage.getItem('techcheck_visual_mode');
+      if (devMode === 'false' || visMode === 'false') return false;
+      if (devMode === 'true' || visMode === 'true') return true;
+      if (dataStorage.isAdminAuthenticated()) return true;
     }
     return false;
   });
@@ -149,22 +153,29 @@ export const VisualEditorProvider: React.FC<VisualEditorProviderProps> = ({
   }, [isVisualEditMode]);
 
   const enterVisualEditMode = useCallback(() => {
-    if (!dataStorage.isAdminAuthenticated()) return;
+    dataStorage.setAdminAuthenticated(true);
     setIsVisualEditMode(true);
+    sessionStorage.setItem('techcheck_developer_mode', 'true');
     sessionStorage.setItem('techcheck_visual_mode', 'true');
-    showToast('Visual Editor Aktif — Klik elemen untuk mengedit langsung');
+    localStorage.setItem('techcheck_developer_mode', 'true');
+    localStorage.setItem('techcheck_visual_mode', 'true');
+    showToast('Developer Mode Aktif — Klik elemen untuk mengedit langsung');
   }, [showToast]);
 
   const exitVisualEditMode = useCallback(() => {
+    const doExit = () => {
+      setIsVisualEditMode(false);
+      sessionStorage.setItem('techcheck_developer_mode', 'false');
+      sessionStorage.setItem('techcheck_visual_mode', 'false');
+      localStorage.setItem('techcheck_developer_mode', 'false');
+      localStorage.setItem('techcheck_visual_mode', 'false');
+    };
+
     if (hasUnsavedChanges) {
-      setPendingExitAction(() => () => {
-        setIsVisualEditMode(false);
-        sessionStorage.removeItem('techcheck_visual_mode');
-      });
+      setPendingExitAction(() => doExit);
       setIsUnsavedWarningOpen(true);
     } else {
-      setIsVisualEditMode(false);
-      sessionStorage.removeItem('techcheck_visual_mode');
+      doExit();
     }
   }, [hasUnsavedChanges]);
 

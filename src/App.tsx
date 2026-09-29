@@ -337,6 +337,8 @@ export default function App() {
   const [categories, setCategories] = useState<CategoryInfo[]>(() => dataStorage.getCategories());
   const [guides, setGuides] = useState<Guide[]>(() => dataStorage.getGuides());
   const [siteSettings, setSiteSettings] = useState<SiteSettings>(() => dataStorage.getSiteSettings());
+  const categoriesRef = React.useRef(categories);
+  categoriesRef.current = categories;
 
   // Connect to remote Supabase sync on mount
   useEffect(() => {
@@ -438,7 +440,7 @@ export default function App() {
     let keyBuffer = '';
     let bufferTimer: any;
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      // Shortcut: Ctrl + Shift + A or Cmd + Shift + A
+      // Shortcut: Ctrl + Shift + A or Cmd + Shift + A -> Admin
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'a') {
         e.preventDefault();
         navigate({ page: 'superadmin' });
@@ -480,7 +482,7 @@ export default function App() {
       window.removeEventListener('keydown', handleGlobalKeyDown);
       clearTimeout(bufferTimer);
     };
-  }, [categories]);
+  }, []);
 
   // Update URL when navigating
   const navigate = (route: ViewRoute) => {

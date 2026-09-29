@@ -380,14 +380,21 @@ export const dataStorage = {
 
   // Auth management
   isAdminAuthenticated(): boolean {
-    return sessionStorage.getItem(STORAGE_KEYS.ADMIN_AUTH) === 'true';
+    if (typeof window === 'undefined') return false;
+    return (
+      sessionStorage.getItem(STORAGE_KEYS.ADMIN_AUTH) === 'true' ||
+      localStorage.getItem(STORAGE_KEYS.ADMIN_AUTH) === 'true'
+    );
   },
 
   setAdminAuthenticated(status: boolean): void {
+    if (typeof window === 'undefined') return;
     if (status) {
       sessionStorage.setItem(STORAGE_KEYS.ADMIN_AUTH, 'true');
+      localStorage.setItem(STORAGE_KEYS.ADMIN_AUTH, 'true');
     } else {
       sessionStorage.removeItem(STORAGE_KEYS.ADMIN_AUTH);
+      localStorage.removeItem(STORAGE_KEYS.ADMIN_AUTH);
     }
   },
 
