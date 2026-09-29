@@ -68,18 +68,21 @@ const AppContent: React.FC<AppContentProps> = ({
   const visualEditor = useVisualEditor();
 
   const isSuperadminView = currentRoute.page === 'superadmin';
+  const isAdminAuthenticated = dataStorage.isAdminAuthenticated();
+  const isEditWebsiteActive = visualEditor.isVisualEditMode && isAdminAuthenticated && !isSuperadminView;
+  const isEditModeActive = visualEditor.isVisualEditMode && isAdminAuthenticated;
 
-  // Public context strictly uses published live data. Draft visual data is only active in admin view.
-  const effectiveProducts = isSuperadminView && visualEditor.isVisualEditMode && visualEditor.activeProducts.length > 0
+  // Visual draft data is active inside Developer Mode (Page 1: Admin Dashboard or Page 2: Edit Website)
+  const effectiveProducts = isEditModeActive && visualEditor.activeProducts.length > 0
     ? visualEditor.activeProducts
     : products;
-  const effectiveCategories = isSuperadminView && visualEditor.isVisualEditMode && visualEditor.activeCategories.length > 0
+  const effectiveCategories = isEditModeActive && visualEditor.activeCategories.length > 0
     ? visualEditor.activeCategories
     : categories;
-  const effectiveGuides = isSuperadminView && visualEditor.isVisualEditMode && visualEditor.activeGuides.length > 0
+  const effectiveGuides = isEditModeActive && visualEditor.activeGuides.length > 0
     ? visualEditor.activeGuides
     : guides;
-  const effectiveSettings = isSuperadminView && visualEditor.isVisualEditMode
+  const effectiveSettings = isEditModeActive
     ? visualEditor.activeSettings
     : siteSettings;
 
@@ -92,7 +95,7 @@ const AppContent: React.FC<AppContentProps> = ({
   };
 
   const viewportContainerClass =
-    isSuperadminView && visualEditor.isVisualEditMode
+    isEditWebsiteActive
       ? visualEditor.deviceViewport === 'mobile'
         ? 'max-w-[420px] mx-auto min-h-screen my-4 rounded-3xl shadow-2xl border border-neutral-300 dark:border-neutral-800 overflow-hidden bg-[#F7F6F2] dark:bg-[#0E0F12]'
         : visualEditor.deviceViewport === 'tablet'
@@ -102,8 +105,8 @@ const AppContent: React.FC<AppContentProps> = ({
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F7F6F2] dark:bg-[#0E0F12] text-[#111111] dark:text-[#EDEDED] antialiased transition-colors duration-150">
-      {/* Visual Editor Toolbar when active inside Admin Context */}
-      {isSuperadminView && visualEditor.isVisualEditMode && (
+      {/* Developer Navbar - Persistent inside Page 2: Edit Website */}
+      {isEditWebsiteActive && (
         <VisualEditorToolbar
           deviceViewport={visualEditor.deviceViewport}
           onSelectViewport={visualEditor.setDeviceViewport}
@@ -272,8 +275,8 @@ const AppContent: React.FC<AppContentProps> = ({
         onClose={() => setInfoModalType(null)}
       />
 
-      {/* Visual Editor Modals */}
-      {isSuperadminView && visualEditor.isVisualEditMode && (
+      {/* Visual Editor Modals - Active in Developer Mode */}
+      {isEditModeActive && (
         <>
           <ContextualEditorModal
             target={visualEditor.activeTarget}
