@@ -35,6 +35,18 @@ export interface CategoryInfo {
   image: string;
 }
 
+export interface ArticleBlock {
+  id: string;
+  type: 'heading' | 'subheading' | 'paragraph' | 'image' | 'quote' | 'bullet_list' | 'numbered_list' | 'divider' | 'callout';
+  content?: string;
+  level?: 1 | 2 | 3;
+  src?: string;
+  caption?: string;
+  alt?: string;
+  items?: string[];
+  recommendedProductSlug?: string;
+}
+
 export interface GuideStep {
   number: string;
   title: string;
@@ -47,12 +59,14 @@ export interface Guide {
   id: string;
   slug: string;
   title: string;
+  subtitle?: string;
   category: string;
   readTime: string;
   publishDate: string;
   excerpt: string;
   image: string;
   featured?: boolean;
+  status?: 'draft' | 'published';
   author: {
     name: string;
     role: string;
@@ -60,6 +74,7 @@ export interface Guide {
   };
   intro: string;
   steps: GuideStep[];
+  blocks?: ArticleBlock[];
   callout?: string;
   summary: string;
 }
