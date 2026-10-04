@@ -67,7 +67,9 @@ export const HomePage: React.FC<HomePageProps> = ({
   const heroCtaSecondaryText = siteSettings.heroCtaSecondaryText || 'Read Our Guides';
   const heroCtaSecondaryUrl = siteSettings.heroCtaSecondaryUrl || 'guides';
 
-  const heroImageSrc = siteSettings.heroImage || '/acer-nitro.png';
+  const heroImageSrc = (siteSettings.heroImage && siteSettings.heroImage.trim() !== '')
+    ? siteSettings.heroImage
+    : '/acer-nitro.png';
   const heroImageAlt = siteSettings.heroImageAlt || 'Compact Gaming Setup';
   const heroBadgeEyebrow = siteSettings.heroBadgeEyebrow || 'SETUP ARCHITECTURE 2026';
   const heroBadgeTitle = siteSettings.heroBadgeTitle || '100cm Compact Studio Desk';

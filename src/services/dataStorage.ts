@@ -190,8 +190,15 @@ export const dataStorage = {
       if (settRes.status === 'fulfilled' && settRes.value.ok) {
         const settData = await settRes.value.json();
         if (settData && typeof settData === 'object') {
-          result.settings = settData;
-          localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settData));
+          const mergedSett = {
+            ...DEFAULT_SITE_SETTINGS,
+            ...settData,
+            heroImage: (settData.heroImage && typeof settData.heroImage === 'string' && settData.heroImage.trim() !== '')
+              ? settData.heroImage
+              : DEFAULT_SITE_SETTINGS.heroImage,
+          };
+          result.settings = mergedSett;
+          localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(mergedSett));
         }
       }
 
@@ -326,6 +333,9 @@ export const dataStorage = {
   getSiteSettings(): SiteSettings {
     const settings = safeParse<SiteSettings>(STORAGE_KEYS.SETTINGS, DEFAULT_SITE_SETTINGS);
     const merged = { ...DEFAULT_SITE_SETTINGS, ...settings };
+    if (!merged.heroImage || typeof merged.heroImage !== 'string' || merged.heroImage.trim() === '') {
+      merged.heroImage = DEFAULT_SITE_SETTINGS.heroImage;
+    }
     if (merged.adminPasscode === 'admin123') {
       merged.adminPasscode = '654321';
     }
