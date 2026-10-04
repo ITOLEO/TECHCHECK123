@@ -46,9 +46,9 @@ export function getStoredTheme(): Theme {
         // ignore
       }
     }
-    return getSystemPreference();
+    return 'light';
   } catch {
-    return getSystemPreference();
+    return 'light';
   }
 }
 
@@ -113,28 +113,6 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     applyTheme(theme);
   }, [theme]);
 
-  // Listen to system preference changes ONLY IF user hasn't explicitly set a theme in localStorage
-  useEffect(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return;
-
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleMediaChange = (e: MediaQueryListEvent) => {
-      try {
-        const saved = localStorage.getItem(THEME_STORAGE_KEY);
-        // Only adapt to system preference if user has never manually saved a preference
-        if (!saved || !isValidTheme(saved)) {
-          const sysTheme: Theme = e.matches ? 'dark' : 'light';
-          setThemeState(sysTheme);
-          applyTheme(sysTheme);
-        }
-      } catch {
-        // ignore
-      }
-    };
-
-    mediaQuery.addEventListener('change', handleMediaChange);
-    return () => mediaQuery.removeEventListener('change', handleMediaChange);
-  }, []);
 
   // Listen to cross-tab storage changes
   useEffect(() => {
