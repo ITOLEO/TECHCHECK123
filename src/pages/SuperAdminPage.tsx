@@ -730,18 +730,26 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
     dataStorage.saveSiteSettings(newSettings);
     
     try {
-      const res = await fetch('/api/settings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newSettings),
-      });
-      if (!res.ok) {
-        const errJson = await res.json().catch(() => ({}));
-        throw new Error(errJson.error || 'Server error');
-      }
-      showToast('Pengaturan website berhasil disimpan ke Supabase!');
+      await Promise.allSettled([
+        fetch('/api/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newSettings),
+        }),
+        fetch('/api/sync-seed', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            settings: newSettings,
+            products: products,
+            categories: categories,
+            guides: guides,
+          }),
+        }),
+      ]);
+      showToast('Pengaturan website & gambar hero berhasil disimpan & dikirim ke Supabase!');
     } catch (err: any) {
-      showToast(`Tersimpan lokal, tapi gagal dikirim ke Supabase: ${err.message}`);
+      showToast(`Tersimpan lokal: ${err.message}`);
       console.error(err);
     }
   };
@@ -1568,6 +1576,96 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                     onBlur={() => handleSaveSettings(siteSettings)}
                     className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl text-xs"
                   />
+                </div>
+              </div>
+            </div>
+
+            {/* Hero Image & Architectural Badge Editor */}
+            <div className="bg-white p-6 rounded-2xl border border-[#E9E9E6] shadow-xs space-y-5">
+              <div>
+                <h2 className="text-base font-bold text-[#111111] mb-1">
+                  Gambar Hero Banner & Visual Badge
+                </h2>
+                <p className="text-xs text-neutral-500">
+                  Upload file gambar baru (JPG, PNG, WEBP, GIF, SVG) atau pilih preset gambar untuk banner utama beranda.
+                </p>
+              </div>
+
+              <div className="max-w-2xl space-y-4">
+                <AdminImageUploader
+                  label="Gambar Hero Banner Utama"
+                  value={siteSettings.heroImage || '/acer-nitro.png'}
+                  onChange={(newUrl) => {
+                    const updated = { ...siteSettings, heroImage: newUrl };
+                    onUpdateSettings(updated);
+                    handleSaveSettings(updated);
+                  }}
+                  presets={['/acer-nitro.png', '/acer-creator.png', '/powerpac.png', '/acer-portable.png']}
+                  placeholder="/acer-nitro.png atau upload file baru"
+                  helperText="Gambar otomatis disesuaikan secara proporsional di banner utama."
+                />
+
+                <div>
+                  <label className="block text-xs font-semibold text-neutral-700 mb-1">
+                    Alt Text Gambar Hero (SEO & Aksesibilitas)
+                  </label>
+                  <input
+                    type="text"
+                    value={siteSettings.heroImageAlt || ''}
+                    onChange={(e) => onUpdateSettings({ ...siteSettings, heroImageAlt: e.target.value })}
+                    onBlur={() => handleSaveSettings(siteSettings)}
+                    placeholder="Compact Gaming Setup with elevated monitors"
+                    className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl text-xs"
+                  />
+                </div>
+
+                <div className="pt-3 border-t border-[#E9E9E6]">
+                  <span className="text-xs font-bold uppercase tracking-wider text-[#FF6B00] block mb-3">
+                    Visual Label Tag Overlay
+                  </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-semibold text-neutral-700 mb-1">Badge Eyebrow</label>
+                      <input
+                        type="text"
+                        value={siteSettings.heroBadgeEyebrow || 'SETUP ARCHITECTURE 2026'}
+                        onChange={(e) => onUpdateSettings({ ...siteSettings, heroBadgeEyebrow: e.target.value })}
+                        onBlur={() => handleSaveSettings(siteSettings)}
+                        className="w-full p-2 bg-[#F7F6F2] border border-[#E9E9E6] rounded-lg text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-neutral-700 mb-1">Badge Title</label>
+                      <input
+                        type="text"
+                        value={siteSettings.heroBadgeTitle || '100cm Compact Studio Desk'}
+                        onChange={(e) => onUpdateSettings({ ...siteSettings, heroBadgeTitle: e.target.value })}
+                        onBlur={() => handleSaveSettings(siteSettings)}
+                        className="w-full p-2 bg-[#F7F6F2] border border-[#E9E9E6] rounded-lg text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-neutral-700 mb-1">Badge Stat</label>
+                      <input
+                        type="text"
+                        value={siteSettings.heroBadgeStat || '45% Surface Cleared'}
+                        onChange={(e) => onUpdateSettings({ ...siteSettings, heroBadgeStat: e.target.value })}
+                        onBlur={() => handleSaveSettings(siteSettings)}
+                        className="w-full p-2 bg-[#F7F6F2] border border-[#E9E9E6] rounded-lg text-xs"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-2 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => handleSaveSettings(siteSettings)}
+                    className="px-5 py-2.5 bg-[#FF6B00] hover:bg-[#E05E00] text-white text-xs font-bold rounded-xl shadow-xs transition-all cursor-pointer flex items-center gap-1.5"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>Simpan Gambar & Pengaturan Hero ke Supabase</span>
+                  </button>
                 </div>
               </div>
             </div>
