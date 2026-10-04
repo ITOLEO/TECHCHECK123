@@ -205,7 +205,27 @@ export const dataStorage = {
 
   // Bulk push current state to Supabase tables
   async syncAllToSupabase(): Promise<{ success: boolean; message?: string; results?: any }> {
-    return { success: false, message: 'Fungsi sync-seed telah dihapus. Harap gunakan API langsung.' };
+    try {
+      const payload = {
+        categories: this.getCategories(),
+        products: this.getProducts(),
+        guides: this.getGuides(),
+        settings: this.getSiteSettings(),
+      };
+      const res = await fetch('/api/sync-seed', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+        return { success: false, message: errJson.error || 'Gagal terhubung ke API Supabase' };
+      }
+      const data = await res.json();
+      return { success: true, results: data.results };
+    } catch (e: any) {
+      return { success: false, message: e.message || 'Error koneksi ke server database' };
+    }
   },
 
   getProducts(): Product[] {

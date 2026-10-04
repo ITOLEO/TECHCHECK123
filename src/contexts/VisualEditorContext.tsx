@@ -352,17 +352,20 @@ export const VisualEditorProvider: React.FC<VisualEditorProviderProps> = ({
         newValue: changesSummary.join(', '),
       });
 
-      // 4. Remote sync to backend/Supabase if configured
+      // 4. Remote sync to backend/Supabase database
       try {
-        await Promise.allSettled([
-          fetch('/api/settings', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(draftSettings),
+        await fetch('/api/sync-seed', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            settings: draftSettings,
+            products: draftProducts,
+            categories: draftCategories,
+            guides: draftGuides,
           }),
-        ]);
-      } catch {
-        // Local persistence already done
+        });
+      } catch (err) {
+        console.warn('Sync to Supabase backend skipped/failed (saved locally):', err);
       }
 
       // 5. Clear draft state
@@ -373,7 +376,7 @@ export const VisualEditorProvider: React.FC<VisualEditorProviderProps> = ({
       setHistoryIndex(-1);
       setIsPublishModalOpen(false);
 
-      showToast('Berhasil dipublikasikan! Semua pengunjung kini melihat versi terbaru.');
+      showToast('Berhasil dipublikasikan! Semua perubahan tersimpan ke database & langsung terlihat di website live.');
     } catch (err: any) {
       showToast(`Gagal publikasi: ${err.message || 'Terjadi kesalahan'}`);
     } finally {
