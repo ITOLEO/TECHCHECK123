@@ -272,8 +272,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
     setIsAuthenticated(false);
     setLoginPasscode('');
     setShowSplashLoading(false);
-    showToast('Berhasil keluar dari mode superadmin');
-    onNavigate({ page: 'home' });
+    window.location.href = 'https://techcheck.homes/';
   };
 
   // --- PRODUCT ACTIONS ---
@@ -1013,14 +1012,18 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                 <span>Edit Website</span>
               </button>
 
-              <button
-                onClick={handleLogout}
-                className="px-4 py-2 rounded-xl text-xs font-bold text-neutral-700 dark:text-neutral-200 bg-[#F7F6F2] dark:bg-[#23252E] hover:bg-neutral-200 dark:hover:bg-[#2C2F3A] border border-[#E9E9E6] dark:border-[#2C2F3A] flex items-center gap-1.5 transition-all cursor-pointer"
-                title="Keluar dari Developer Mode dan buka Layer 1: Website Publik"
+              <a
+                href="https://techcheck.homes/"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleLogout();
+                }}
+                className="px-4 py-2 rounded-xl text-xs font-bold text-neutral-700 dark:text-neutral-200 bg-[#F7F6F2] dark:bg-[#23252E] hover:bg-neutral-200 dark:hover:bg-[#2C2F3A] border border-[#E9E9E6] dark:border-[#2C2F3A] flex items-center gap-1.5 transition-all cursor-pointer text-decoration-none"
+                title="Keluar dari Developer Mode dan buka https://techcheck.homes/"
               >
                 <LogOut className="w-4 h-4 text-rose-500" />
                 <span>Exit Developer Mode</span>
-              </button>
+              </a>
             </div>
           </div>
 

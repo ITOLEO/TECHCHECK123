@@ -203,15 +203,18 @@ export const VisualEditorToolbar: React.FC<VisualEditorToolbarProps> = ({
           </button>
 
           {/* Exit Developer Mode Action -> Returns to Live Public Website */}
-          <button
-            type="button"
-            onClick={onExitEditor}
-            className="px-3.5 py-1.5 text-xs font-bold text-rose-300 bg-rose-950/40 hover:bg-rose-900/60 border border-rose-800/60 hover:border-rose-600 rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
-            title="Keluar dari Developer Mode dan kembali ke domain live public website"
+          <a
+            href="https://techcheck.homes/"
+            onClick={(e) => {
+              e.preventDefault();
+              onExitEditor();
+            }}
+            className="px-3.5 py-1.5 text-xs font-bold text-rose-300 bg-rose-950/40 hover:bg-rose-900/60 border border-rose-800/60 hover:border-rose-600 rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs text-decoration-none"
+            title="Keluar dari Developer Mode dan kembali ke https://techcheck.homes/"
           >
             <LogOut className="w-3.5 h-3.5 text-rose-400" />
             <span>Exit Developer Mode</span>
-          </button>
+          </a>
         </div>
       </div>
     </header>

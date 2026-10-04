@@ -133,9 +133,12 @@ const AppContent: React.FC<AppContentProps> = ({
           onExitEditor={() => {
             const exitToPublicHome = () => {
               dataStorage.setAdminAuthenticated(false);
+              sessionStorage.removeItem('techcheck_developer_mode');
+              sessionStorage.removeItem('techcheck_visual_mode');
+              localStorage.removeItem('techcheck_developer_mode');
               localStorage.removeItem('techcheck_visual_mode');
               visualEditor.exitVisualEditMode();
-              navigate({ page: 'home' });
+              window.location.href = 'https://techcheck.homes/';
             };
 
             if (visualEditor.hasUnsavedChanges) {

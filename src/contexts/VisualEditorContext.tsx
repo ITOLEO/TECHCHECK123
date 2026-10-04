@@ -154,22 +154,13 @@ export const VisualEditorProvider: React.FC<VisualEditorProviderProps> = ({
   }, [showToast]);
 
   const exitVisualEditMode = useCallback(() => {
-    const doExitToAdmin = () => {
-      // Keep developer mode active
-      dataStorage.setAdminAuthenticated(true);
-      sessionStorage.setItem('techcheck_developer_mode', 'true');
-      sessionStorage.setItem('techcheck_visual_mode', 'true');
-      localStorage.setItem('techcheck_developer_mode', 'true');
-      localStorage.setItem('techcheck_visual_mode', 'true');
-    };
-
-    if (hasUnsavedChanges) {
-      setPendingExitAction(() => doExitToAdmin);
-      setIsUnsavedWarningOpen(true);
-    } else {
-      doExitToAdmin();
-    }
-  }, [hasUnsavedChanges]);
+    dataStorage.setAdminAuthenticated(false);
+    setIsVisualEditMode(false);
+    sessionStorage.removeItem('techcheck_developer_mode');
+    sessionStorage.removeItem('techcheck_visual_mode');
+    localStorage.removeItem('techcheck_developer_mode');
+    localStorage.removeItem('techcheck_visual_mode');
+  }, []);
 
   // Record a history snapshot before modifying
   const recordHistory = useCallback(
