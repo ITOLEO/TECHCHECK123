@@ -10,6 +10,7 @@ import {
   SunMedium,
   Laptop,
 } from 'lucide-react';
+import { motion } from 'motion/react';
 import { Product, CategoryInfo, Guide, ViewRoute, SiteSettings, ProductCategory } from '../types';
 import { ProductCard } from '../components/ProductCard';
 import { SafeImage } from '../components/SafeImage';
@@ -95,7 +96,6 @@ export const HomePage: React.FC<HomePageProps> = ({
     return realCount > 0 ? realCount : cat.productCount || 0;
   };
 
-  // Recommendation entry points specified in UX guidelines
   const recommendationEntryPoints: Array<{
     title: string;
     description: string;
@@ -163,7 +163,12 @@ export const HomePage: React.FC<HomePageProps> = ({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
             {/* Left Column: Copy & Actions */}
-            <div className="lg:col-span-6 space-y-6">
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+              className="lg:col-span-6 space-y-6"
+            >
               <EditableElement
                 isEditMode={isVisualEditMode}
                 label="Headline & Copy"
@@ -210,22 +215,26 @@ export const HomePage: React.FC<HomePageProps> = ({
                 }
               >
                 <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5">
-                  <button
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                     id="hero-explore-products-btn"
                     onClick={() => handleHeroCtaClick(heroCtaPrimaryUrl, 'recommendations')}
                     className="px-7 py-4 text-base font-bold text-white bg-[#FF6B00] hover:bg-[#e05e00] rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer group focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
                   >
                     <span>{heroCtaPrimaryText}</span>
                     <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
-                  </button>
+                  </motion.button>
 
-                  <button
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                     id="hero-read-guides-btn"
                     onClick={() => handleHeroCtaClick(heroCtaSecondaryUrl, 'guides')}
                     className="px-7 py-4 text-base font-semibold text-neutral-800 dark:text-neutral-200 hover:text-[#111111] dark:hover:text-white bg-white dark:bg-[#1A1C23] border border-[#E9E9E6] dark:border-[#2C2F3A] hover:border-neutral-300 dark:hover:border-neutral-500 rounded-xl transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
                   >
                     <span>{heroCtaSecondaryText}</span>
-                  </button>
+                  </motion.button>
                 </div>
               </EditableElement>
 
@@ -237,10 +246,15 @@ export const HomePage: React.FC<HomePageProps> = ({
                 </svg>
                 <span>Curated for compact gaming setups (80cm – 140cm).</span>
               </div>
-            </div>
+            </motion.div>
 
             {/* Right Column: Hero Visual */}
-            <div className="lg:col-span-6">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="lg:col-span-6"
+            >
               <EditableElement
                 isEditMode={isVisualEditMode}
                 label="Hero Image & Badge"
@@ -282,14 +296,13 @@ export const HomePage: React.FC<HomePageProps> = ({
                   </div>
                 </div>
               </EditableElement>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
 
       {/* ========================================================
           SECTION 1 — BROWSE BY CATEGORY
-          Primary discovery path directly below Hero
           ======================================================== */}
       <section id="homepage-section-categories" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 gap-4">
@@ -347,7 +360,9 @@ export const HomePage: React.FC<HomePageProps> = ({
                     })
                   }
                 >
-                  <div
+                  <motion.div
+                    whileHover={{ y: -4 }}
+                    transition={{ duration: 0.2 }}
                     onClick={() => onNavigate({ page: 'recommendations', categoryFilter: cat.name })}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') onNavigate({ page: 'recommendations', categoryFilter: cat.name });
@@ -386,7 +401,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                         {cat.description}
                       </p>
                     </div>
-                  </div>
+                  </motion.div>
                 </EditableElement>
               );
             })}
@@ -399,8 +414,7 @@ export const HomePage: React.FC<HomePageProps> = ({
       </section>
 
       {/* ========================================================
-          SECTION 2 — FEATURED / EXPLORE PRODUCTS
-          Where users browse actual verified hardware
+          SECTION 2 — FEATURED PRODUCTS
           ======================================================== */}
       <section id="homepage-section-products" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 gap-4">
@@ -473,7 +487,6 @@ export const HomePage: React.FC<HomePageProps> = ({
 
       {/* ========================================================
           SECTION 3 — RECOMMENDATIONS (FIND THE RIGHT UPGRADE)
-          Dedicated path for users who want targeted setup upgrades
           ======================================================== */}
       <section id="homepage-section-recommendations" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 gap-4">
@@ -519,8 +532,10 @@ export const HomePage: React.FC<HomePageProps> = ({
           {recommendationEntryPoints.map((entry, idx) => {
             const Icon = entry.icon;
             return (
-              <div
+              <motion.div
                 key={entry.title}
+                whileHover={{ y: -4 }}
+                transition={{ duration: 0.2 }}
                 onClick={() =>
                   onNavigate({
                     page: 'recommendations',
@@ -563,7 +578,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                   <span>Explore Solutions</span>
                   <ArrowRight className="w-3.5 h-3.5 transform group-hover:translate-x-1 transition-transform" />
                 </div>
-              </div>
+              </motion.div>
             );
           })}
         </div>
@@ -571,7 +586,6 @@ export const HomePage: React.FC<HomePageProps> = ({
 
       {/* ========================================================
           SECTION 4 — GUIDES & ARTICLES
-          Educational blueprints separate from product listings
           ======================================================== */}
       <section id="homepage-section-guides" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 gap-4">
@@ -625,7 +639,9 @@ export const HomePage: React.FC<HomePageProps> = ({
               })
             }
           >
-            <div
+            <motion.div
+              whileHover={{ y: -4 }}
+              transition={{ duration: 0.2 }}
               onClick={() => onSelectGuide(featuredGuide.slug)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') onSelectGuide(featuredGuide.slug);
@@ -646,7 +662,7 @@ export const HomePage: React.FC<HomePageProps> = ({
               </div>
               <div className="lg:col-span-5 p-8 sm:p-10 flex flex-col justify-between">
                 <div>
-                  <div className="flex items-center gap-3 text-xs text-neutral-500 dark:text-neutral-400 mb-3">
+                  <div className="flex items-center gap-3 text-xs text-neutral-500 dark:text-neutral-400 mb-3 font-semibold">
                     <span className="font-bold uppercase tracking-wider text-[#FF6B00]">
                       {featuredGuide.category}
                     </span>
@@ -690,7 +706,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                   </span>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </EditableElement>
         ) : (
           <div className="bg-white dark:bg-[#16171D] rounded-2xl border border-[#E9E9E6] dark:border-[#272932] p-10 text-center text-neutral-500 text-xs mb-8">
@@ -714,7 +730,9 @@ export const HomePage: React.FC<HomePageProps> = ({
                   })
                 }
               >
-                <div
+                <motion.div
+                  whileHover={{ y: -4 }}
+                  transition={{ duration: 0.2 }}
                   onClick={() => onSelectGuide(guide.slug)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') onSelectGuide(guide.slug);
@@ -759,7 +777,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                       <ArrowRight className="w-3.5 h-3.5" />
                     </div>
                   </div>
-                </div>
+                </motion.div>
               </EditableElement>
             ))}
           </div>
@@ -767,7 +785,7 @@ export const HomePage: React.FC<HomePageProps> = ({
       </section>
 
       {/* ========================================================
-          DARK CTA SECTION (#111111)
+          DARK CTA SECTION (#111111 with Orange Accent)
           ======================================================== */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-[#111111] dark:bg-[#16171E] text-white rounded-3xl p-8 sm:p-14 lg:p-16 relative overflow-hidden shadow-2xl border border-neutral-800 dark:border-[#2A2D38]">
@@ -785,14 +803,16 @@ export const HomePage: React.FC<HomePageProps> = ({
               Build a cleaner setup without buying a bigger desk. Explore our full library of verified space-saving hardware.
             </p>
             <div className="pt-2">
-              <button
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 id="dark-cta-explore-collection-btn"
                 onClick={() => onNavigate({ page: 'recommendations' })}
                 className="px-8 py-4 bg-[#FF6B00] hover:bg-[#e05e00] text-white font-bold rounded-xl shadow-lg transition-all inline-flex items-center gap-2 cursor-pointer group focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#FF6B00]"
               >
                 <span>Explore the Collection</span>
                 <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
-              </button>
+              </motion.button>
             </div>
           </div>
         </div>

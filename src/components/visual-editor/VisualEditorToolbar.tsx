@@ -79,7 +79,7 @@ export const VisualEditorToolbar: React.FC<VisualEditorToolbarProps> = ({
               </span>
             ) : (
               <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-semibold text-neutral-400">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-[#FF6B00]" />
                 <span>Semua tersimpan</span>
               </span>
             )}

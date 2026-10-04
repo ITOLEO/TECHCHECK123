@@ -1,5 +1,6 @@
 import React from 'react';
 import { ArrowRight, ExternalLink } from 'lucide-react';
+import { motion } from 'motion/react';
 import { Product } from '../types';
 import { SafeImage } from './SafeImage';
 import { analytics } from '../services/analytics';
@@ -44,7 +45,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelectProdu
   };
 
   return (
-    <article
+    <motion.article
+      whileHover={{ y: -4 }}
+      transition={{ duration: 0.2 }}
       id={`product-card-${product.slug}`}
       className="group flex flex-col h-full bg-white dark:bg-[#16171C] rounded-2xl border border-[#E9E9E6] dark:border-[#272932] hover:border-[#FF6B00] dark:hover:border-[#FF6B00] shadow-xs hover:shadow-md transition-all duration-200 overflow-hidden"
     >
@@ -71,7 +74,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelectProdu
       {/* Card Content - Uniform vertical alignment */}
       <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between">
         <div className="flex-1 flex flex-col">
-          {/* Category & Zero-Pill Badge */}
+          {/* Category & Badge */}
           <div className="flex items-center justify-between gap-2 mb-2 min-h-[1.25rem]">
             <span className="text-[11px] font-bold uppercase tracking-wider text-[#FF6B00]">
               {product.category}
@@ -83,7 +86,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelectProdu
             ) : null}
           </div>
 
-          {/* Product Name - Uniform height */}
+          {/* Product Name */}
           <h3 className="text-base sm:text-lg font-bold text-[#111111] dark:text-neutral-100 leading-snug group-hover:text-[#FF6B00] transition-colors mb-2 line-clamp-2 min-h-[2.8rem] flex items-center">
             <a
               href={`#/recommendations/${product.slug}`}
@@ -97,7 +100,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelectProdu
             </a>
           </h3>
 
-          {/* Short Benefit Statement - Uniform height with soft medium weight */}
+          {/* Short Benefit Statement */}
           <p className="text-xs sm:text-sm font-medium text-neutral-600 dark:text-neutral-300 leading-relaxed mb-4 line-clamp-2 min-h-[2.5rem]">
             {product.shortBenefit}
           </p>
@@ -105,16 +108,18 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelectProdu
 
         {/* Action Buttons - Centered button group with synchronized dimensions */}
         <div className="mt-auto flex flex-row items-center justify-center gap-2.5 pt-3.5 border-t border-neutral-100 dark:border-[#23252E] w-full">
-          <button
+          <motion.button
+            whileTap={{ scale: 0.97 }}
             type="button"
             onClick={handleCardClick}
             className="flex-1 max-w-[150px] sm:max-w-[160px] h-10 px-3 text-xs sm:text-[13px] font-semibold text-[#111111] dark:text-neutral-200 bg-neutral-50 dark:bg-[#1D1F27] hover:bg-neutral-100 dark:hover:bg-[#262833] border border-[#E9E9E6] dark:border-[#2C2F3A] rounded-xl transition-all flex items-center justify-center gap-1.5 focus-visible:ring-2 focus-visible:ring-[#FF6B00] cursor-pointer whitespace-nowrap"
           >
             <span>Review & Specs</span>
             <ArrowRight className="w-3.5 h-3.5 shrink-0 transform group-hover:translate-x-0.5 transition-transform" />
-          </button>
+          </motion.button>
           {safeAffiliateUrl && (
-            <a
+            <motion.a
+              whileTap={{ scale: 0.97 }}
               href={safeAffiliateUrl}
               target="_blank"
               rel="noopener noreferrer"
@@ -125,10 +130,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelectProdu
             >
               <span>View Live</span>
               <ExternalLink className="w-3.5 h-3.5 shrink-0" />
-            </a>
+            </motion.a>
           )}
         </div>
       </div>
-    </article>
+    </motion.article>
   );
 };

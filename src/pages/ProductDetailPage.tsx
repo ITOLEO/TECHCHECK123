@@ -1,192 +1,169 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronRight, ExternalLink, ArrowLeft, ShieldCheck, Sparkles, Layers, CheckCircle } from 'lucide-react';
+import { ChevronRight, ExternalLink, ArrowLeft, ShieldCheck, Sparkles, Layers } from 'lucide-react';
+import { motion } from 'motion/react';
 import { Product, ViewRoute } from '../types';
 import { SafeImage } from '../components/SafeImage';
-import { ProductCard } from '../components/ProductCard';
 import { analytics } from '../services/analytics';
 import { updateSEO, buildProductSchema, buildBreadcrumbSchema } from '../services/seo';
-import { useVisualEditor } from '../contexts/VisualEditorContext';
-import { EditableElement } from '../components/visual-editor/EditableElement';
 
 interface ProductDetailPageProps {
-  product?: Product;
-  allProducts: Product[];
+  product?: Product | null;
+  allProducts?: Product[];
   onNavigate: (route: ViewRoute) => void;
-  onSelectProduct: (slug: string) => void;
-  onOpenAffiliateModal?: (product: Product) => void;
-}
-
-function formatAffiliateUrl(url?: string): string {
-  if (!url) return '';
-  const trimmed = url.trim();
-  if (!trimmed) return '';
-  if (/^https?:\/\//i.test(trimmed)) {
-    return trimmed;
-  }
-  return `https://${trimmed}`;
+  onSelectProduct?: (slug: string) => void;
+  onOpenAffiliateModal: (product: Product) => void;
 }
 
 export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
   product,
-  allProducts,
   onNavigate,
-  onSelectProduct,
+  onOpenAffiliateModal,
 }) => {
-  const visualEditor = useVisualEditor();
-  // If product is missing or invalid slug
-  if (!product) {
-    return (
-      <div className="max-w-4xl mx-auto px-4 py-20 text-center space-y-6">
-        <div className="w-16 h-16 rounded-2xl bg-orange-50 dark:bg-[#251E19] border border-orange-200 dark:border-orange-900/50 flex items-center justify-center mx-auto text-[#FF6B00]">
-          <Layers className="w-8 h-8" />
-        </div>
-        <h1 className="text-3xl font-extrabold text-[#111111] dark:text-white">Product Not Found</h1>
-        <p className="text-neutral-600 dark:text-neutral-300 max-w-md mx-auto text-sm leading-relaxed">
-          The accessory or monitor you are looking for might have been moved or updated in our catalog.
-        </p>
-        <button
-          onClick={() => onNavigate({ page: 'recommendations' })}
-          className="inline-flex items-center gap-2 px-6 py-3 bg-[#111111] dark:bg-[#252832] hover:bg-[#FF6B00] dark:hover:bg-[#FF6B00] text-white text-sm font-semibold rounded-xl transition-all shadow-xs cursor-pointer"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Browse All Recommendations</span>
-        </button>
-      </div>
-    );
-  }
+  const [selectedImage, setSelectedImage] = useState<string>('');
 
-  const [activeImage, setActiveImage] = useState<string>(product.image);
-
-  // Sync document title, dynamic SEO metadata, JSON-LD and active image
   useEffect(() => {
-    setActiveImage(product.image);
+    if (product) {
+      setSelectedImage(product.image);
 
-    const productSchema = buildProductSchema(product);
-    const breadcrumbSchema = buildBreadcrumbSchema([
-      { name: 'Home', path: '' },
-      { name: 'Recommendations', path: 'recommendations' },
-      { name: product.category, path: `recommendations?category=${encodeURIComponent(product.category)}` },
-      { name: product.name, path: `recommendations/${product.slug}` },
-    ]);
+      updateSEO({
+        title: `${product.name} Review & Spatial Specs | TechCheck`,
+        description: product.verdict || product.shortBenefit,
+        canonicalPath: `recommendations/${product.slug}`,
+        ogImage: product.image,
+        ogType: 'product',
+        jsonLd: {
+          '@context': 'https://schema.org',
+          '@graph': [
+            buildProductSchema(product),
+            buildBreadcrumbSchema([
+              { name: 'Home', path: '' },
+              { name: 'Recommendations', path: 'recommendations' },
+              { name: product.category, path: `recommendations?category=${encodeURIComponent(product.category)}` },
+              { name: product.name, path: `recommendations/${product.slug}` },
+            ]),
+          ],
+        },
+      });
 
-    updateSEO({
-      title: `${product.name} Review & Spatial Compatibility | TechCheck`,
-      description: `${product.shortBenefit} Independent review, specifications, and small space setup suitability for ${product.name}.`,
-      canonicalPath: `recommendations/${product.slug}`,
-      ogType: 'product',
-      ogImage: product.image,
-      jsonLd: [productSchema, breadcrumbSchema],
-    });
+      analytics.track('product_view', {
+        productId: product.id,
+        productName: product.name,
+        category: product.category,
+      });
+    }
 
-    analytics.track('product_view', {
-      productId: product.id,
-      productName: product.name,
-      category: product.category,
-    });
     return () => {
       document.title = 'TechCheck — Small Space. Serious Setup.';
     };
   }, [product]);
 
-  const safeAffiliateUrl = formatAffiliateUrl(product.affiliateUrl);
+  if (!product) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-20 text-center">
+        <div className="w-16 h-16 rounded-3xl bg-orange-50 dark:bg-orange-950/40 border border-orange-200 dark:border-orange-800 flex items-center justify-center mx-auto text-[#FF6B00]">
+          <Layers className="w-8 h-8" />
+        </div>
+        <h2 className="text-2xl font-bold text-[#111111] dark:text-white mt-6">Product Not Found</h2>
+        <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-2">
+          The requested hardware item may have been moved, renamed, or unlisted.
+        </p>
+        <button
+          onClick={() => onNavigate({ page: 'recommendations' })}
+          className="inline-flex items-center gap-2 px-6 py-3 bg-[#111111] dark:bg-white hover:bg-[#FF6B00] dark:hover:bg-[#FF6B00] text-white dark:text-[#111111] dark:hover:text-white text-xs font-semibold rounded-2xl transition-all shadow-xs cursor-pointer mt-6"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Return to Catalog</span>
+        </button>
+      </div>
+    );
+  }
 
-  const handleAffiliateClick = () => {
-    if (!safeAffiliateUrl) return;
-    analytics.track('affiliate_click', {
-      productId: product.id,
-      productName: product.name,
-      category: product.category,
-      affiliateUrl: safeAffiliateUrl,
-    });
-  };
-
-  // Related products (same category or others, excluding current product)
-  const relatedProducts = allProducts
-    .filter((p) => p.id !== product.id)
-    .sort((a, b) => {
-      if (a.category === product.category && b.category !== product.category) return -1;
-      if (b.category === product.category && a.category !== product.category) return 1;
-      return 0;
-    })
-    .slice(0, 3);
+  const galleryImages = product.gallery && product.gallery.length > 0 ? product.gallery : [product.image];
+  const pros = product.greatFor || product.benefits || [];
+  const cons = product.setupConsiderations || [];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-16">
-      {/* 1. Breadcrumbs */}
-      <nav aria-label="Breadcrumbs" className="flex items-center gap-2 text-xs font-medium text-neutral-500 dark:text-neutral-400 overflow-x-auto whitespace-nowrap pb-1">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-12">
+      {/* Breadcrumb Navigation */}
+      <nav className="flex items-center gap-2 text-xs text-neutral-500 dark:text-neutral-400" aria-label="Breadcrumb">
         <button
           onClick={() => onNavigate({ page: 'home' })}
-          className="hover:text-[#FF6B00] dark:hover:text-[#FF6B00] transition-colors cursor-pointer"
+          className="hover:text-[#FF6B00] transition-colors cursor-pointer"
         >
           Home
         </button>
-        <ChevronRight className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
+        <ChevronRight className="w-3.5 h-3.5 text-neutral-400" />
         <button
           onClick={() => onNavigate({ page: 'recommendations' })}
-          className="hover:text-[#FF6B00] dark:hover:text-[#FF6B00] transition-colors cursor-pointer"
+          className="hover:text-[#FF6B00] transition-colors cursor-pointer"
         >
           Recommendations
         </button>
-        <ChevronRight className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
+        <ChevronRight className="w-3.5 h-3.5 text-neutral-400" />
         <button
           onClick={() => onNavigate({ page: 'recommendations', categoryFilter: product.category })}
-          className="hover:text-[#FF6B00] dark:hover:text-[#FF6B00] transition-colors cursor-pointer"
+          className="hover:text-[#FF6B00] transition-colors cursor-pointer"
         >
           {product.category}
         </button>
-        <ChevronRight className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
-        <span className="text-neutral-900 dark:text-neutral-200 font-semibold truncate max-w-xs">{product.name}</span>
+        <ChevronRight className="w-3.5 h-3.5 text-neutral-400" />
+        <span className="text-[#111111] dark:text-neutral-200 font-semibold truncate max-w-[200px] sm:max-w-none">
+          {product.name}
+        </span>
       </nav>
 
-      {/* 2. Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-start">
-        {/* Left Column: Product Image & Highlights */}
-        <div className="lg:col-span-6 space-y-8">
-          <div className="relative aspect-4/3 sm:aspect-16/11 bg-neutral-100 dark:bg-[#1D1F27] rounded-2xl border border-[#E9E9E6] dark:border-[#272932] overflow-hidden shadow-xs">
+      {/* Main Two-Column Product Overview Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
+        {/* Left Column: Visual Gallery Stage */}
+        <div className="lg:col-span-6 space-y-4">
+          <div className="bg-white dark:bg-[#16171C] rounded-3xl border border-[#E9E9E6] dark:border-[#272932] p-8 aspect-4/3 flex items-center justify-center shadow-xs overflow-hidden">
             <SafeImage
-              src={activeImage}
+              src={selectedImage || product.image}
               alt={product.name}
               fallbackText={product.name}
-              className="w-full h-full object-cover object-center transition-all duration-300"
+              className="max-h-full max-w-full w-auto h-auto object-contain transition-transform duration-300"
               loading="eager"
             />
           </div>
 
-          {/* Thumbnail Gallery */}
-          {product.gallery && product.gallery.length > 1 && (
-            <div className="flex items-center gap-3 overflow-x-auto pb-2">
-              {product.gallery.map((img, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => setActiveImage(img)}
-                  aria-label={`View photo angle ${idx + 1}`}
-                  className={`w-20 h-16 sm:w-24 sm:h-18 rounded-xl overflow-hidden border-2 transition-all cursor-pointer shrink-0 ${
-                    activeImage === img
-                      ? 'border-[#FF6B00] ring-2 ring-orange-200 dark:ring-orange-950'
-                      : 'border-[#E9E9E6] dark:border-[#272932] opacity-70 hover:opacity-100'
-                  }`}
-                >
-                  <SafeImage
-                    src={img}
-                    alt={`${product.name} angle ${idx + 1}`}
-                    fallbackText={`Angle ${idx + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                </button>
-              ))}
+          {/* Thumbnail Strip */}
+          {galleryImages.length > 1 && (
+            <div className="flex items-center gap-3 overflow-x-auto no-scrollbar py-1">
+              {galleryImages.map((img, idx) => {
+                const isSelected = (selectedImage || product.image) === img;
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => setSelectedImage(img)}
+                    className={`w-20 h-20 rounded-2xl bg-white dark:bg-[#16171C] border p-2 flex items-center justify-center shrink-0 cursor-pointer transition-all ${
+                      isSelected
+                        ? 'border-[#FF6B00] ring-2 ring-[#FF6B00]/20'
+                        : 'border-[#E9E9E6] dark:border-[#272932] hover:border-neutral-300'
+                    }`}
+                  >
+                    <SafeImage
+                      src={img}
+                      alt={`${product.name} view ${idx + 1}`}
+                      fallbackText={`Thumb ${idx + 1}`}
+                      className="max-h-full max-w-full w-auto h-auto object-contain"
+                    />
+                  </button>
+                );
+              })}
             </div>
           )}
 
-          {/* Product Highlights */}
-          {product.highlights && product.highlights.length > 0 && (
-            <div className="mt-8 pt-4">
-              <h3 className="text-xl font-bold text-[#111111] dark:text-white mb-4">Product Highlights</h3>
-              <ul className="space-y-3">
-                {product.highlights.map((highlight, idx) => (
-                  <li key={idx} className="flex items-start gap-3 text-sm text-neutral-700 dark:text-neutral-300">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#FF6B00] mt-1.5 shrink-0" />
-                    <span>{highlight}</span>
+          {/* Key Spatial Highlights Box */}
+          {product.benefits && product.benefits.length > 0 && (
+            <div className="p-6 rounded-3xl bg-neutral-100/70 dark:bg-[#16171C] border border-[#E9E9E6] dark:border-[#272932] space-y-3">
+              <span className="text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 block">
+                Why It Fits Small Workspaces
+              </span>
+              <ul className="space-y-2 text-xs sm:text-sm text-neutral-700 dark:text-neutral-300">
+                {product.benefits.map((pt, i) => (
+                  <li key={i} className="flex items-start gap-2.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#FF6B00] mt-2 shrink-0" />
+                    <span className="leading-relaxed">{pt}</span>
                   </li>
                 ))}
               </ul>
@@ -194,184 +171,158 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
           )}
         </div>
 
-        {/* Right Column: All Details */}
+        {/* Right Column: Specifications & Verdict */}
         <div className="lg:col-span-6 space-y-8">
-          <EditableElement
-            isEditMode={visualEditor.isVisualEditMode}
-            label={`Edit Product: ${product.name}`}
-            onEdit={() =>
-              visualEditor.openEditor({
-                type: 'product',
-                title: `Edit Product: ${product.name}`,
-                data: product,
-              })
-            }
-          >
-            <div>
+          <div>
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#FF6B00]">
+                {product.category}
+              </span>
               {product.badge && (
-                <div className="mb-4">
-                  <span className="inline-flex items-center px-3 py-1.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-[#111111] dark:bg-[#252832] text-white">
-                    {product.badge}
-                  </span>
-                </div>
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-black dark:bg-white text-white dark:text-black">
+                  {product.badge}
+                </span>
               )}
+            </div>
 
-              <div className="mb-2">
-                <span className="text-sm font-bold uppercase tracking-wider text-[#FF6B00]">
-                  {product.category}
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-[#111111] dark:text-white tracking-tight leading-tight">
+              {product.name}
+            </h1>
+
+            <p className="mt-3 text-base sm:text-lg text-neutral-600 dark:text-neutral-300 leading-relaxed">
+              {product.shortBenefit}
+            </p>
+          </div>
+
+          {/* Primary Action Button Bar */}
+          <div className="p-6 rounded-3xl bg-white dark:bg-[#16171C] border border-[#E9E9E6] dark:border-[#272932] shadow-xs space-y-4">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+              <div>
+                <span className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 block">
+                  Verified Partner Listing
+                </span>
+                <span className="text-sm font-bold text-[#111111] dark:text-white">
+                  Direct Merchant Clearance
                 </span>
               </div>
 
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#111111] dark:text-white tracking-tight leading-tight mb-4">
-                {product.name}
-              </h1>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => onOpenAffiliateModal(product)}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 bg-[#FF6B00] hover:bg-[#e05e00] text-white text-xs sm:text-sm font-bold rounded-2xl transition-all shadow-md cursor-pointer focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
+              >
+                <span>Check Live Price</span>
+                <ExternalLink className="w-4 h-4" />
+              </motion.button>
+            </div>
 
-              <p className="text-base text-neutral-600 dark:text-neutral-300 leading-relaxed mb-6">
-                {product.shortBenefit}
+            <div className="pt-3 border-t border-neutral-100 dark:border-neutral-800 flex items-center gap-2 text-xs text-neutral-500 dark:text-neutral-400">
+              <ShieldCheck className="w-4 h-4 text-[#FF6B00] shrink-0" />
+              <span>Independent review. We may earn an affiliate commission at no extra cost to you.</span>
+            </div>
+          </div>
+
+          {/* Technical Specifications Matrix */}
+          {product.specifications && Object.keys(product.specifications).length > 0 && (
+            <div className="bg-white dark:bg-[#16171C] rounded-3xl border border-[#E9E9E6] dark:border-[#272932] p-6 sm:p-7 shadow-xs space-y-4">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+                Technical & Spatial Specifications
+              </h3>
+              <div className="divide-y divide-neutral-100 dark:divide-neutral-800 text-xs sm:text-sm">
+                {Object.entries(product.specifications).map(([key, value]) => (
+                  <div key={key} className="py-2.5 flex items-center justify-between">
+                    <span className="text-neutral-500 dark:text-neutral-400 font-medium">{key}</span>
+                    <span className="text-[#111111] dark:text-white font-semibold text-right">{String(value)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Compact Setup Fit Analysis */}
+          {product.deskSizeCompatibility && (
+            <div className="bg-white dark:bg-[#16171C] rounded-3xl border border-[#E9E9E6] dark:border-[#272932] p-6 sm:p-7 shadow-xs space-y-3">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+                Desk Clearance Verdict
+              </h3>
+              <p className="text-xs sm:text-sm text-neutral-700 dark:text-neutral-300 leading-relaxed">
+                {product.deskSizeCompatibility}
               </p>
             </div>
-          </EditableElement>
+          )}
 
-            {/* Affiliate CTA button + FTC Disclosure */}
-            {safeAffiliateUrl && (
-              <div className="space-y-3">
-                <a
-                  href={safeAffiliateUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={handleAffiliateClick}
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 bg-[#FF6B00] hover:bg-[#E05E00] text-white text-sm font-bold rounded-xl transition-all shadow-sm hover:shadow-md cursor-pointer focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#FF6B00]"
-                >
-                  <span>View live product</span>
-                  <ExternalLink className="w-4 h-4 shrink-0" />
-                </a>
-                <div className="flex items-center gap-1.5 text-xs text-neutral-500 dark:text-neutral-400">
-                  <ShieldCheck className="w-3.5 h-3.5 text-[#FF6B00] shrink-0" />
-                  <span>Opens merchant partner in a new tab. Reader-supported commissions help keep our editorial independent.</span>
+          {/* Pros & Cons in High-Contrast Cards */}
+          {(pros.length > 0 || cons.length > 0) && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {pros.length > 0 && (
+                <div className="bg-white dark:bg-[#16171C] rounded-3xl border border-neutral-200 dark:border-neutral-800 p-6 space-y-3">
+                  <span className="text-xs font-bold uppercase tracking-wider text-[#111111] dark:text-white block">
+                    Pros & Spatial Advantages
+                  </span>
+                  <ul className="space-y-2 text-xs text-neutral-700 dark:text-neutral-300">
+                    {pros.map((p, i) => (
+                      <li key={i} className="flex items-start gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#FF6B00] mt-2 shrink-0" />
+                        <span>{p}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-              </div>
-            )}
+              )}
 
-          <hr className="border-neutral-200 dark:border-[#272932]" />
-
-          {/* Why We Recommend It */}
-          {product.benefits && product.benefits.length > 0 && (
-            <div>
-              <h2 className="text-xl font-bold text-[#111111] dark:text-white mb-4">Why we recommend it</h2>
-              <ul className="space-y-3">
-                {product.benefits.map((benefit, idx) => (
-                  <li key={idx} className="flex items-start gap-3 text-sm text-neutral-700 dark:text-neutral-300">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#FF6B00] mt-1.5 shrink-0" />
-                    <span>{benefit}</span>
-                  </li>
-                ))}
-              </ul>
+              {cons.length > 0 && (
+                <div className="bg-white dark:bg-[#16171C] rounded-3xl border border-neutral-200 dark:border-neutral-800 p-6 space-y-3">
+                  <span className="text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 block">
+                    Drawbacks & Clearances
+                  </span>
+                  <ul className="space-y-2 text-xs text-neutral-600 dark:text-neutral-400">
+                    {cons.map((c, i) => (
+                      <li key={i} className="flex items-start gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-neutral-400 mt-2 shrink-0" />
+                        <span>{c}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           )}
 
-          {/* Specifications */}
-          {product.specifications && Object.keys(product.specifications).length > 0 && (
-            <>
-              <hr className="border-neutral-200 dark:border-[#272932]" />
-              <div>
-                <h2 className="text-xl font-bold text-[#111111] dark:text-white mb-4">Specifications</h2>
-                <div className="space-y-2">
-                  {Object.entries(product.specifications).map(([key, value]) => (
-                    <div key={key} className="flex flex-col sm:flex-row sm:items-center py-2 border-b border-neutral-100 dark:border-[#23252E] last:border-0">
-                      <span className="text-sm font-semibold text-neutral-500 dark:text-neutral-400 sm:w-1/3">{key}</span>
-                      <span className="text-sm font-medium text-[#111111] dark:text-neutral-200 sm:w-2/3">{value}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </>
-          )}
-
-          {/* Best For */}
-          {product.greatFor && product.greatFor.length > 0 && (
-            <>
-              <hr className="border-neutral-200 dark:border-[#272932]" />
-              <div>
-                <h2 className="text-xl font-bold text-[#111111] dark:text-white mb-4">Best For</h2>
-                <ul className="space-y-3">
-                  {product.greatFor.map((item, idx) => (
-                    <li key={idx} className="flex items-start gap-3 text-sm text-neutral-700 dark:text-neutral-300">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#FF6B00] mt-1.5 shrink-0" />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </>
-          )}
-
-          {/* Setup Considerations */}
-          {product.setupConsiderations && product.setupConsiderations.length > 0 && (
-            <>
-              <hr className="border-neutral-200 dark:border-[#272932]" />
-              <div>
-                <h2 className="text-xl font-bold text-[#111111] dark:text-white mb-4">Setup Considerations</h2>
-                <ul className="space-y-3">
-                  {product.setupConsiderations.map((note, idx) => (
-                    <li key={idx} className="flex items-start gap-3 text-sm text-neutral-700 dark:text-neutral-300">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#FF6B00] mt-1.5 shrink-0" />
-                      <span>{note}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </>
-          )}
-
-          {/* Our Take */}
+          {/* Deep Pitch-Black Verdict Card */}
           {product.verdict && (
-            <>
-              <hr className="border-neutral-200 dark:border-[#272932]" />
-              <div className="bg-[#111111] dark:bg-[#16171E] text-white rounded-xl p-6 shadow-sm border border-neutral-800 dark:border-[#272932]">
-                <div className="flex items-center gap-2 mb-3">
-                  <Sparkles className="w-4 h-4 text-[#FF6B00]" />
-                  <h2 className="text-lg font-bold">Our Take</h2>
-                </div>
-                <p className="text-sm text-neutral-300 leading-relaxed">
-                  {product.verdict}
-                </p>
+            <div className="p-7 rounded-3xl bg-[#111111] dark:bg-[#16171E] text-white space-y-3 shadow-md border border-neutral-800">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-[#FF6B00]" />
+                <span className="text-xs font-bold uppercase tracking-wider text-[#FF6B00]">
+                  TechCheck Final Editorial Verdict
+                </span>
               </div>
-            </>
+              <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed">
+                {product.verdict}
+              </p>
+            </div>
           )}
         </div>
       </div>
 
-      {/* 3. Related Products Section */}
-      {relatedProducts.length > 0 && (
-        <section className="pt-12 border-t border-[#E9E9E6] dark:border-[#272932]">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-[#FF6B00] block mb-1">
-                Complementary Gear
-              </span>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-[#111111] dark:text-white">
-                Related Setup Accessories
-              </h2>
-            </div>
-            <button
-              onClick={() => onNavigate({ page: 'recommendations' })}
-              className="text-xs font-semibold text-[#111111] dark:text-neutral-300 hover:text-[#FF6B00] dark:hover:text-[#FF6B00] transition-colors cursor-pointer"
-            >
-              View all gear →
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {relatedProducts.map((relProduct) => (
-              <ProductCard
-                key={relProduct.id}
-                product={relProduct}
-                onSelectProduct={onSelectProduct}
-              />
-            ))}
-          </div>
-        </section>
-      )}
+      {/* Bottom Navigation */}
+      <div className="pt-8 border-t border-[#E9E9E6] dark:border-[#272932] flex items-center justify-between">
+        <div>
+          <span className="text-xs font-bold uppercase tracking-wider text-[#FF6B00] block mb-1">
+            Browse More Hardware
+          </span>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400">
+            Explore related categories or return to the recommendations catalog.
+          </p>
+        </div>
+        <button
+          onClick={() => onNavigate({ page: 'recommendations' })}
+          className="text-xs font-bold text-neutral-800 dark:text-neutral-200 hover:text-[#FF6B00] transition-colors cursor-pointer"
+        >
+          ← Return to All Recommendations
+        </button>
+      </div>
     </div>
   );
 };

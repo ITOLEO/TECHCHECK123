@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Maximize2, Check, ArrowRight, Sparkles, Layers } from 'lucide-react';
+import { ArrowRight, Sparkles } from 'lucide-react';
 import { Product } from '../types';
 
 interface DeskSpaceCalculatorProps {
@@ -26,16 +26,16 @@ export const DeskSpaceCalculator: React.FC<DeskSpaceCalculatorProps> = ({
   const totalReclaimedPercent = Math.min(58, Math.round(((monitorSavings + headphoneSavings + keyboardSavings) / deskWidth) * 100));
 
   return (
-    <section className="my-16 bg-white rounded-2xl border border-[#E9E9E6] p-6 sm:p-10 shadow-xs">
+    <section className="my-16 bg-white dark:bg-[#16171C] rounded-3xl border border-[#E9E9E6] dark:border-[#272932] p-6 sm:p-10 shadow-xs">
       <div className="max-w-3xl">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-orange-50 text-[#FF6B00] border border-orange-200 mb-4">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-orange-50 dark:bg-orange-950/40 text-[#FF6B00] border border-orange-200/80 dark:border-orange-800/80 mb-4">
           <Sparkles className="w-3.5 h-3.5" />
           Interactive Setup Visualizer
         </div>
-        <h2 className="text-2xl sm:text-3xl font-bold text-[#111111] tracking-tight">
+        <h2 className="text-2xl sm:text-3xl font-extrabold text-[#111111] dark:text-white tracking-tight">
           How much desk space can you reclaim?
         </h2>
-        <p className="mt-2 text-sm text-neutral-600 leading-relaxed">
+        <p className="mt-2 text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed font-normal">
           Select your desk dimensions and current accessories to calculate how much usable surface area can be recovered using vertical and under-desk mounting.
         </p>
       </div>
@@ -45,22 +45,22 @@ export const DeskSpaceCalculator: React.FC<DeskSpaceCalculatorProps> = ({
         <div className="lg:col-span-7 space-y-6">
           {/* Desk Width Selector */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-neutral-500 mb-2">
+            <label className="block text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-2">
               Select Your Desk Width
             </label>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-4 gap-2.5">
               {[80, 100, 120, 140].map((width) => (
                 <button
                   key={width}
                   onClick={() => setDeskWidth(width)}
-                  className={`py-2.5 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer text-center ${
+                  className={`py-3 px-3 rounded-2xl text-xs font-bold transition-all cursor-pointer text-center ${
                     deskWidth === width
-                      ? 'bg-[#111111] text-white shadow-xs'
-                      : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
+                      ? 'bg-[#111111] dark:bg-white text-white dark:text-[#111111] shadow-xs'
+                      : 'bg-neutral-100 dark:bg-[#1D1F27] text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-[#252833]'
                   }`}
                 >
                   {width} cm
-                  <span className="block text-[10px] font-normal opacity-80">
+                  <span className="block text-[10px] font-normal opacity-80 mt-0.5">
                     {width === 80 ? 'Ultra-Compact' : width === 100 ? 'Small Desk' : width === 120 ? 'Standard' : 'Spacious'}
                   </span>
                 </button>
@@ -70,11 +70,11 @@ export const DeskSpaceCalculator: React.FC<DeskSpaceCalculatorProps> = ({
 
           {/* Current Pain Points Checklist */}
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-neutral-500 mb-2">
+            <label className="block text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 mb-2">
               Current Workspace Bottlenecks
             </label>
             <div className="space-y-2.5">
-              <label className="flex items-center gap-3 p-3 rounded-xl border border-neutral-200 bg-neutral-50/50 hover:bg-neutral-100/60 transition-colors cursor-pointer text-xs font-semibold text-neutral-800">
+              <label className="flex items-center gap-3 p-3.5 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50/60 dark:bg-[#1D1F27]/60 hover:bg-neutral-100/60 dark:hover:bg-[#252833]/60 transition-colors cursor-pointer text-xs font-semibold text-neutral-800 dark:text-neutral-200">
                 <input
                   type="checkbox"
                   checked={hasMonitorStand}
@@ -84,7 +84,7 @@ export const DeskSpaceCalculator: React.FC<DeskSpaceCalculatorProps> = ({
                 <span>Large factory monitor stand resting in the center of the desk</span>
               </label>
 
-              <label className="flex items-center gap-3 p-3 rounded-xl border border-neutral-200 bg-neutral-50/50 hover:bg-neutral-100/60 transition-colors cursor-pointer text-xs font-semibold text-neutral-800">
+              <label className="flex items-center gap-3 p-3.5 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50/60 dark:bg-[#1D1F27]/60 hover:bg-neutral-100/60 dark:hover:bg-[#252833]/60 transition-colors cursor-pointer text-xs font-semibold text-neutral-800 dark:text-neutral-200">
                 <input
                   type="checkbox"
                   checked={hasDeskHeadphone}
@@ -94,7 +94,7 @@ export const DeskSpaceCalculator: React.FC<DeskSpaceCalculatorProps> = ({
                 <span>Headphones sitting directly on the mouse pad or on a desktop stand</span>
               </label>
 
-              <label className="flex items-center gap-3 p-3 rounded-xl border border-neutral-200 bg-neutral-50/50 hover:bg-neutral-100/60 transition-colors cursor-pointer text-xs font-semibold text-neutral-800">
+              <label className="flex items-center gap-3 p-3.5 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50/60 dark:bg-[#1D1F27]/60 hover:bg-neutral-100/60 dark:hover:bg-[#252833]/60 transition-colors cursor-pointer text-xs font-semibold text-neutral-800 dark:text-neutral-200">
                 <input
                   type="checkbox"
                   checked={hasFullSizeKeyboard}
@@ -104,7 +104,7 @@ export const DeskSpaceCalculator: React.FC<DeskSpaceCalculatorProps> = ({
                 <span>Full-size 104-key keyboard taking up horizontal mouse swipe space</span>
               </label>
 
-              <label className="flex items-center gap-3 p-3 rounded-xl border border-neutral-200 bg-neutral-50/50 hover:bg-neutral-100/60 transition-colors cursor-pointer text-xs font-semibold text-neutral-800">
+              <label className="flex items-center gap-3 p-3.5 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50/60 dark:bg-[#1D1F27]/60 hover:bg-neutral-100/60 dark:hover:bg-[#252833]/60 transition-colors cursor-pointer text-xs font-semibold text-neutral-800 dark:text-neutral-200">
                 <input
                   type="checkbox"
                   checked={hasFloorCables}
@@ -117,8 +117,8 @@ export const DeskSpaceCalculator: React.FC<DeskSpaceCalculatorProps> = ({
           </div>
         </div>
 
-        {/* Right Calculation Display */}
-        <div className="lg:col-span-5 bg-[#111111] text-white p-6 rounded-2xl flex flex-col justify-between">
+        {/* Right Calculation Display: Pitch-Black Card */}
+        <div className="lg:col-span-5 bg-[#111111] dark:bg-[#16171E] text-white p-7 rounded-3xl border border-neutral-800 flex flex-col justify-between shadow-xl">
           <div>
             <span className="text-xs font-bold uppercase tracking-wider text-[#FF6B00]">
               Estimated Spatial Recovery
@@ -129,7 +129,7 @@ export const DeskSpaceCalculator: React.FC<DeskSpaceCalculatorProps> = ({
               </span>
               <span className="text-xs text-neutral-400 font-medium">Usable Surface Area</span>
             </div>
-            <p className="mt-3 text-xs text-neutral-300 leading-relaxed">
+            <p className="mt-3 text-xs text-neutral-300 leading-relaxed font-normal">
               On a <strong>{deskWidth} cm</strong> desk, these upgrades recover approximately <strong>{monitorSavings + headphoneSavings + keyboardSavings} cm</strong> of linear width and clear the entire rear footprint for keyboard positioning.
             </p>
 
@@ -147,12 +147,12 @@ export const DeskSpaceCalculator: React.FC<DeskSpaceCalculatorProps> = ({
                         if (match) onSelectProduct(match.slug);
                         else onSelectProduct(products[0].slug);
                       }}
-                      className="flex items-center justify-between p-2 rounded-lg bg-neutral-900/80 hover:bg-neutral-800 transition-colors cursor-pointer group"
+                      className="flex items-center justify-between p-2.5 rounded-2xl bg-neutral-900/80 hover:bg-neutral-800 border border-neutral-800 transition-colors cursor-pointer group"
                     >
                       <span className="text-neutral-200 group-hover:text-[#FF6B00] transition-colors">
                         {products.find(p => p.category.toLowerCase().includes('monitor') || p.name.toLowerCase().includes('arm'))?.name || 'Monitor Arm Mount'}
                       </span>
-                      <span className="text-[10px] text-neutral-400 flex items-center gap-1">
+                      <span className="text-[10px] text-neutral-400 flex items-center gap-1 group-hover:text-[#FF6B00]">
                         View Details <ArrowRight className="w-3 h-3" />
                       </span>
                     </li>
@@ -164,12 +164,12 @@ export const DeskSpaceCalculator: React.FC<DeskSpaceCalculatorProps> = ({
                         if (match) onSelectProduct(match.slug);
                         else onSelectProduct(products[0].slug);
                       }}
-                      className="flex items-center justify-between p-2 rounded-lg bg-neutral-900/80 hover:bg-neutral-800 transition-colors cursor-pointer group"
+                      className="flex items-center justify-between p-2.5 rounded-2xl bg-neutral-900/80 hover:bg-neutral-800 border border-neutral-800 transition-colors cursor-pointer group"
                     >
                       <span className="text-neutral-200 group-hover:text-[#FF6B00] transition-colors">
                         {products.find(p => p.name.toLowerCase().includes('headphone') || p.name.toLowerCase().includes('hook'))?.name || 'Under-Desk Headphone Mount'}
                       </span>
-                      <span className="text-[10px] text-neutral-400 flex items-center gap-1">
+                      <span className="text-[10px] text-neutral-400 flex items-center gap-1 group-hover:text-[#FF6B00]">
                         View Details <ArrowRight className="w-3 h-3" />
                       </span>
                     </li>
@@ -181,12 +181,12 @@ export const DeskSpaceCalculator: React.FC<DeskSpaceCalculatorProps> = ({
                         if (match) onSelectProduct(match.slug);
                         else onSelectProduct(products[0].slug);
                       }}
-                      className="flex items-center justify-between p-2 rounded-lg bg-neutral-900/80 hover:bg-neutral-800 transition-colors cursor-pointer group"
+                      className="flex items-center justify-between p-2.5 rounded-2xl bg-neutral-900/80 hover:bg-neutral-800 border border-neutral-800 transition-colors cursor-pointer group"
                     >
                       <span className="text-neutral-200 group-hover:text-[#FF6B00] transition-colors">
                         {products.find(p => p.category.toLowerCase().includes('cable') || p.name.toLowerCase().includes('cable'))?.name || 'Cable Management Kit'}
                       </span>
-                      <span className="text-[10px] text-neutral-400 flex items-center gap-1">
+                      <span className="text-[10px] text-neutral-400 flex items-center gap-1 group-hover:text-[#FF6B00]">
                         View Details <ArrowRight className="w-3 h-3" />
                       </span>
                     </li>
@@ -194,7 +194,7 @@ export const DeskSpaceCalculator: React.FC<DeskSpaceCalculatorProps> = ({
                 </ul>
               ) : (
                 <p className="text-xs text-neutral-400 leading-relaxed">
-                  Gunakan monitor arm dan under-desk mount untuk membebaskan hingga {totalReclaimedPercent}% permukaan meja Anda.
+                  Use monitor arms and under-desk mounts to free up to {totalReclaimedPercent}% of your desk surface.
                 </p>
               )}
             </div>
