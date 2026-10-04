@@ -191,7 +191,7 @@ export const VisualEditorToolbar: React.FC<VisualEditorToolbarProps> = ({
 
           <div className="w-px h-4 bg-neutral-800 mx-1 hidden sm:block" />
 
-          {/* Single Return Action: Back to Dashboard */}
+          {/* Dashboard Action */}
           <button
             type="button"
             onClick={onGoToDashboard}
@@ -199,7 +199,18 @@ export const VisualEditorToolbar: React.FC<VisualEditorToolbarProps> = ({
             title="Kembali ke Developer Dashboard"
           >
             <LayoutDashboard className="w-3.5 h-3.5 text-[#FF6B00]" />
-            <span>Back to Dashboard</span>
+            <span className="hidden sm:inline">Dashboard</span>
+          </button>
+
+          {/* Exit Developer Mode Action -> Returns to Live Public Website */}
+          <button
+            type="button"
+            onClick={onExitEditor}
+            className="px-3.5 py-1.5 text-xs font-bold text-rose-300 bg-rose-950/40 hover:bg-rose-900/60 border border-rose-800/60 hover:border-rose-600 rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Keluar dari Developer Mode dan kembali ke domain live public website"
+          >
+            <LogOut className="w-3.5 h-3.5 text-rose-400" />
+            <span>Exit Developer Mode</span>
           </button>
         </div>
       </div>

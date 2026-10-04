@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import {
   ArrowRight,
-  ArrowUpRight,
   Maximize2,
   Gamepad2,
   Sparkles,
@@ -13,7 +12,6 @@ import {
 import { motion } from 'motion/react';
 import { Product, CategoryInfo, Guide, SiteSettings, ViewRoute, RecommendationGoal } from '../types';
 import { ProductCard } from '../components/ProductCard';
-import { DeskSpaceCalculator } from '../components/DeskSpaceCalculator';
 import { SafeImage } from '../components/SafeImage';
 import { analytics } from '../services/analytics';
 import { updateSEO, buildBreadcrumbSchema } from '../services/seo';
@@ -319,7 +317,7 @@ export const HomePage: React.FC<HomePageProps> = ({
       </section>
 
       {/* ========================================================
-          SECTION 1 — FEATURED PRODUCTS (MOVED UP DIRECTLY AFTER HERO)
+          SECTION 1 — FEATURED PRODUCTS (DIRECTLY AFTER HERO)
           ======================================================== */}
       <section id="homepage-section-products" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 gap-4">
@@ -391,113 +389,7 @@ export const HomePage: React.FC<HomePageProps> = ({
       </section>
 
       {/* ========================================================
-          SECTION 2 — INTERACTIVE DESK CALCULATOR
-          ======================================================== */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <DeskSpaceCalculator products={products} onSelectProduct={onSelectProduct} />
-      </section>
-
-      {/* ========================================================
-          SECTION 3 — RECOMMENDATIONS / UPGRADE GOALS
-          ======================================================== */}
-      <section id="homepage-section-recommendations" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 gap-4">
-          <EditableElement
-            isEditMode={isVisualEditMode}
-            label="Section Heading"
-            onEdit={() =>
-              openEditor({
-                type: 'section-heading',
-                title: 'Edit Recommendations Section Heading',
-                sectionKey: 'recommendations',
-                data: {
-                  heading: recommendationsHeading,
-                  subtext: recommendationsSubtext,
-                },
-              })
-            }
-          >
-            <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-[#FF6B00] block mb-2">
-                RECOMMENDED FOR YOUR SETUP
-              </span>
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-[#111111] dark:text-white tracking-tight">
-                {recommendationsHeading}
-              </h2>
-              <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400 max-w-xl">
-                {recommendationsSubtext}
-              </p>
-            </div>
-          </EditableElement>
-
-          <button
-            onClick={() => onNavigate({ page: 'recommendations' })}
-            className="inline-flex items-center gap-1.5 text-sm font-bold text-[#111111] dark:text-neutral-200 hover:text-[#FF6B00] dark:hover:text-[#FF6B00] transition-colors cursor-pointer self-start sm:self-auto"
-          >
-            <span>Browse Recommendations</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
-        </div>
-
-        {/* Recommendation Entry Points Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-          {recommendationEntryPoints.map((entry, idx) => {
-            const Icon = entry.icon;
-            return (
-              <motion.div
-                key={entry.title}
-                whileHover={{ y: -4 }}
-                transition={{ duration: 0.2 }}
-                onClick={() =>
-                  onNavigate({
-                    page: 'recommendations',
-                    categoryFilter: entry.category,
-                  })
-                }
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter')
-                    onNavigate({
-                      page: 'recommendations',
-                      categoryFilter: entry.category,
-                    });
-                }}
-                role="button"
-                tabIndex={0}
-                aria-label={`Find recommendations for ${entry.title}`}
-                className={`group p-6 rounded-2xl bg-white dark:bg-[#16171D] border border-[#E9E9E6] dark:border-[#272932] hover:border-[#FF6B00] dark:hover:border-[#FF6B00] shadow-xs hover:shadow-md transition-all flex flex-col justify-between cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] ${
-                  idx === 0 ? 'sm:col-span-2 lg:col-span-1' : ''
-                }`}
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="w-10 h-10 rounded-xl bg-orange-50 dark:bg-[#251E19] text-[#FF6B00] flex items-center justify-center transition-transform group-hover:scale-110">
-                      <Icon className="w-5 h-5" />
-                    </div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 px-2 py-0.5 rounded bg-neutral-100 dark:bg-[#22242D]">
-                      {entry.tag}
-                    </span>
-                  </div>
-
-                  <h3 className="text-lg font-bold text-[#111111] dark:text-white group-hover:text-[#FF6B00] transition-colors mb-2">
-                    {entry.title}
-                  </h3>
-                  <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                    {entry.description}
-                  </p>
-                </div>
-
-                <div className="mt-6 pt-4 border-t border-neutral-100 dark:border-[#252832] flex items-center justify-between text-xs font-semibold text-neutral-700 dark:text-neutral-300 group-hover:text-[#FF6B00]">
-                  <span>Explore Solutions</span>
-                  <ArrowRight className="w-3.5 h-3.5 transform group-hover:translate-x-1 transition-transform" />
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* ========================================================
-          SECTION 4 — GUIDES & ARTICLES
+          SECTION 2 — GUIDES & ARTICLES (MOVED DIRECTLY AFTER PRODUCTS)
           ======================================================== */}
       <section id="homepage-section-guides" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 gap-4">
@@ -694,6 +586,105 @@ export const HomePage: React.FC<HomePageProps> = ({
             ))}
           </div>
         )}
+      </section>
+
+      {/* ========================================================
+          SECTION 3 — RECOMMENDATIONS / UPGRADE GOALS
+          ======================================================== */}
+      <section id="homepage-section-recommendations" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 gap-4">
+          <EditableElement
+            isEditMode={isVisualEditMode}
+            label="Section Heading"
+            onEdit={() =>
+              openEditor({
+                type: 'section-heading',
+                title: 'Edit Recommendations Section Heading',
+                sectionKey: 'recommendations',
+                data: {
+                  heading: recommendationsHeading,
+                  subtext: recommendationsSubtext,
+                },
+              })
+            }
+          >
+            <div>
+              <span className="text-xs font-bold uppercase tracking-wider text-[#FF6B00] block mb-2">
+                RECOMMENDED FOR YOUR SETUP
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-[#111111] dark:text-white tracking-tight">
+                {recommendationsHeading}
+              </h2>
+              <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400 max-w-xl">
+                {recommendationsSubtext}
+              </p>
+            </div>
+          </EditableElement>
+
+          <button
+            onClick={() => onNavigate({ page: 'recommendations' })}
+            className="inline-flex items-center gap-1.5 text-sm font-bold text-[#111111] dark:text-neutral-200 hover:text-[#FF6B00] dark:hover:text-[#FF6B00] transition-colors cursor-pointer self-start sm:self-auto"
+          >
+            <span>Browse Recommendations</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Recommendation Entry Points Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          {recommendationEntryPoints.map((entry, idx) => {
+            const Icon = entry.icon;
+            return (
+              <motion.div
+                key={entry.title}
+                whileHover={{ y: -4 }}
+                transition={{ duration: 0.2 }}
+                onClick={() =>
+                  onNavigate({
+                    page: 'recommendations',
+                    categoryFilter: entry.category,
+                  })
+                }
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter')
+                    onNavigate({
+                      page: 'recommendations',
+                      categoryFilter: entry.category,
+                    });
+                }}
+                role="button"
+                tabIndex={0}
+                aria-label={`Find recommendations for ${entry.title}`}
+                className={`group p-6 rounded-2xl bg-white dark:bg-[#16171D] border border-[#E9E9E6] dark:border-[#272932] hover:border-[#FF6B00] dark:hover:border-[#FF6B00] shadow-xs hover:shadow-md transition-all flex flex-col justify-between cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] ${
+                  idx === 0 ? 'sm:col-span-2 lg:col-span-1' : ''
+                }`}
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-orange-50 dark:bg-[#251E19] text-[#FF6B00] flex items-center justify-center transition-transform group-hover:scale-110">
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400 px-2 py-0.5 rounded bg-neutral-100 dark:bg-[#22242D]">
+                      {entry.tag}
+                    </span>
+                  </div>
+
+                  <h3 className="text-lg font-bold text-[#111111] dark:text-white group-hover:text-[#FF6B00] transition-colors mb-2">
+                    {entry.title}
+                  </h3>
+                  <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                    {entry.description}
+                  </p>
+                </div>
+
+                <div className="mt-6 pt-4 border-t border-neutral-100 dark:border-[#252832] flex items-center justify-between text-xs font-semibold text-neutral-700 dark:text-neutral-300 group-hover:text-[#FF6B00]">
+                  <span>Explore Solutions</span>
+                  <ArrowRight className="w-3.5 h-3.5 transform group-hover:translate-x-1 transition-transform" />
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
       </section>
 
       {/* ========================================================

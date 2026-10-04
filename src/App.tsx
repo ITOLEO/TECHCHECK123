@@ -131,11 +131,18 @@ const AppContent: React.FC<AppContentProps> = ({
             }
           }}
           onExitEditor={() => {
+            const exitToPublicHome = () => {
+              dataStorage.setAdminAuthenticated(false);
+              localStorage.removeItem('techcheck_visual_mode');
+              visualEditor.exitVisualEditMode();
+              navigate({ page: 'home' });
+            };
+
             if (visualEditor.hasUnsavedChanges) {
-              visualEditor.setPendingExitAction(() => navigate({ page: 'superadmin' }));
+              visualEditor.setPendingExitAction(() => exitToPublicHome);
               visualEditor.setIsUnsavedWarningOpen(true);
             } else {
-              navigate({ page: 'superadmin' });
+              exitToPublicHome();
             }
           }}
         />
