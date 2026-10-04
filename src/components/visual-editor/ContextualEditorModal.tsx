@@ -801,7 +801,7 @@ export const ContextualEditorModal: React.FC<ContextualEditorModalProps> = ({
               className="px-6 py-2.5 text-xs font-bold text-white bg-[#FF6B00] hover:bg-[#E05E00] rounded-xl shadow-sm hover:shadow transition-all flex items-center gap-1.5 cursor-pointer"
             >
               <Check className="w-3.5 h-3.5" />
-              <span>Apply to Preview</span>
+              <span>Simpan & Sync ke Database</span>
             </button>
           </div>
         </form>

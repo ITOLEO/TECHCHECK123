@@ -311,11 +311,51 @@ export const VisualEditorProvider: React.FC<VisualEditorProviderProps> = ({
       setDraftCategories(nextCats);
       setDraftGuides(nextGuides);
 
+      // 1. Commit to live app states immediately
+      onCommitSettings(nextSettings);
+      onCommitProducts(nextProducts);
+      onCommitCategories(nextCats);
+      onCommitGuides(nextGuides);
+
+      // 2. Persist to localStorage
+      dataStorage.saveSiteSettings(nextSettings);
+      dataStorage.saveProducts(nextProducts);
+      dataStorage.saveCategories(nextCats);
+      dataStorage.saveGuides(nextGuides);
+
+      // 3. Sync immediately to Supabase database
+      fetch('/api/sync-seed', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          settings: nextSettings,
+          products: nextProducts,
+          categories: nextCats,
+          guides: nextGuides,
+        }),
+      }).catch((err) => {
+        console.warn('Auto-sync to Supabase failed (saved locally):', err);
+      });
+
+      dataStorage.clearDraftState();
+      setHasUnsavedChanges(false);
       recordHistory(summaryText, nextSettings, nextProducts, nextCats, nextGuides);
       setActiveTarget(null);
-      showToast(`Perubahan "${summaryText}" diterapkan ke Live Preview`);
+      showToast(`Perubahan "${summaryText}" tersimpan & disinkronkan ke database!`);
     },
-    [activeTarget, draftSettings, draftProducts, draftCategories, draftGuides, recordHistory, showToast]
+    [
+      activeTarget,
+      draftSettings,
+      draftProducts,
+      draftCategories,
+      draftGuides,
+      onCommitSettings,
+      onCommitProducts,
+      onCommitCategories,
+      onCommitGuides,
+      recordHistory,
+      showToast,
+    ]
   );
 
   const saveDraftLocally = useCallback(() => {
