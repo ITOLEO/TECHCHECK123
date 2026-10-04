@@ -163,6 +163,7 @@ const AppContent: React.FC<AppContentProps> = ({
         {/* Top Navigation */}
         <Navbar
           currentRoute={currentRoute}
+          categories={effectiveCategories}
           onNavigate={navigate}
           onOpenSearch={() => setIsSearchOpen(true)}
         />

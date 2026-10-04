@@ -115,6 +115,7 @@ export interface RecommendationGoal {
   description: string;
   category: ProductCategory;
   tag: string;
+  icon?: any;
 }
 
 export type ViewRoute = 

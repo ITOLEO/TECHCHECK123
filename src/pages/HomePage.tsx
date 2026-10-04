@@ -11,18 +11,20 @@ import {
   Laptop,
 } from 'lucide-react';
 import { motion } from 'motion/react';
-import { Product, CategoryInfo, Guide, ViewRoute, SiteSettings, ProductCategory } from '../types';
+import { Product, CategoryInfo, Guide, SiteSettings, ViewRoute, RecommendationGoal } from '../types';
 import { ProductCard } from '../components/ProductCard';
+import { DeskSpaceCalculator } from '../components/DeskSpaceCalculator';
 import { SafeImage } from '../components/SafeImage';
+import { analytics } from '../services/analytics';
+import { updateSEO, buildBreadcrumbSchema } from '../services/seo';
 import { useVisualEditor } from '../contexts/VisualEditorContext';
 import { EditableElement } from '../components/visual-editor/EditableElement';
-import { updateSEO } from '../services/seo';
 
 interface HomePageProps {
   products: Product[];
   categories: CategoryInfo[];
   guides: Guide[];
-  siteSettings?: SiteSettings;
+  siteSettings: SiteSettings;
   onNavigate: (route: ViewRoute) => void;
   onSelectProduct: (slug: string) => void;
   onSelectGuide: (slug: string) => void;
@@ -42,75 +44,85 @@ export const HomePage: React.FC<HomePageProps> = ({
   useEffect(() => {
     updateSEO({
       title: 'TechCheck — Small Space. Serious Setup.',
-      description: 'Curated space-saving gaming monitors, ergonomic arms, cable management, and audio gear for compact desks (80cm–140cm). Singapore setup reviews & blueprints.',
+      description:
+        'Curated space-saving gaming monitors, ergonomic arms, cable management, and audio gear for compact desks (80cm–140cm). Singapore setup reviews & blueprints.',
       canonicalPath: '',
       ogType: 'website',
+      jsonLd: buildBreadcrumbSchema([{ name: 'Home', path: '' }]),
     });
+
+    analytics.track('page_view', { page: 'home' });
+
+    return () => {
+      document.title = 'TechCheck — Small Space. Serious Setup.';
+    };
   }, []);
 
-  const featuredProducts = products.filter((p) => p.featured).slice(0, 4);
-  const displayProducts = featuredProducts.length > 0 ? featuredProducts : products.slice(0, 4);
-  const featuredGuide = guides.find((g) => g.featured) || guides[0];
-  const secondaryGuides = featuredGuide ? guides.filter((g) => g.id !== featuredGuide.id).slice(0, 3) : [];
-
-  const heroEyebrow = siteSettings?.heroEyebrow || 'SMART TECH FOR BETTER SETUPS';
-  const heroLine1 = siteSettings?.heroHeadline1 || 'Better Gear.';
-  const heroLine2 = siteSettings?.heroHeadline2 || 'Smarter Spaces.';
+  const heroEyebrow = siteSettings.heroBadgeEyebrow || 'SMART TECH FOR BETTER SETUPS';
+  const heroLine1 = siteSettings.heroHeadline1 || 'Better Gear.';
+  const heroLine2 = siteSettings.heroHeadline2 || 'Smarter Spaces.';
   const heroSubtext =
-    siteSettings?.heroSubtext ||
+    siteSettings.heroSubtext ||
     'Discover space-saving tech and accessories that help you build a cleaner, more functional gaming setup — without the clutter.';
+  const heroCtaPrimaryText = siteSettings.heroCtaPrimaryText || 'Explore Products';
+  const heroCtaPrimaryUrl = siteSettings.heroCtaPrimaryUrl || 'recommendations';
+  const heroCtaSecondaryText = siteSettings.heroCtaSecondaryText || 'Read Our Guides';
+  const heroCtaSecondaryUrl = siteSettings.heroCtaSecondaryUrl || 'guides';
 
-  const heroImageSrc = siteSettings?.heroImage || '/acer-nitro.png';
-  const heroImageAlt = siteSettings?.heroImageAlt || 'Curated compact gaming setup with dual elevated monitors and clean cable management';
-  const heroBadgeEyebrow = siteSettings?.heroBadgeEyebrow || 'Setup Architecture #04';
-  const heroBadgeTitle = siteSettings?.heroBadgeTitle || '100cm Compact Studio Desk';
-  const heroBadgeStat = siteSettings?.heroBadgeStat || '65% Surface Cleared';
+  const heroImageSrc = siteSettings.heroImage || '/acer-nitro.png';
+  const heroImageAlt = siteSettings.heroImageAlt || 'Compact Gaming Setup';
+  const heroBadgeEyebrow = siteSettings.heroBadgeEyebrow || 'SETUP ARCHITECTURE 2026';
+  const heroBadgeTitle = siteSettings.heroBadgeTitle || '100cm Compact Studio Desk';
+  const heroBadgeStat = siteSettings.heroBadgeStat || '45% Surface Cleared';
 
-  const heroCtaPrimaryText = siteSettings?.heroCtaPrimaryText || 'Explore Products';
-  const heroCtaPrimaryUrl = siteSettings?.heroCtaPrimaryUrl || 'recommendations';
-  const heroCtaSecondaryText = siteSettings?.heroCtaSecondaryText || 'Read Our Guides';
-  const heroCtaSecondaryUrl = siteSettings?.heroCtaSecondaryUrl || 'guides';
+  const featuredHeading = siteSettings.featuredHeading || 'Top Picks for Your Setup.';
+  const featuredSubtext =
+    siteSettings.featuredSubtext ||
+    'Handpicked accessories that save space, boost productivity, and improve your gaming experience.';
 
-  const categoriesHeading = siteSettings?.categoriesHeading || 'Find the right upgrade by category.';
-  const categoriesSubtext = siteSettings?.categoriesSubtext || 'Explore space-saving accessories based on what your setup needs most.';
+  const recommendationsHeading =
+    siteSettings.recommendationsHeading || 'Find the right upgrade for your workspace.';
+  const recommendationsSubtext =
+    siteSettings.recommendationsSubtext ||
+    'Explore space-saving accessories based on what your setup needs most.';
 
-  const featuredHeading = siteSettings?.featuredHeading || 'Top Picks for Your Setup.';
-  const featuredSubtext = siteSettings?.featuredSubtext || 'Handpicked accessories that save space, boost productivity, and improve your gaming experience.';
+  const guidesHeading = siteSettings.guidesHeading || 'Setup Guides & Blueprints.';
+  const guidesSubtext =
+    siteSettings.guidesSubtext ||
+    'Learn how to measure clearance, route cables under desks, and optimize monitor heights for compact spaces.';
 
-  const recommendationsHeading = siteSettings?.recommendationsHeading || 'Find the Right Upgrade.';
-  const recommendationsSubtext = siteSettings?.recommendationsSubtext || 'Not sure where to begin? Choose your current setup goal to quickly discover verified solutions.';
+  const featuredProducts = products.filter((p) => p.featured);
+  const displayProducts = featuredProducts.length > 0 ? featuredProducts.slice(0, 4) : products.slice(0, 4);
 
-  const guidesHeading = siteSettings?.guidesHeading || 'Make your setup work harder.';
-  const guidesSubtext = siteSettings?.guidesSubtext || 'In-depth articles and blueprints on optimizing desk ergonomics, cable routing, and spatial layout.';
+  const featuredGuide = guides.find((g) => g.featured) || guides[0];
+  const secondaryGuides = guides.filter((g) => g.id !== featuredGuide?.id).slice(0, 3);
 
-  const handleHeroCtaClick = (targetUrl: string, defaultPage: 'recommendations' | 'guides') => {
-    if (targetUrl === 'recommendations' || targetUrl === 'guides' || targetUrl === 'categories') {
-      onNavigate({ page: targetUrl });
+  const handleHeroCtaClick = (targetUrl?: string, defaultPage: 'recommendations' | 'guides' = 'recommendations') => {
+    analytics.track('page_view', { route: targetUrl || defaultPage });
+    if (targetUrl === 'recommendations' || targetUrl === '/recommendations') {
+      onNavigate({ page: 'recommendations' });
+    } else if (targetUrl === 'guides' || targetUrl === '/guides') {
+      onNavigate({ page: 'guides' });
+    } else if (targetUrl === 'categories' || targetUrl === '/categories') {
+      onNavigate({ page: 'categories' });
+    } else if (targetUrl && targetUrl.startsWith('http')) {
+      window.open(targetUrl, '_blank', 'noopener,noreferrer');
     } else {
       onNavigate({ page: defaultPage });
     }
   };
 
-  const getCategoryCount = (cat: CategoryInfo) => {
-    const realCount = products.filter((p) => p.category === cat.name).length;
-    return realCount > 0 ? realCount : cat.productCount || 0;
-  };
-
-  const recommendationEntryPoints: Array<{
-    title: string;
-    description: string;
-    category?: ProductCategory;
-    icon: React.ComponentType<{ className?: string }>;
-    tag: string;
-  }> = [
+  const recommendationEntryPoints: RecommendationGoal[] = [
     {
-      title: 'Save Space',
-      description: 'Reclaim up to 60% of desk surface with modular mounts & vertical stands.',
+      id: 'rec-desk',
+      title: 'More Desk Space',
+      description: 'Single & dual monitor arms that eliminate bulky stock plastic monitor feet.',
       category: 'Desk Setup',
       icon: Maximize2,
       tag: 'Desk Real Estate',
     },
     {
+      id: 'rec-gaming',
       title: 'Better Gaming',
       description: 'High refresh displays, low-latency audio, and mouse clearance.',
       category: 'Audio',
@@ -118,6 +130,7 @@ export const HomePage: React.FC<HomePageProps> = ({
       tag: 'Performance & Flow',
     },
     {
+      id: 'rec-lighting',
       title: 'Better Lighting',
       description: 'Screenbars and eye-care bias lights that take zero desk footprint.',
       category: 'Lighting',
@@ -125,6 +138,7 @@ export const HomePage: React.FC<HomePageProps> = ({
       tag: 'Zero Footprint',
     },
     {
+      id: 'rec-cables',
       title: 'Cleaner Desk',
       description: 'Concealed power strips, under-desk trays, and magnetic cord organizers.',
       category: 'Cable Management',
@@ -132,6 +146,7 @@ export const HomePage: React.FC<HomePageProps> = ({
       tag: 'Zero Visual Clutter',
     },
     {
+      id: 'rec-monitor',
       title: 'Monitor Upgrade',
       description: 'Gas-spring single & dual arms to eliminate bulky stock plastic monitor stands.',
       category: 'Desk Setup',
@@ -139,6 +154,7 @@ export const HomePage: React.FC<HomePageProps> = ({
       tag: 'Ergonomic Float',
     },
     {
+      id: 'rec-[#2]',
       title: 'Cable Management',
       description: 'Under-desk wire channels, clips, and braided sleeves for clean drops.',
       category: 'Cable Management',
@@ -146,6 +162,7 @@ export const HomePage: React.FC<HomePageProps> = ({
       tag: 'Clean Drops',
     },
     {
+      id: 'rec-laptop',
       title: 'Laptop Setup',
       description: 'Vertical holders, minimal docks, and riser arms for dual-display workstations.',
       category: 'Storage',
@@ -302,119 +319,7 @@ export const HomePage: React.FC<HomePageProps> = ({
       </section>
 
       {/* ========================================================
-          SECTION 1 — BROWSE BY CATEGORY
-          ======================================================== */}
-      <section id="homepage-section-categories" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 gap-4">
-          <EditableElement
-            isEditMode={isVisualEditMode}
-            label="Section Heading"
-            onEdit={() =>
-              openEditor({
-                type: 'section-heading',
-                title: 'Edit Categories Section Heading',
-                sectionKey: 'categories',
-                data: {
-                  heading: categoriesHeading,
-                  subtext: categoriesSubtext,
-                },
-              })
-            }
-          >
-            <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-[#FF6B00] block mb-2">
-                BROWSE BY CATEGORY
-              </span>
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-[#111111] dark:text-white tracking-tight">
-                {categoriesHeading}
-              </h2>
-              <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400 max-w-xl">
-                {categoriesSubtext}
-              </p>
-            </div>
-          </EditableElement>
-
-          <button
-            onClick={() => onNavigate({ page: 'categories' })}
-            className="inline-flex items-center gap-1.5 text-sm font-bold text-[#111111] dark:text-neutral-200 hover:text-[#FF6B00] dark:hover:text-[#FF6B00] transition-colors cursor-pointer self-start sm:self-auto"
-          >
-            <span>View All Categories</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
-        </div>
-
-        {categories.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {categories.map((cat) => {
-              const count = getCategoryCount(cat);
-              return (
-                <EditableElement
-                  key={cat.id}
-                  isEditMode={isVisualEditMode}
-                  label={`Category: ${cat.name}`}
-                  onEdit={() =>
-                    openEditor({
-                      type: 'category',
-                      title: `Edit Category: ${cat.name}`,
-                      data: cat,
-                    })
-                  }
-                >
-                  <motion.div
-                    whileHover={{ y: -4 }}
-                    transition={{ duration: 0.2 }}
-                    onClick={() => onNavigate({ page: 'recommendations', categoryFilter: cat.name })}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') onNavigate({ page: 'recommendations', categoryFilter: cat.name });
-                    }}
-                    role="button"
-                    tabIndex={0}
-                    aria-label={`Browse ${cat.name} category with ${count} accessories`}
-                    className="group bg-white dark:bg-[#16171D] rounded-2xl border border-[#E9E9E6] dark:border-[#272932] hover:border-[#FF6B00] dark:hover:border-[#FF6B00] shadow-xs hover:shadow-md transition-all overflow-hidden cursor-pointer flex flex-col justify-between focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] h-full"
-                  >
-                    <div className="relative aspect-16/9 overflow-hidden bg-neutral-100 dark:bg-[#1D1F27]">
-                      <SafeImage
-                        src={cat.image}
-                        alt={cat.name}
-                        fallbackText={cat.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        loading="lazy"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
-                      <div className="absolute bottom-3 left-3 text-white">
-                        <span className="text-xs font-semibold bg-black/50 backdrop-blur-xs px-2.5 py-0.5 rounded">
-                          {count} Curated Products
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="p-6">
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-lg font-bold text-[#111111] dark:text-neutral-100 group-hover:text-[#FF6B00] transition-colors">
-                          {cat.name}
-                        </h3>
-                        <div className="w-8 h-8 rounded-full bg-neutral-100 dark:bg-[#23252E] flex items-center justify-center text-neutral-600 dark:text-neutral-300 group-hover:bg-[#FF6B00] group-hover:text-white transition-colors">
-                          <ArrowUpRight className="w-4 h-4" />
-                        </div>
-                      </div>
-                      <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                        {cat.description}
-                      </p>
-                    </div>
-                  </motion.div>
-                </EditableElement>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="bg-white dark:bg-[#16171D] rounded-2xl border border-[#E9E9E6] dark:border-[#272932] p-10 text-center text-neutral-500 text-xs">
-            No categories available.
-          </div>
-        )}
-      </section>
-
-      {/* ========================================================
-          SECTION 2 — FEATURED PRODUCTS
+          SECTION 1 — FEATURED PRODUCTS (MOVED UP DIRECTLY AFTER HERO)
           ======================================================== */}
       <section id="homepage-section-products" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 gap-4">
@@ -486,7 +391,14 @@ export const HomePage: React.FC<HomePageProps> = ({
       </section>
 
       {/* ========================================================
-          SECTION 3 — RECOMMENDATIONS (FIND THE RIGHT UPGRADE)
+          SECTION 2 — INTERACTIVE DESK CALCULATOR
+          ======================================================== */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <DeskSpaceCalculator products={products} onSelectProduct={onSelectProduct} />
+      </section>
+
+      {/* ========================================================
+          SECTION 3 — RECOMMENDATIONS / UPGRADE GOALS
           ======================================================== */}
       <section id="homepage-section-recommendations" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 gap-4">
