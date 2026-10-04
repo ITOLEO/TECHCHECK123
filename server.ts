@@ -656,18 +656,57 @@ app.post('/api/settings', async (req: Request, res: Response) => {
   const settings = req.body;
   const row = toSettingsRow(settings);
 
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from('site_settings')
     .upsert(row)
     .select()
-    .single();
+    .maybeSingle();
+
+  if (error && error.message.includes('column')) {
+    console.warn('[Supabase Settings Column Missing] Falling back to core columns. Please run schema.sql in Supabase SQL Editor.', error.message);
+    // Fallback row with core columns if schema.sql migrations haven't been executed on Supabase yet
+    const fallbackRow = {
+      id: 1,
+      announcement_text: row.announcement_text,
+      announcement_enabled: row.announcement_enabled,
+      announcement_link: row.announcement_link,
+      hero_eyebrow: row.hero_eyebrow,
+      hero_headline1: row.hero_headline1,
+      hero_headline2: row.hero_headline2,
+      hero_subtext: row.hero_subtext,
+      support_email: row.support_email,
+      default_affiliate_sub_id: row.default_affiliate_sub_id,
+      admin_passcode: row.admin_passcode,
+    };
+    const fallbackResult = await supabase
+      .from('site_settings')
+      .upsert(fallbackRow)
+      .select()
+      .maybeSingle();
+
+    if (!fallbackResult.error) {
+      res.json({
+        ...fromSettingsRow(fallbackResult.data || fallbackRow),
+        heroImage: row.hero_image,
+        heroImageAlt: row.hero_image_alt,
+        heroBadgeEyebrow: row.hero_badge_eyebrow,
+        heroBadgeTitle: row.hero_badge_title,
+        heroBadgeStat: row.hero_badge_stat,
+        heroCtaPrimaryText: row.hero_cta_primary_text,
+        heroCtaPrimaryUrl: row.hero_cta_primary_url,
+        heroCtaSecondaryText: row.hero_cta_secondary_text,
+        heroCtaSecondaryUrl: row.hero_cta_secondary_url,
+      });
+      return;
+    }
+  }
 
   if (error) {
     res.status(500).json({ error: error.message });
     return;
   }
 
-  res.json(fromSettingsRow(data));
+  res.json(fromSettingsRow(data || row));
 });
 
 // 6. Bulk Sync / Seed API (Pushes existing data to Supabase)

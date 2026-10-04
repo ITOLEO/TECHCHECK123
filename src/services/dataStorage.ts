@@ -190,13 +190,16 @@ export const dataStorage = {
       if (settRes.status === 'fulfilled' && settRes.value.ok) {
         const settData = await settRes.value.json();
         if (settData && typeof settData === 'object') {
+          const currentLocalSettings = safeParse<SiteSettings>(STORAGE_KEYS.SETTINGS, DEFAULT_SITE_SETTINGS);
           const mergedSett = {
             ...DEFAULT_SITE_SETTINGS,
+            ...currentLocalSettings,
             ...settData,
-            heroImage: (settData.heroImage && typeof settData.heroImage === 'string' && settData.heroImage.trim() !== '')
-              ? settData.heroImage
-              : DEFAULT_SITE_SETTINGS.heroImage,
           };
+          // Ensure heroImage is retained if current local has custom image but remote is empty
+          if ((!settData.heroImage || settData.heroImage.trim() === '') && currentLocalSettings.heroImage) {
+            mergedSett.heroImage = currentLocalSettings.heroImage;
+          }
           result.settings = mergedSett;
           localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(mergedSett));
         }
@@ -264,6 +267,11 @@ export const dataStorage = {
   saveProducts(products: Product[]): void {
     try {
       localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
+      fetch('/api/sync-seed', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ products }),
+      }).catch(() => {});
     } catch (e) {
       console.error('Failed to save products', e);
     }
@@ -276,6 +284,11 @@ export const dataStorage = {
   saveCategories(categories: CategoryInfo[]): void {
     try {
       localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(categories));
+      fetch('/api/sync-seed', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ categories }),
+      }).catch(() => {});
     } catch (e) {
       console.error('Failed to save categories', e);
     }
@@ -288,6 +301,11 @@ export const dataStorage = {
   saveGuides(guides: Guide[]): void {
     try {
       localStorage.setItem(STORAGE_KEYS.GUIDES, JSON.stringify(guides));
+      fetch('/api/sync-seed', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ guides }),
+      }).catch(() => {});
     } catch (e) {
       console.error('Failed to save guides', e);
     }
@@ -345,6 +363,11 @@ export const dataStorage = {
   saveSiteSettings(settings: SiteSettings): void {
     try {
       localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
+      fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(settings),
+      }).catch(() => {});
     } catch (e) {
       console.error('Failed to save site settings', e);
     }

@@ -154,14 +154,6 @@ export const HomePage: React.FC<HomePageProps> = ({
       tag: 'Ergonomic Float',
     },
     {
-      id: 'rec-[#2]',
-      title: 'Cable Management',
-      description: 'Under-desk wire channels, clips, and braided sleeves for clean drops.',
-      category: 'Cable Management',
-      icon: Cable,
-      tag: 'Clean Drops',
-    },
-    {
       id: 'rec-laptop',
       title: 'Laptop Setup',
       description: 'Vertical holders, minimal docks, and riser arms for dual-display workstations.',

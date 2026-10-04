@@ -123,11 +123,31 @@ CREATE TABLE IF NOT EXISTS site_settings (
     hero_headline1 VARCHAR(255) DEFAULT 'Better Gear.',
     hero_headline2 VARCHAR(255) DEFAULT 'Smarter Spaces.',
     hero_subtext TEXT DEFAULT 'Discover space-saving tech and accessories that help you build a cleaner, more functional gaming setup — without the clutter.',
+    hero_image TEXT DEFAULT '/acer-nitro.png',
+    hero_image_alt TEXT DEFAULT 'Compact Gaming Setup',
+    hero_badge_eyebrow VARCHAR(255) DEFAULT 'SETUP ARCHITECTURE 2026',
+    hero_badge_title VARCHAR(255) DEFAULT '100cm Compact Studio Desk',
+    hero_badge_stat VARCHAR(255) DEFAULT '45% Surface Cleared',
+    hero_cta_primary_text VARCHAR(255) DEFAULT 'Explore Products',
+    hero_cta_primary_url VARCHAR(255) DEFAULT 'recommendations',
+    hero_cta_secondary_text VARCHAR(255) DEFAULT 'Read Our Guides',
+    hero_cta_secondary_url VARCHAR(255) DEFAULT 'guides',
     support_email VARCHAR(255) DEFAULT 'itleo4444@gmail.com',
     default_affiliate_sub_id VARCHAR(100) DEFAULT '14139310000',
     admin_passcode VARCHAR(255) DEFAULT '654321',
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Migrations: Ensure all columns exist on pre-existing site_settings table
+ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS hero_image TEXT DEFAULT '/acer-nitro.png';
+ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS hero_image_alt TEXT DEFAULT 'Compact Gaming Setup';
+ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS hero_badge_eyebrow VARCHAR(255) DEFAULT 'SETUP ARCHITECTURE 2026';
+ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS hero_badge_title VARCHAR(255) DEFAULT '100cm Compact Studio Desk';
+ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS hero_badge_stat VARCHAR(255) DEFAULT '45% Surface Cleared';
+ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS hero_cta_primary_text VARCHAR(255) DEFAULT 'Explore Products';
+ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS hero_cta_primary_url VARCHAR(255) DEFAULT 'recommendations';
+ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS hero_cta_secondary_text VARCHAR(255) DEFAULT 'Read Our Guides';
+ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS hero_cta_secondary_url VARCHAR(255) DEFAULT 'guides';
 
 -- Seed default site settings singleton
 INSERT INTO site_settings (id, admin_passcode)
