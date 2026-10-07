@@ -8,8 +8,6 @@ import {
   Cable,
   SunMedium,
   Laptop,
-  FolderTree,
-  Layers,
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Product, CategoryInfo, Guide, SiteSettings, ViewRoute, RecommendationGoal } from '../types';
@@ -76,11 +74,6 @@ export const HomePage: React.FC<HomePageProps> = ({
   const heroBadgeEyebrow = siteSettings.heroBadgeEyebrow || 'SETUP ARCHITECTURE 2026';
   const heroBadgeTitle = siteSettings.heroBadgeTitle || '100cm Compact Studio Desk';
   const heroBadgeStat = siteSettings.heroBadgeStat || '45% Surface Cleared';
-
-  const categoriesHeading = siteSettings.categoriesHeading || 'Kategori Hardware Compact';
-  const categoriesSubtext =
-    siteSettings.categoriesSubtext ||
-    'Pilih kategori untuk melihat produk dan aksesori yang sesuai dengan kebutuhan setup Anda.';
 
   const featuredHeading = siteSettings.featuredHeading || 'Top Picks for Your Setup.';
   const featuredSubtext =
@@ -314,79 +307,6 @@ export const HomePage: React.FC<HomePageProps> = ({
               </EditableElement>
             </motion.div>
           </div>
-        </div>
-      </section>
-
-      {/* ========================================================
-          SECTION 0 — CATEGORIES (DIRECTLY AFTER HERO)
-          ======================================================== */}
-      <section id="homepage-section-categories" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
-          <EditableElement
-            isEditMode={isVisualEditMode}
-            label="Category Section Heading"
-            onEdit={() =>
-              openEditor({
-                type: 'section-heading',
-                title: 'Edit Categories Section Heading',
-                sectionKey: 'categories',
-                data: {
-                  heading: categoriesHeading,
-                  subtext: categoriesSubtext,
-                },
-              })
-            }
-          >
-            <div>
-              <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF6B00] mb-2">
-                <FolderTree className="w-3.5 h-3.5" />
-                <span>KATEGORI PRODUK</span>
-              </div>
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-[#111111] dark:text-white tracking-tight">
-                {categoriesHeading}
-              </h2>
-              <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400 max-w-xl">
-                {categoriesSubtext}
-              </p>
-            </div>
-          </EditableElement>
-
-          <button
-            onClick={() => onNavigate({ page: 'categories' })}
-            className="inline-flex items-center gap-1.5 text-sm font-bold text-[#111111] dark:text-neutral-200 hover:text-[#FF6B00] dark:hover:text-[#FF6B00] transition-colors cursor-pointer self-start sm:self-auto"
-          >
-            <span>Lihat Semua Kategori</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
-        </div>
-
-        {/* Category Cards Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-5">
-          {categories.map((cat) => {
-            const count = products.filter((p) => p.category === cat.name).length || cat.productCount || 0;
-            return (
-              <motion.button
-                key={cat.id || cat.name}
-                whileHover={{ y: -4, scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => onNavigate({ page: 'recommendations', categoryFilter: cat.name })}
-                className="group p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#16171D] border border-[#E9E9E6] dark:border-[#272932] hover:border-[#FF6B00] dark:hover:border-[#FF6B00] shadow-xs hover:shadow-lg transition-all text-left flex flex-col justify-between cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] h-full"
-              >
-                <div>
-                  <div className="w-10 h-10 rounded-xl bg-orange-50 dark:bg-orange-950/50 border border-orange-200/80 dark:border-orange-800/80 flex items-center justify-center text-[#FF6B00] mb-3 group-hover:bg-[#FF6B00] group-hover:text-white transition-colors">
-                    <Layers className="w-5 h-5" />
-                  </div>
-                  <h3 className="text-sm font-bold text-[#111111] dark:text-neutral-100 group-hover:text-[#FF6B00] transition-colors leading-snug line-clamp-2">
-                    {cat.name}
-                  </h3>
-                </div>
-                <div className="mt-3 pt-2.5 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between text-[11px] text-neutral-500 dark:text-neutral-400">
-                  <span>{count} Produk</span>
-                  <ArrowRight className="w-3.5 h-3.5 text-[#FF6B00] transform group-hover:translate-x-1 transition-transform" />
-                </div>
-              </motion.button>
-            );
-          })}
         </div>
       </section>
 

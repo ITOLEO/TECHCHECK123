@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Filter, X, Search, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Filter, X, Search } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Product, ProductCategory } from '../types';
 import { ProductCard } from '../components/ProductCard';
@@ -7,8 +7,6 @@ import { analytics } from '../services/analytics';
 import { updateSEO, buildBreadcrumbSchema } from '../services/seo';
 import { useVisualEditor } from '../contexts/VisualEditorContext';
 import { EditableElement } from '../components/visual-editor/EditableElement';
-
-type UpgradeGoal = 'All' | 'Small Space' | 'Gaming' | 'Productivity' | 'Lighting' | 'Monitor' | 'Accessories';
 
 interface RecommendationsPageProps {
   products: Product[];
@@ -23,7 +21,6 @@ export const RecommendationsPage: React.FC<RecommendationsPageProps> = ({
 }) => {
   const visualEditor = useVisualEditor();
   const [selectedCategory, setSelectedCategory] = useState<ProductCategory | 'All'>(initialCategory);
-  const [selectedGoal, setSelectedGoal] = useState<UpgradeGoal>('All');
   const [minRating, setMinRating] = useState<number>(0);
   const [selectedBadge, setSelectedBadge] = useState<string>('All');
   const [sortBy, setSortBy] = useState<'recommended' | 'rating' | 'reviews'>('recommended');
@@ -32,7 +29,6 @@ export const RecommendationsPage: React.FC<RecommendationsPageProps> = ({
   useEffect(() => {
     if (initialCategory) {
       setSelectedCategory(initialCategory);
-      setSelectedGoal('All');
       setMinRating(0);
       setSelectedBadge('All');
       setSearchQuery('');
@@ -94,33 +90,6 @@ export const RecommendationsPage: React.FC<RecommendationsPageProps> = ({
     return ['All', ...Array.from(set)];
   }, [products, initialCategory]);
 
-  const handleSelectGoal = (goal: UpgradeGoal) => {
-    setSelectedGoal(goal);
-    switch (goal) {
-      case 'Small Space':
-        setSelectedCategory('Desk Setup');
-        break;
-      case 'Gaming':
-        setSelectedCategory('Audio');
-        break;
-      case 'Productivity':
-        setSelectedCategory('Storage');
-        break;
-      case 'Lighting':
-        setSelectedCategory('Lighting');
-        break;
-      case 'Monitor':
-        setSelectedCategory('Desk Setup');
-        break;
-      case 'Accessories':
-        setSelectedCategory('Cable Management');
-        break;
-      default:
-        setSelectedCategory('All');
-    }
-    analytics.track('page_view', { route: 'recommendations', goal });
-  };
-
   const badges = useMemo(() => {
     const set = new Set<string>();
     products.forEach((p) => {
@@ -139,17 +108,6 @@ export const RecommendationsPage: React.FC<RecommendationsPageProps> = ({
           if (!exactMatch && normCat !== normSel) {
             return false;
           }
-        }
-
-        if (selectedGoal !== 'All') {
-          const matchGoal =
-            (selectedGoal === 'Small Space' && (p.category === 'Desk Setup' || p.category === 'Storage')) ||
-            (selectedGoal === 'Gaming' && (p.category === 'Audio' || p.category === 'Lighting')) ||
-            (selectedGoal === 'Productivity' && (p.category === 'Desk Setup' || p.category === 'Storage')) ||
-            (selectedGoal === 'Lighting' && p.category === 'Lighting') ||
-            (selectedGoal === 'Monitor' && p.category === 'Desk Setup') ||
-            (selectedGoal === 'Accessories' && p.category === 'Cable Management');
-          if (!matchGoal) return false;
         }
 
         if (minRating > 0 && p.rating < minRating) {
@@ -177,11 +135,10 @@ export const RecommendationsPage: React.FC<RecommendationsPageProps> = ({
         if (sortBy === 'reviews') return b.reviewCount - a.reviewCount;
         return b.rating - a.rating;
       });
-  }, [products, selectedCategory, selectedGoal, minRating, selectedBadge, sortBy, searchQuery]);
+  }, [products, selectedCategory, minRating, selectedBadge, sortBy, searchQuery]);
 
   const handleResetFilters = () => {
     setSelectedCategory('All');
-    setSelectedGoal('All');
     setMinRating(0);
     setSelectedBadge('All');
     setSearchQuery('');
@@ -202,44 +159,6 @@ export const RecommendationsPage: React.FC<RecommendationsPageProps> = ({
         </p>
       </div>
 
-      {/* "What Should I Upgrade?" Goal Selector in Rounded-3xl Card */}
-      <div className="bg-white dark:bg-[#16171C] p-6 sm:p-7 rounded-3xl border border-[#E9E9E6] dark:border-[#272932] shadow-xs space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-[#FF6B00]" />
-            <h2 className="text-xs font-bold uppercase tracking-wider text-[#111111] dark:text-neutral-200">
-              What Should I Upgrade?
-            </h2>
-          </div>
-          <span className="text-xs text-neutral-400 dark:text-neutral-500 hidden sm:inline font-medium">
-            Choose a priority goal to view recommendations
-          </span>
-        </div>
-
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
-          {(['All', 'Small Space', 'Gaming', 'Productivity', 'Lighting', 'Monitor', 'Accessories'] as UpgradeGoal[]).map(
-            (goal) => {
-              const active = selectedGoal === goal;
-              return (
-                <motion.button
-                  key={goal}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => handleSelectGoal(goal)}
-                  className={`px-4 py-2.5 rounded-2xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
-                    active
-                      ? 'bg-[#111111] dark:bg-white text-white dark:text-[#111111] shadow-xs'
-                      : 'bg-neutral-100 dark:bg-[#1D1F27] text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-[#252833] border border-neutral-200/80 dark:border-neutral-800'
-                  }`}
-                >
-                  {active && <CheckCircle2 className="w-3.5 h-3.5 text-[#FF6B00]" />}
-                  <span>{goal === 'All' ? 'All Goals' : goal}</span>
-                </motion.button>
-              );
-            }
-          )}
-        </div>
-      </div>
-
       {/* Category Tabs */}
       <div className="border-b border-[#E9E9E6] dark:border-[#272932] pb-4">
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
@@ -253,7 +172,6 @@ export const RecommendationsPage: React.FC<RecommendationsPageProps> = ({
                 id={`filter-cat-${cat.toLowerCase().replace(/\s+/g, '-')}`}
                 onClick={() => {
                   setSelectedCategory(cat as any);
-                  setSelectedGoal('All');
                   const hash = cat !== 'All' ? `#/recommendations?category=${encodeURIComponent(cat)}` : '#/recommendations';
                   try {
                     window.history.replaceState(null, '', hash);
@@ -354,15 +272,8 @@ export const RecommendationsPage: React.FC<RecommendationsPageProps> = ({
               in <strong>{selectedCategory}</strong>
             </span>
           )}
-          {selectedGoal !== 'All' && (
-            <span>
-              {' '}
-              for <strong>{selectedGoal}</strong>
-            </span>
-          )}
         </div>
         {(selectedCategory !== 'All' ||
-          selectedGoal !== 'All' ||
           minRating > 0 ||
           selectedBadge !== 'All' ||
           searchQuery) && (
