@@ -186,16 +186,6 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenInfoModal, onR
                   Contact & Editorial
                 </button>
               </li>
-              {onReplaySplash && (
-                <li>
-                  <button
-                    onClick={onReplaySplash}
-                    className="text-zinc-400 hover:text-[#FF6B00] transition-colors cursor-pointer text-xs flex items-center gap-1 mt-1"
-                  >
-                    <span>▶ Putar Ulang Splash Screen</span>
-                  </button>
-                </li>
-              )}
             </ul>
           </div>
         </div>

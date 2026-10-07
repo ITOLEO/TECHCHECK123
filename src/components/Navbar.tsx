@@ -163,10 +163,15 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
 
             {/* CATEGORIES DROPDOWN MENU */}
-            <div className="relative" ref={categoriesDropdownRef}>
+            <div
+              className="relative"
+              ref={categoriesDropdownRef}
+              onMouseEnter={() => setCategoriesDropdownOpen(true)}
+              onMouseLeave={() => setCategoriesDropdownOpen(false)}
+            >
               <button
                 id="nav-link-categories-dropdown"
-                onClick={() => setCategoriesDropdownOpen(!categoriesDropdownOpen)}
+                onClick={() => setCategoriesDropdownOpen((prev) => !prev)}
                 aria-expanded={categoriesDropdownOpen}
                 aria-haspopup="true"
                 className={`transition-colors cursor-pointer py-1 relative flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] rounded-md ${
@@ -402,7 +407,9 @@ export const Navbar: React.FC<NavbarProps> = ({
             <div className="space-y-1">
               <button
                 id="mobile-nav-categories"
-                onClick={() => setMobileCategoriesOpen(!mobileCategoriesOpen)}
+                onClick={() => {
+                  setMobileCategoriesOpen(!mobileCategoriesOpen);
+                }}
                 className={`w-full text-left px-4 py-3 rounded-xl text-base font-medium flex items-center justify-between cursor-pointer ${
                   isCurrent('categories')
                     ? 'bg-white dark:bg-[#1C1E26] text-[#FF6B00] font-semibold shadow-xs'

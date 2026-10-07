@@ -374,6 +374,8 @@ export default function App() {
   const [siteSettings, setSiteSettings] = useState<SiteSettings>(() => dataStorage.getSiteSettings());
   const categoriesRef = React.useRef(categories);
   categoriesRef.current = categories;
+  const productsRef = React.useRef(products);
+  productsRef.current = products;
 
   // Connect to remote Supabase sync on mount
   useEffect(() => {
@@ -431,39 +433,113 @@ export default function App() {
         return;
       }
 
-      // Check other routes based on hash (or fallback to pathname)
-      const cleanHash = hash.replace(/^#\/?/, '');
-      const cleanPath = pathname.replace(/^\/+|\/+$/g, '');
-      const hashParts = cleanHash.split('/').filter(Boolean);
-      const pathParts = cleanPath.split('/').filter(Boolean);
-      const parts = hashParts.length > 0 ? hashParts : pathParts;
+      // Check other routes based on raw (cased) hash or pathname
+      const rawHash = window.location.hash || '';
+      const rawPathname = window.location.pathname || '';
+      const cleanHash = rawHash.replace(/^#\/?/, '');
+      const cleanPath = rawPathname.replace(/^\/+|\/+$/g, '');
+      const rawPath = cleanHash.length > 0 ? cleanHash : cleanPath;
+
+      // Extract query string from path if present (e.g. recommendations?category=Desk%20Setup)
+      let routePath = rawPath;
+      let queryStr = '';
+      if (rawPath.includes('?')) {
+        const qIdx = rawPath.indexOf('?');
+        routePath = rawPath.substring(0, qIdx);
+        queryStr = rawPath.substring(qIdx + 1);
+      }
+
+      const parts = routePath.split('/').filter(Boolean);
+      const searchParams = new URLSearchParams(queryStr || (window.location.search || '').replace(/^\?/, ''));
+      const rawCategoryParam = searchParams.get('category') || searchParams.get('cat') || searchParams.get('kategori');
+
+      const findCategoryMatch = (paramVal: string | null) => {
+        if (!paramVal) return null;
+        const decoded = decodeURIComponent(paramVal).trim();
+        const cats = categoriesRef.current || [];
+        const match = cats.find(
+          (c) =>
+            c.name.toLowerCase() === decoded.toLowerCase() ||
+            c.slug.toLowerCase() === decoded.toLowerCase() ||
+            c.name.toLowerCase().replace(/[\s_]+/g, '-') === decoded.toLowerCase().replace(/[\s_]+/g, '-')
+        );
+        return match ? match.name : decoded;
+      };
+
+      const routeSegment = (parts[0] || '').toLowerCase();
 
       if (parts.length === 0) {
         setCurrentRoute({ page: 'home' });
-      } else if (parts[0] === 'recommendations') {
+      } else if (
+        routeSegment === 'recommendations' ||
+        routeSegment === 'products' ||
+        routeSegment === 'catalog'
+      ) {
         if (parts[1]) {
-          setCurrentRoute({ page: 'product-detail', slug: parts[1] });
+          // Check if parts[1] is an actual product slug first!
+          const isProduct = (productsRef.current || []).some(
+            (p) => p.slug.toLowerCase() === parts[1].toLowerCase()
+          );
+          if (isProduct) {
+            setCurrentRoute({ page: 'product-detail', slug: parts[1] });
+          } else {
+            // Treat as category filter!
+            const catMatch = findCategoryMatch(parts[1]);
+            setCurrentRoute({
+              page: 'recommendations',
+              categoryFilter: catMatch || parts[1],
+            });
+          }
+        } else if (rawCategoryParam) {
+          const matchedName = findCategoryMatch(rawCategoryParam);
+          setCurrentRoute({
+            page: 'recommendations',
+            categoryFilter: matchedName || decodeURIComponent(rawCategoryParam),
+          });
         } else {
           setCurrentRoute({ page: 'recommendations' });
         }
-      } else if (parts[0] === 'categories') {
+      } else if (
+        routeSegment === 'categories' ||
+        routeSegment === 'category' ||
+        routeSegment === 'kategori'
+      ) {
         if (parts[1]) {
-          const matched = categories.find((c) => c.slug === parts[1]);
+          const matchedName = findCategoryMatch(parts[1]);
           setCurrentRoute({
             page: 'recommendations',
-            categoryFilter: matched ? matched.name : 'All',
+            categoryFilter: matchedName || parts[1],
+          });
+        } else if (rawCategoryParam) {
+          const matchedName = findCategoryMatch(rawCategoryParam);
+          setCurrentRoute({
+            page: 'recommendations',
+            categoryFilter: matchedName || decodeURIComponent(rawCategoryParam),
           });
         } else {
           setCurrentRoute({ page: 'categories' });
         }
-      } else if (parts[0] === 'guides') {
+      } else if (routeSegment === 'guides') {
         if (parts[1]) {
           setCurrentRoute({ page: 'guide-detail', slug: parts[1] });
         } else {
           setCurrentRoute({ page: 'guides' });
         }
       } else {
-        setCurrentRoute({ page: 'home' });
+        // Fallback check if parts[0] is directly a category slug/name or product slug!
+        const isProduct = (productsRef.current || []).some(
+          (p) => p.slug.toLowerCase() === parts[0].toLowerCase()
+        );
+        if (isProduct) {
+          setCurrentRoute({ page: 'product-detail', slug: parts[0] });
+        } else {
+          const directCatMatch = findCategoryMatch(parts[0]);
+          if (directCatMatch) {
+            setCurrentRoute({ page: 'recommendations', categoryFilter: directCatMatch });
+          } else {
+            setCurrentRoute({ page: 'home' });
+          }
+        }
       }
     };
 

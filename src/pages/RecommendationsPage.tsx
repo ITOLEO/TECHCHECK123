@@ -32,6 +32,10 @@ export const RecommendationsPage: React.FC<RecommendationsPageProps> = ({
   useEffect(() => {
     if (initialCategory) {
       setSelectedCategory(initialCategory);
+      setSelectedGoal('All');
+      setMinRating(0);
+      setSelectedBadge('All');
+      setSearchQuery('');
     }
   }, [initialCategory]);
 
@@ -63,15 +67,32 @@ export const RecommendationsPage: React.FC<RecommendationsPageProps> = ({
     };
   }, [selectedCategory]);
 
-  const categories: (ProductCategory | 'All')[] = [
-    'All',
-    'Desk Setup',
-    'Cable Management',
-    'Audio',
-    'Storage',
-    'Lighting',
-    'Ergonomics',
-  ];
+  const categories = useMemo(() => {
+    const set = new Set<string>();
+    // Default categories
+    [
+      'Desk Setup',
+      'Cable Management',
+      'Audio',
+      'Storage',
+      'Lighting',
+      'Ergonomics',
+      'Monitors',
+      'Gadgets',
+      'Adapter',
+      'Mouse',
+      'Network',
+      'Accessories',
+    ].forEach((c) => set.add(c));
+
+    products.forEach((p) => {
+      if (p.category && p.category.trim()) set.add(p.category.trim());
+    });
+    if (initialCategory && initialCategory !== 'All' && !set.has(initialCategory)) {
+      set.add(initialCategory);
+    }
+    return ['All', ...Array.from(set)];
+  }, [products, initialCategory]);
 
   const handleSelectGoal = (goal: UpgradeGoal) => {
     setSelectedGoal(goal);
@@ -111,8 +132,13 @@ export const RecommendationsPage: React.FC<RecommendationsPageProps> = ({
   const filteredProducts = useMemo(() => {
     return products
       .filter((p) => {
-        if (selectedCategory !== 'All' && p.category !== selectedCategory) {
-          return false;
+        if (selectedCategory !== 'All') {
+          const normSel = selectedCategory.toLowerCase().replace(/[\s_]+/g, '-');
+          const normCat = (p.category || '').toLowerCase().replace(/[\s_]+/g, '-');
+          const exactMatch = p.category && p.category.toLowerCase() === selectedCategory.toLowerCase();
+          if (!exactMatch && normCat !== normSel) {
+            return false;
+          }
         }
 
         if (selectedGoal !== 'All') {
@@ -218,7 +244,9 @@ export const RecommendationsPage: React.FC<RecommendationsPageProps> = ({
       <div className="border-b border-[#E9E9E6] dark:border-[#272932] pb-4">
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
           {categories.map((cat) => {
-            const active = selectedCategory === cat;
+            const active =
+              selectedCategory.toLowerCase() === cat.toLowerCase() ||
+              selectedCategory.toLowerCase().replace(/[\s_]+/g, '-') === cat.toLowerCase().replace(/[\s_]+/g, '-');
             return (
               <button
                 key={cat}
@@ -226,6 +254,12 @@ export const RecommendationsPage: React.FC<RecommendationsPageProps> = ({
                 onClick={() => {
                   setSelectedCategory(cat as any);
                   setSelectedGoal('All');
+                  const hash = cat !== 'All' ? `#/recommendations?category=${encodeURIComponent(cat)}` : '#/recommendations';
+                  try {
+                    window.history.replaceState(null, '', hash);
+                  } catch {
+                    // ignore
+                  }
                 }}
                 className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
                   active
@@ -357,7 +391,11 @@ export const RecommendationsPage: React.FC<RecommendationsPageProps> = ({
                 })
               }
             >
-              <ProductCard product={product} onSelectProduct={onSelectProduct} />
+              <ProductCard
+                product={product}
+                onSelectProduct={onSelectProduct}
+                onSelectCategory={(cat) => setSelectedCategory(cat)}
+              />
             </EditableElement>
           ))}
         </div>

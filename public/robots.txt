@@ -4,4 +4,4 @@ Disallow: /admintechcheck
 Disallow: /superadmin
 Disallow: /api/
 
-Sitemap: https://techcheck.media/sitemap.xml
+Sitemap: https://techcheck.homes/sitemap.xml

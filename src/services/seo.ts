@@ -9,11 +9,11 @@ interface SEOConfig {
   jsonLd?: Record<string, any> | Array<Record<string, any>>;
 }
 
-const BASE_URL = 'https://techcheck.media';
-const DEFAULT_TITLE = 'TechCheck — Small Space. Serious Setup.';
+const BASE_URL = 'https://techcheck.homes';
+const DEFAULT_TITLE = 'TechCheck — Build Better, Every Day.';
 const DEFAULT_DESCRIPTION =
   'Curated space-saving gaming monitors, ergonomic arms, cable management, and audio gear for compact desks (80cm–140cm). Singapore setup reviews & blueprints.';
-const DEFAULT_OG_IMAGE = 'https://techcheck.media/acer-nitro.png';
+const DEFAULT_OG_IMAGE = 'https://techcheck.homes/og-image.jpg';
 
 /**
  * Updates dynamic meta tags, title, OpenGraph tags, and JSON-LD structured data.
@@ -52,6 +52,11 @@ export function updateSEO(config: SEOConfig): void {
   if (ogImage) {
     const fullOgImage = ogImage.startsWith('http') ? ogImage : `${BASE_URL}${ogImage.startsWith('/') ? '' : '/'}${ogImage}`;
     setMetaTag('property', 'og:image', fullOgImage);
+    setMetaTag('property', 'og:image:secure_url', fullOgImage);
+    setMetaTag('property', 'og:image:type', fullOgImage.endsWith('.png') ? 'image/png' : 'image/jpeg');
+    setMetaTag('property', 'og:image:width', '1200');
+    setMetaTag('property', 'og:image:height', '630');
+    setMetaTag('property', 'og:image:alt', title);
   }
 
   // 5. Twitter Card tags

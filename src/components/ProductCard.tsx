@@ -1,13 +1,15 @@
 import React from 'react';
 import { ArrowRight, ExternalLink } from 'lucide-react';
 import { motion } from 'motion/react';
-import { Product } from '../types';
+import { Product, ViewRoute } from '../types';
 import { SafeImage } from './SafeImage';
 import { analytics } from '../services/analytics';
 
 interface ProductCardProps {
   product: Product;
   onSelectProduct: (slug: string) => void;
+  onSelectCategory?: (category: string) => void;
+  onNavigate?: (route: ViewRoute) => void;
 }
 
 function formatAffiliateUrl(url?: string): string {
@@ -20,7 +22,12 @@ function formatAffiliateUrl(url?: string): string {
   return `https://${trimmed}`;
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelectProduct }) => {
+export const ProductCard: React.FC<ProductCardProps> = ({
+  product,
+  onSelectProduct,
+  onSelectCategory,
+  onNavigate,
+}) => {
   const safeAffiliateUrl = formatAffiliateUrl(product.affiliateUrl);
 
   const handleCardClick = () => {
@@ -76,9 +83,21 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelectProdu
         <div className="flex-1 flex flex-col">
           {/* Category & Badge */}
           <div className="flex items-center justify-between gap-2 mb-2 min-h-[1.25rem]">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-[#FF6B00]">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onSelectCategory) {
+                  onSelectCategory(product.category);
+                } else if (onNavigate) {
+                  onNavigate({ page: 'recommendations', categoryFilter: product.category });
+                }
+              }}
+              className="text-[11px] font-bold uppercase tracking-wider text-[#FF6B00] hover:underline cursor-pointer focus-visible:outline-none"
+              title={`Lihat semua produk dalam kategori ${product.category}`}
+            >
               {product.category}
-            </span>
+            </button>
             {product.badge ? (
               <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-neutral-100 dark:bg-[#252832] text-neutral-700 dark:text-neutral-300 border border-neutral-200/80 dark:border-neutral-700/80">
                 {product.badge}
