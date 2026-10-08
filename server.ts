@@ -155,6 +155,16 @@ function fromCategoryRow(row: any) {
 }
 
 function toGuideRow(g: any) {
+  const cleanSteps = Array.isArray(g.steps) ? g.steps.filter((s: any) => !s?.__guideMeta) : [];
+  const metaItem = {
+    __guideMeta: true,
+    layoutFormat: g.layoutFormat ?? (g.content && cleanSteps.length === 0 ? 'document' : 'steps'),
+    showContentImages: Boolean(g.showContentImages),
+    content: g.content ?? '',
+    hideStepNumbers: Boolean(g.hideStepNumbers),
+  };
+  const stepsWithMeta = [...cleanSteps, metaItem];
+
   return {
     id: g.id,
     slug: g.slug,
@@ -169,13 +179,17 @@ function toGuideRow(g: any) {
     author_role: g.author?.role ?? '',
     author_avatar: g.author?.avatar ?? '',
     intro: g.intro ?? '',
-    steps: g.steps ?? [],
+    steps: stepsWithMeta,
     callout: g.callout ?? '',
     summary: g.summary ?? '',
   };
 }
 
 function fromGuideRow(row: any) {
+  const rawSteps = Array.isArray(row.steps) ? row.steps : [];
+  const metaItem = rawSteps.find((s: any) => s && s.__guideMeta);
+  const cleanSteps = rawSteps.filter((s: any) => !s || !s.__guideMeta);
+
   return {
     id: row.id,
     slug: row.slug,
@@ -192,9 +206,13 @@ function fromGuideRow(row: any) {
       avatar: row.author_avatar ?? '',
     },
     intro: row.intro ?? '',
-    steps: Array.isArray(row.steps) ? row.steps : [],
+    steps: cleanSteps,
     callout: row.callout ?? '',
     summary: row.summary ?? '',
+    layoutFormat: metaItem?.layoutFormat ?? (cleanSteps.length === 0 ? 'document' : 'steps'),
+    showContentImages: Boolean(metaItem?.showContentImages),
+    content: metaItem?.content ?? '',
+    hideStepNumbers: Boolean(metaItem?.hideStepNumbers),
   };
 }
 

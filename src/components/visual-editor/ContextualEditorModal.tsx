@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Check, Eye, AlertCircle, Sparkles, Trash2 } from 'lucide-react';
+import { X, Check, Eye, AlertCircle, Sparkles, Trash2, FileText, ListOrdered } from 'lucide-react';
 import { Product, CategoryInfo, Guide, SiteSettings, RecommendationGoal } from '../../types';
 import { AdminImageUploader } from '../AdminImageUploader';
 
@@ -523,6 +523,70 @@ export const ContextualEditorModal: React.FC<ContextualEditorModalProps> = ({
                   value={formData.title || ''}
                   onChange={(e) => handleFieldChange('title', e.target.value)}
                   className="w-full px-4 py-2.5 bg-[#F7F6F2] dark:bg-[#1D1F27] border border-[#E9E9E6] dark:border-[#2C2F3A] rounded-xl text-sm font-semibold focus:border-[#FF6B00] focus:outline-none"
+                />
+              </div>
+
+              {/* Format & Image Settings */}
+              <div className="p-3.5 bg-orange-50/70 dark:bg-orange-950/30 border border-orange-200 dark:border-orange-900 rounded-2xl space-y-3">
+                <div>
+                  <label className="block text-xs font-bold text-neutral-800 dark:text-neutral-200 mb-1.5">
+                    Format Tampilan Artikel
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleFieldChange('layoutFormat', 'steps')}
+                      className={`p-2.5 rounded-xl border text-left flex items-center gap-2 cursor-pointer text-xs font-bold ${
+                        formData.layoutFormat !== 'document'
+                          ? 'bg-white dark:bg-[#1D1F27] border-[#FF6B00] text-[#FF6B00]'
+                          : 'bg-white/60 dark:bg-black/20 border-neutral-200 dark:border-neutral-800 text-neutral-600'
+                      }`}
+                    >
+                      <ListOrdered className="w-3.5 h-3.5 shrink-0" />
+                      <span>Format Langkah</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleFieldChange('layoutFormat', 'document')}
+                      className={`p-2.5 rounded-xl border text-left flex items-center gap-2 cursor-pointer text-xs font-bold ${
+                        formData.layoutFormat === 'document'
+                          ? 'bg-white dark:bg-[#1D1F27] border-[#FF6B00] text-[#FF6B00]'
+                          : 'bg-white/60 dark:bg-black/20 border-neutral-200 dark:border-neutral-800 text-neutral-600'
+                      }`}
+                    >
+                      <FileText className="w-3.5 h-3.5 shrink-0" />
+                      <span>Lembar Dokumen</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-1 border-t border-orange-200/60 dark:border-orange-900/40">
+                  <span className="text-xs font-bold text-neutral-800 dark:text-neutral-200">
+                    Foto di Dalam Artikel
+                  </span>
+                  <label className="inline-flex items-center gap-2 cursor-pointer bg-white dark:bg-[#1D1F27] px-2.5 py-1 rounded-lg border border-neutral-200 dark:border-neutral-800 text-xs font-bold">
+                    <input
+                      type="checkbox"
+                      checked={!!formData.showContentImages}
+                      onChange={(e) => handleFieldChange('showContentImages', e.target.checked)}
+                      className="w-3.5 h-3.5 rounded text-[#FF6B00] focus:ring-[#FF6B00]"
+                    />
+                    <span>{formData.showContentImages ? 'Tampilkan' : 'Tanpa Foto (Hero Saja)'}</span>
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-neutral-600 dark:text-neutral-400 mb-1.5">
+                  Isi Dokumen Artikel Bebas (Multi-paragraf)
+                </label>
+                <textarea
+                  rows={4}
+                  value={formData.content || ''}
+                  onChange={(e) => handleFieldChange('content', e.target.value)}
+                  placeholder="Tuliskan teks dokumen secara bebas (mendukung ## Subjudul, - Poin, dsb.)..."
+                  className="w-full px-4 py-2.5 bg-[#F7F6F2] dark:bg-[#1D1F27] border border-[#E9E9E6] dark:border-[#2C2F3A] rounded-xl text-xs leading-relaxed focus:border-[#FF6B00] focus:outline-none"
                 />
               </div>
 

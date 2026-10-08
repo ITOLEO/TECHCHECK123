@@ -295,7 +295,22 @@ export const dataStorage = {
   },
 
   getGuides(): Guide[] {
-    return safeParse<Guide[]>(STORAGE_KEYS.GUIDES, INITIAL_GUIDES);
+    const list = safeParse<Guide[]>(STORAGE_KEYS.GUIDES, INITIAL_GUIDES);
+    return list.map((g) => {
+      if (g.showContentImages === undefined) {
+        g.showContentImages = false;
+      }
+      if (!g.layoutFormat) {
+        g.layoutFormat = g.content && (!g.steps || g.steps.length === 0) ? 'document' : 'steps';
+      }
+      if (g.content === undefined) {
+        g.content = '';
+      }
+      if (g.hideStepNumbers === undefined) {
+        g.hideStepNumbers = false;
+      }
+      return g;
+    });
   },
 
   saveGuides(guides: Guide[]): void {

@@ -6,6 +6,7 @@ interface SafeImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   alt: string;
   fallbackText?: string;
   containerClassName?: string;
+  hideOnFallback?: boolean;
 }
 
 export const SafeImage: React.FC<SafeImageProps> = ({
@@ -14,6 +15,7 @@ export const SafeImage: React.FC<SafeImageProps> = ({
   fallbackText,
   className = '',
   containerClassName = '',
+  hideOnFallback = false,
   loading = 'lazy',
   ...props
 }) => {
@@ -27,6 +29,7 @@ export const SafeImage: React.FC<SafeImageProps> = ({
   }, [src]);
 
   if (!src || hasError) {
+    if (hideOnFallback) return null;
     return (
       <div
         className={`w-full h-full flex flex-col items-center justify-center bg-neutral-900 text-neutral-400 p-4 select-none ${containerClassName}`}

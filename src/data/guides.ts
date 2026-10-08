@@ -8,42 +8,53 @@ export const GUIDES: Guide[] = [
     category: 'Desk Setup',
     readTime: '6 min read',
     publishDate: 'March 2026',
-    excerpt: 'A step-by-step spatial blueprint for fitting a 27-inch display, PC, and peripherals on a compact 100cm tabletop without feeling cramped.',
+    excerpt: 'A spatial blueprint for fitting a 27-inch display, PC, and peripherals on a compact 100cm tabletop without feeling cramped.',
     image: '/acer-nitro.png',
     featured: true,
+    layoutFormat: 'steps',
+    showContentImages: false,
     author: {
       name: 'TechCheck Editorial Team',
       role: 'Setup Ergonomics Specialist',
       avatar: '/acer-nitro.png',
     },
-    intro: 'A 100cm desk is one of the most common dimensions in modern Singapore HDB flats and compact apartments. While many gamers assume a small tabletop restricts hardware choices, strategic vertical mounting and intentional peripheral footprints can reclaim over 60% of usable surface space.',
+    intro: 'A 100cm desk is one of the most common dimensions in modern compact apartments and studios. While many gamers assume a small tabletop restricts hardware choices, strategic vertical mounting and intentional peripheral footprints can reclaim over 60% of usable surface space.',
+    content: `A 100cm desk is one of the most common tabletop dimensions in modern compact living spaces and urban studios. While many assume a small tabletop restricts hardware choices, intentional spatial planning reclaims over 60% of usable surface space.
+
+## 1. Elevating the Monitor with a C-Clamp Gas Arm
+The factory plastic stand on most 27-inch monitors consumes up to 25cm of central desk depth. By installing a heavy-duty gas spring monitor arm clamped to the rear edge, your screen floats above the desk, leaving the entire area underneath open for a keyboard and wrist rest.
+
+## 2. Shift from Desk Lamps to an Asymmetric Screenbar
+Traditional desk lamps occupy valuable corner surface area and often cause glare on monitor screens. An asymmetric monitor light bar clips directly onto your display bezel, casting warm or cool illumination only across your keyboard and notepad without reflection.
+
+## 3. Dock Secondary Laptops Vertically
+If you use a dual-computer setup (e.g. work laptop and personal gaming rig), never leave laptops sitting open flat on the tabletop. A weighted dual vertical stand holds devices upright in clamshell mode, freeing up crucial mouse glide room.
+
+## 4. Tuck Audio Beneath the Display
+Left and right desktop satellite speakers encroach on mouse swing territory during fast-paced competitive gaming. A slim horizontal soundbar fits neatly between your monitor arm base and display bezel for centered acoustics with zero lateral desk loss.`,
     steps: [
       {
         number: '01',
         title: 'Elevate the Monitor with a C-Clamp Gas Arm',
         text: 'The factory plastic stand on most 27-inch monitors consumes up to 25cm of central desk depth. By installing a heavy-duty gas spring monitor arm clamped to the rear edge, your screen floats above the desk, leaving the entire area underneath open for a keyboard and wrist rest.',
-        image: '/acer-creator.png',
         recommendedProductSlug: 'gas-spring-single-monitor-arm',
       },
       {
         number: '02',
         title: 'Shift from Desk Lamps to an Asymmetric Screenbar',
         text: 'Traditional desk lamps occupy valuable corner surface area and often cause glare on monitor screens. An asymmetric monitor light bar clips directly onto your display bezel, casting warm or cool illumination only across your keyboard and notepad without reflection.',
-        image: '/acer-creator.png',
         recommendedProductSlug: 'asymmetric-screenbar-light',
       },
       {
         number: '03',
         title: 'Dock Secondary Laptops Vertically',
         text: 'If you use a dual-computer setup (e.g. work laptop and personal gaming rig), never leave laptops sitting open flat on the tabletop. A weighted dual vertical stand holds devices upright in clamshell mode, freeing up crucial mouse glide room.',
-        image: '/acer-portable.png',
         recommendedProductSlug: 'vertical-dual-laptop-stand',
       },
       {
         number: '04',
         title: 'Tuck Audio Beneath the Display',
         text: 'Left and right desktop satellite speakers encroach on mouse swing territory during fast-paced competitive gaming. A slim horizontal soundbar fits neatly between your monitor arm base and display bezel for centered acoustics with zero lateral desk loss.',
-        image: '/acer-nitro.png',
         recommendedProductSlug: 'slim-desktop-soundbar',
       },
     ],
@@ -60,31 +71,40 @@ export const GUIDES: Guide[] = [
     excerpt: 'Learn how to route power bricks, monitor cables, and USB peripherals using hidden under-desk channels for a distraction-free workspace.',
     image: '/powerpac.png',
     featured: true,
+    layoutFormat: 'steps',
+    showContentImages: false,
     author: {
       name: 'TechCheck Editorial Team',
       role: 'Hardware Infrastructure',
       avatar: '/powerpac.png',
     },
     intro: 'Cables dangling behind a compact desk make small rooms feel visually chaotic and restrict legroom. Because compact desks have less surface area, a clean under-desk routing plan is essential for clean aesthetics and safe airflow.',
+    content: `Cables dangling behind a compact desk make small rooms feel visually chaotic and restrict legroom. Because compact desks have less surface area, a clean under-desk routing plan is essential for clean aesthetics and safe airflow.
+
+## 1. Mount a Ventilated Steel Mesh Tray Under the Desk
+Fasten a sturdy under-desk cable management tray to the rear underside of the tabletop. Mount it directly below your monitor arm to capture power cables at the exact point they descend from your display.
+
+## 2. Anchor the Primary Power Strip Inside the Tray
+Place a surge-protected power strip directly inside the tray. Connect all heavy transformers, PC plugs, and monitor adapters into this tray strip so that only ONE master power cord drops down to the wall outlet.
+
+## 3. Use Reusable Hook-and-Loop Ties for Bundle Management
+Avoid single-use plastic zip ties that damage cable jackets when reconfiguring gear. Use silicone or hook-and-loop straps to bundle mouse, keyboard, and audio cables together along monitor arm channels.`,
     steps: [
       {
         number: '01',
         title: 'Mount a Ventilated Steel Mesh Tray Under the Desk',
         text: 'Fasten a sturdy under-desk cable management tray to the rear underside of the tabletop. Mount it directly below your monitor arm to capture power cables at the exact point they descend from your display.',
-        image: '/powerpac.png',
         recommendedProductSlug: 'under-desk-mesh-cable-tray',
       },
       {
         number: '02',
         title: 'Anchor the Primary Power Strip Inside the Tray',
-        text: 'Place an surge-protected power strip directly inside the tray. Connect all heavy transformers, PC plugs, and monitor adapters into this tray strip so that only ONE master power cord drops down to the wall outlet.',
-        image: '/powerpac.png',
+        text: 'Place a surge-protected power strip directly inside the tray. Connect all heavy transformers, PC plugs, and monitor adapters into this tray strip so that only ONE master power cord drops down to the wall outlet.',
       },
       {
         number: '03',
         title: 'Use Reusable Hook-and-Loop Ties for Bundle Management',
         text: 'Avoid single-use plastic zip ties that damage cable jackets when reconfiguring gear. Use silicone or hook-and-loop straps to bundle mouse, keyboard, and audio cables together along monitor arm channels.',
-        image: '/powerpac.png',
       },
     ],
     callout: 'Airflow Warning: Always select an open mesh or ventilated wire channel rather than fully enclosed plastic boxes to prevent high-wattage laptop and monitor chargers from trapping excess heat.',
@@ -100,31 +120,43 @@ export const GUIDES: Guide[] = [
     excerpt: 'Why optical screenbars mounted directly onto your monitor frame are the single most effective lighting upgrade for compact desks.',
     image: '/acer-creator.png',
     featured: false,
+    layoutFormat: 'document',
+    showContentImages: false,
     author: {
       name: 'TechCheck Editorial Team',
       role: 'Ergonomic Lighting Analyst',
       avatar: '/acer-creator.png',
     },
     intro: 'Proper lighting prevents eye strain during prolonged screen time, but traditional swing-arm lamps and clamp lights carry bulky bases or intrusive horizontal arms that collide with monitor bezels on small desks.',
+    content: `Proper illumination is crucial for reducing eye fatigue during long gaming sessions or programming marathons. Yet on desks narrower than 120cm, lighting hardware frequently competes with monitors and mouse pads for critical tabletop territory.
+
+### The Physics of Desktop Spatial Loss
+A standard architect swing-arm lamp requires either a weighted 20cm round base or a rear desk clamp with a long cantilever arm. On a 100cm tabletop, that base consumes up to 300cm² of prime real estate that could otherwise house a DAC/amp or notepad. Worse, traditional cone lamps cast specular reflections directly against monitor anti-glare coatings.
+
+### How Asymmetric Optical Screenbars Solve Desk Density
+Monitor screenbars mount directly to the top display bezel using gravity and high-friction counterweights.
+- 0 cm² desktop footprint: 100% of your tabletop remains open for hand movement.
+- Asymmetric 45° optical cut-off: Illuminates keys and paperwork without bouncing glare back into your eyes.
+- Clean 5V USB connectivity: Powered directly from your monitor USB hub or PC rear I/O, eliminating bulky wall adapters.
+
+### Verdict for Compact Workspaces
+For setups under 120cm, a screenbar is objectively superior in spatial efficiency, ergonomics, and visual minimalism compared to any traditional desk lamp.`,
     steps: [
       {
         number: '01',
         title: 'Zero-Footprint Mounting',
         text: 'A screenbar counterweights directly onto the top bezel of your monitor, utilizing gravity and high-friction silicone pads. It leaves 100% of your desktop surface untouched.',
-        image: '/acer-creator.png',
         recommendedProductSlug: 'asymmetric-screenbar-light',
       },
       {
         number: '02',
         title: 'Asymmetric Optical Beam Eliminates Glare',
         text: 'Unlike round lamp shades that spread diffuse light directly onto the glass panel causing reflections, a precision screenbar directs light at a 45-degree angle downward only across your keyboard and mousepad.',
-        image: '/acer-creator.png',
       },
       {
         number: '03',
         title: 'Direct USB Power Sync',
         text: 'Screenbars draw low voltage 5V power from your monitor USB hub or PC rear port, powering on and off automatically when your system boots without extra wall plugs.',
-        image: '/acer-creator.png',
       },
     ],
     callout: 'Space Comparison: A typical architect desk lamp base covers approximately 300cm² of desktop area. A monitor light bar covers exactly 0cm².',

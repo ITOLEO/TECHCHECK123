@@ -181,20 +181,28 @@ export const GuidesPage: React.FC<GuidesPageProps> = ({ guides, onSelectGuide })
                   {featuredGuide.excerpt}
                 </p>
 
-                {featuredGuide.steps && featuredGuide.steps.length > 0 && (
-                  <div className="mt-6 pt-6 border-t border-neutral-100 dark:border-neutral-800 space-y-2">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 block">
-                      Inside this blueprint:
+                {featuredGuide.layoutFormat === 'document' ? (
+                  <div className="mt-6 pt-4 border-t border-neutral-100 dark:border-neutral-800 flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-neutral-100 dark:bg-[#1D1F27] text-neutral-600 dark:text-neutral-400 border border-neutral-200/80 dark:border-neutral-800">
+                      📄 Format Lembar Dokumen
                     </span>
-                    <ul className="text-xs text-neutral-600 dark:text-neutral-400 space-y-1">
-                      {featuredGuide.steps.slice(0, 3).map((st, i) => (
-                        <li key={st.number || i} className="flex items-center gap-2 truncate">
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#FF6B00] shrink-0" />
-                          <span className="truncate">{st.title}</span>
-                        </li>
-                      ))}
-                    </ul>
                   </div>
+                ) : (
+                  featuredGuide.steps && featuredGuide.steps.length > 0 && (
+                    <div className="mt-6 pt-6 border-t border-neutral-100 dark:border-neutral-800 space-y-2">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 block">
+                        Inside this blueprint:
+                      </span>
+                      <ul className="text-xs text-neutral-600 dark:text-neutral-400 space-y-1">
+                        {featuredGuide.steps.slice(0, 3).map((st, i) => (
+                          <li key={st.number || i} className="flex items-center gap-2 truncate">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#FF6B00] shrink-0" />
+                            <span className="truncate">{st.title}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )
                 )}
               </div>
 

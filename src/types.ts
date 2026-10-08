@@ -77,6 +77,10 @@ export interface Guide {
   blocks?: ArticleBlock[];
   callout?: string;
   summary: string;
+  layoutFormat?: 'document' | 'steps';
+  showContentImages?: boolean;
+  content?: string;
+  hideStepNumbers?: boolean;
 }
 
 export interface SiteSettings {

@@ -29,7 +29,9 @@ import {
   CheckCircle2,
   XCircle,
   Table,
-  Eye
+  Eye,
+  FileText,
+  ListOrdered
 } from 'lucide-react';
 import { Product, CategoryInfo, Guide, GuideStep, SiteSettings, ViewRoute } from '../types';
 import { dataStorage, DEFAULT_SITE_SETTINGS } from '../services/dataStorage';
@@ -46,6 +48,49 @@ interface SuperAdminPageProps {
   onUpdateGuides: (guides: Guide[]) => void;
   onUpdateSettings: (settings: SiteSettings) => void;
   onNavigate: (route: ViewRoute) => void;
+}
+
+function renderAdminDocPreview(text: string) {
+  if (!text?.trim()) {
+    return (
+      <div className="p-8 text-center text-neutral-400 bg-white rounded-xl border border-dashed border-[#E9E9E6]">
+        Belum ada teks dokumen yang ditulis. Tulis isi artikel pada tab &quot;Tulis Dokumen&quot;.
+      </div>
+    );
+  }
+  const blocks = text.split(/\n\n+/);
+  return (
+    <div className="bg-white p-5 sm:p-6 rounded-2xl border border-[#E9E9E6] space-y-4 text-xs leading-relaxed text-neutral-800">
+      {blocks.map((block, idx) => {
+        const trimmed = block.trim();
+        if (!trimmed) return null;
+        if (trimmed === '---' || trimmed === '***') return <hr key={idx} className="border-t border-neutral-200 my-4" />;
+        if (trimmed.startsWith('### ')) return <h5 key={idx} className="font-bold text-sm text-[#111111] pt-2">{trimmed.replace(/^###\s+/, '')}</h5>;
+        if (trimmed.startsWith('## ')) return <h4 key={idx} className="font-extrabold text-base text-[#111111] pt-3 pb-1 border-b border-neutral-100">{trimmed.replace(/^##\s+/, '')}</h4>;
+        if (trimmed.startsWith('# ')) return <h3 key={idx} className="font-black text-lg text-[#111111] pt-4">{trimmed.replace(/^#\s+/, '')}</h3>;
+        if (trimmed.startsWith('> ')) return <blockquote key={idx} className="pl-3 border-l-4 border-[#FF6B00] italic bg-orange-50/60 py-2 pr-3 rounded-r-lg text-neutral-700">{trimmed.replace(/^>\s+/, '')}</blockquote>;
+        if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+          return (
+            <ul key={idx} className="list-disc pl-5 space-y-1">
+              {trimmed.split('\n').filter(Boolean).map((it, i) => (
+                <li key={i}>{it.replace(/^[-*]\s+/, '')}</li>
+              ))}
+            </ul>
+          );
+        }
+        if (/^\d+\.\s/.test(trimmed)) {
+          return (
+            <ol key={idx} className="list-decimal pl-5 space-y-1">
+              {trimmed.split('\n').filter(Boolean).map((it, i) => (
+                <li key={i}>{it.replace(/^\d+\.\s+/, '')}</li>
+              ))}
+            </ol>
+          );
+        }
+        return <p key={idx} className="text-neutral-700 leading-relaxed">{trimmed}</p>;
+      })}
+    </div>
+  );
 }
 
 export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
@@ -138,6 +183,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
   const [initialGuideData, setInitialGuideData] = useState<string>('{}');
   const [guideFormError, setGuideFormError] = useState<string | null>(null);
   const [guideModalTab, setGuideModalTab] = useState<'basic' | 'editorial' | 'steps'>('basic');
+  const [guideDocPreview, setGuideDocPreview] = useState(false);
 
   // In-app Confirmation Modal state (Replaces window.confirm to function in iframe sandbox)
   const [deleteTarget, setDeleteTarget] = useState<{
@@ -559,6 +605,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
     setEditingGuide(null);
     setGuideFormError(null);
     setGuideModalTab('basic');
+    setGuideDocPreview(false);
     const initialData: Partial<Guide> = {
       id: `guide-${Date.now()}`,
       slug: '',
@@ -578,6 +625,10 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
       steps: [],
       callout: '',
       summary: '',
+      layoutFormat: 'document',
+      showContentImages: false,
+      content: '',
+      hideStepNumbers: false,
     };
     setGuideFormData(initialData);
     setInitialGuideData(JSON.stringify(initialData));
@@ -588,10 +639,36 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
     setEditingGuide(g);
     setGuideFormError(null);
     setGuideModalTab('basic');
+    setGuideDocPreview(false);
     const copy = JSON.parse(JSON.stringify(g));
+    if (!copy.layoutFormat) {
+      copy.layoutFormat = copy.content && (!copy.steps || copy.steps.length === 0) ? 'document' : 'steps';
+    }
+    if (copy.showContentImages === undefined) {
+      copy.showContentImages = false;
+    }
+    if (copy.content === undefined) {
+      copy.content = '';
+    }
+    if (copy.hideStepNumbers === undefined) {
+      copy.hideStepNumbers = false;
+    }
     setGuideFormData(copy);
     setInitialGuideData(JSON.stringify(copy));
     setIsGuideModalOpen(true);
+  };
+
+  const handleConvertStepsToDocument = () => {
+    if (!guideFormData.steps || guideFormData.steps.length === 0) return;
+    const converted = guideFormData.steps
+      .map((st, idx) => `## ${st.title || `Bagian ${idx + 1}`}\n\n${st.text || ''}`)
+      .join('\n\n');
+    const existing = guideFormData.content?.trim() ? guideFormData.content.trim() + '\n\n' : '';
+    setGuideFormData((prev) => ({
+      ...prev,
+      content: existing + converted,
+      layoutFormat: 'document',
+    }));
   };
 
   const handleCloseGuideModal = () => {
@@ -685,6 +762,10 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
       steps: Array.isArray(guideFormData.steps) ? guideFormData.steps : [],
       callout: guideFormData.callout || '',
       summary: guideFormData.summary || '',
+      layoutFormat: (guideFormData.layoutFormat as 'document' | 'steps') || 'document',
+      showContentImages: guideFormData.showContentImages === true,
+      content: guideFormData.content || '',
+      hideStepNumbers: Boolean(guideFormData.hideStepNumbers),
     };
 
     let updatedList: Guide[];
@@ -2393,10 +2474,20 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                       : 'bg-white text-neutral-600 hover:text-neutral-900 border border-[#E9E9E6]'
                   }`}
                 >
-                  <span>3. Langkah Artikel</span>
-                  <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-[#FF6B00] text-white">
-                    {guideFormData.steps?.length || 0}
-                  </span>
+                  {guideFormData.layoutFormat === 'document' ? (
+                    <>
+                      <FileText className="w-3.5 h-3.5" />
+                      <span>3. Isi Lembar Dokumen</span>
+                    </>
+                  ) : (
+                    <>
+                      <ListOrdered className="w-3.5 h-3.5" />
+                      <span>3. Poin & Langkah</span>
+                      <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-[#FF6B00] text-white">
+                        {guideFormData.steps?.length || 0}
+                      </span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>
@@ -2500,9 +2591,116 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                       />
                     </div>
 
+                    {/* PENGATURAN FORMAT & GAMBAR KONTEN ARTIKEL */}
+                    <div className="p-4 bg-orange-50/70 border border-orange-200/90 rounded-2xl space-y-4">
+                      <div>
+                        <label className="block font-bold text-neutral-800 text-xs mb-1.5">
+                          1. Format Tampilan Artikel
+                        </label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                          <button
+                            type="button"
+                            onClick={() => setGuideFormData({ ...guideFormData, layoutFormat: 'document' })}
+                            className={`p-3 rounded-xl border text-left flex items-start gap-2.5 transition-all cursor-pointer ${
+                              guideFormData.layoutFormat === 'document'
+                                ? 'bg-white border-[#FF6B00] shadow-xs ring-2 ring-[#FF6B00]/20'
+                                : 'bg-white/60 border-neutral-200 hover:border-neutral-300'
+                            }`}
+                          >
+                            <FileText className={`w-4 h-4 shrink-0 mt-0.5 ${guideFormData.layoutFormat === 'document' ? 'text-[#FF6B00]' : 'text-neutral-400'}`} />
+                            <div>
+                              <div className="font-bold text-xs text-neutral-900">📄 Format Lembar Dokumen Biasa</div>
+                              <div className="text-[11px] text-neutral-500 mt-0.5 leading-snug">
+                                Teks mengalir bebas tanpa nomor poin (seperti lembar dokumen/blog biasa).
+                              </div>
+                            </div>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => setGuideFormData({ ...guideFormData, layoutFormat: 'steps' })}
+                            className={`p-3 rounded-xl border text-left flex items-start gap-2.5 transition-all cursor-pointer ${
+                              guideFormData.layoutFormat !== 'document'
+                                ? 'bg-white border-[#FF6B00] shadow-xs ring-2 ring-[#FF6B00]/20'
+                                : 'bg-white/60 border-neutral-200 hover:border-neutral-300'
+                            }`}
+                          >
+                            <ListOrdered className={`w-4 h-4 shrink-0 mt-0.5 ${guideFormData.layoutFormat !== 'document' ? 'text-[#FF6B00]' : 'text-neutral-400'}`} />
+                            <div>
+                              <div className="font-bold text-xs text-neutral-900">🔢 Format Poin Terstruktur</div>
+                              <div className="text-[11px] text-neutral-500 mt-0.5 leading-snug">
+                                Terstruktur dengan poin tahapan (01, 02...).
+                              </div>
+                            </div>
+                          </button>
+                        </div>
+
+                        {/* Hide numbers option if in steps format */}
+                        {guideFormData.layoutFormat !== 'document' && (
+                          <div className="mt-2.5 p-2.5 bg-white/80 rounded-xl border border-orange-200/80">
+                            <label className="flex items-center gap-2 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={!!guideFormData.hideStepNumbers}
+                                onChange={(e) => setGuideFormData({ ...guideFormData, hideStepNumbers: e.target.checked })}
+                                className="w-4 h-4 rounded text-[#FF6B00] focus:ring-[#FF6B00]"
+                              />
+                              <span className="text-xs text-neutral-700 font-medium">
+                                Sembunyikan nomor angka (01, 02) pada setiap poin (tampilkan judul poin saja)
+                              </span>
+                            </label>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Photo Control Selector */}
+                      <div className="pt-3 border-t border-orange-200/70">
+                        <label className="block font-bold text-neutral-800 text-xs mb-1.5">
+                          2. Pengaturan Foto dalam Artikel
+                        </label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                          <button
+                            type="button"
+                            onClick={() => setGuideFormData({ ...guideFormData, showContentImages: false })}
+                            className={`p-3 rounded-xl border text-left flex items-start gap-2.5 transition-all cursor-pointer ${
+                              !guideFormData.showContentImages
+                                ? 'bg-white border-[#FF6B00] shadow-xs ring-2 ring-[#FF6B00]/20'
+                                : 'bg-white/60 border-neutral-200 hover:border-neutral-300'
+                            }`}
+                          >
+                            <span className="text-base shrink-0">🌟</span>
+                            <div>
+                              <div className="font-bold text-xs text-neutral-900">Hanya Foto Hero di Atas (Rekomendasi)</div>
+                              <div className="text-[11px] text-neutral-500 mt-0.5 leading-snug">
+                                Hanya 1 foto cover Hero di paling atas. Isi artikel bersih TANPA FOTO dan tanpa kotak kosong.
+                              </div>
+                            </div>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => setGuideFormData({ ...guideFormData, showContentImages: true })}
+                            className={`p-3 rounded-xl border text-left flex items-start gap-2.5 transition-all cursor-pointer ${
+                              guideFormData.showContentImages
+                                ? 'bg-white border-[#FF6B00] shadow-xs ring-2 ring-[#FF6B00]/20'
+                                : 'bg-white/60 border-neutral-200 hover:border-neutral-300'
+                            }`}
+                          >
+                            <span className="text-base shrink-0">📷</span>
+                            <div>
+                              <div className="font-bold text-xs text-neutral-900">Izinkan Foto di Dalam Isi Artikel</div>
+                              <div className="text-[11px] text-neutral-500 mt-0.5 leading-snug">
+                                Tampilkan foto di dalam isi artikel jika Anda memiliki gambar pendukung.
+                              </div>
+                            </div>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
                     <div>
                       <AdminImageUploader
-                        label="URL Gambar Header / Cover"
+                        label="URL Gambar Header / Cover (Hero Section)"
                         value={guideFormData.image || ''}
                         onChange={(newUrl) => setGuideFormData({ ...guideFormData, image: newUrl })}
                         presets={['/acer-nitro.png', '/acer-creator.png', '/powerpac.png', '/acer-portable.png']}
@@ -2613,147 +2811,370 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                   </div>
                 )}
 
-                {/* TAB 3: GUIDE STEPS */}
+                {/* TAB 3: KONTEN DOKUMEN & LANGKAH ARTIKEL */}
                 {guideModalTab === 'steps' && (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between pb-2 border-b border-[#E9E9E6]">
-                      <div>
-                        <h4 className="font-extrabold text-neutral-900 text-sm">
-                          Langkah Panduan ({guideFormData.steps?.length || 0})
-                        </h4>
-                        <p className="text-[11px] text-neutral-500">
-                          Tambahkan tahapan instruksi, gambar langkah, dan produk yang direkomendasikan
-                        </p>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={handleAddGuideStep}
-                        className="px-3.5 py-1.5 bg-[#FF6B00] hover:bg-[#E05E00] text-white font-bold text-xs rounded-xl transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
-                      >
-                        <Plus className="w-3.5 h-3.5" />
-                        <span>Tambah Langkah</span>
-                      </button>
-                    </div>
-
-                    {(!guideFormData.steps || guideFormData.steps.length === 0) ? (
-                      <div className="p-8 text-center bg-[#F7F6F2] rounded-2xl border border-dashed border-[#E9E9E6] text-neutral-500">
-                        <p className="text-xs">Belum ada langkah panduan.</p>
+                  <div className="space-y-5">
+                    {/* Notice if photo mode is off */}
+                    {!guideFormData.showContentImages ? (
+                      <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl text-xs flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                          <span>
+                            <strong>Mode Bebas Foto Aktif:</strong> Hanya foto cover (Hero) di paling atas yang dipakai. Tidak ada kewajiban mengisi foto di dalam artikel.
+                          </span>
+                        </div>
                         <button
                           type="button"
-                          onClick={handleAddGuideStep}
-                          className="mt-2 text-xs font-bold text-[#FF6B00] hover:underline"
+                          onClick={() => setGuideModalTab('basic')}
+                          className="text-emerald-900 font-bold hover:underline shrink-0 text-[11px] cursor-pointer"
                         >
-                          + Tambah Langkah Pertama
+                          Ubah di Tab 1 →
                         </button>
                       </div>
                     ) : (
-                      <div className="space-y-4">
-                        {guideFormData.steps.map((step, idx) => (
-                          <div
-                            key={idx}
-                            className="bg-[#F7F6F2] rounded-2xl p-4 border border-[#E9E9E6] space-y-3"
-                          >
-                            <div className="flex items-center justify-between pb-2 border-b border-neutral-200">
-                              <div className="flex items-center gap-2">
-                                <span className="w-7 h-7 rounded-lg bg-[#FF6B00] text-white font-black font-mono flex items-center justify-center text-xs">
-                                  {step.number || String(idx + 1).padStart(2, '0')}
-                                </span>
-                                <span className="font-extrabold text-neutral-800 text-xs">
-                                  Langkah #{idx + 1}
-                                </span>
-                              </div>
+                      <div className="p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-2xl text-xs flex items-center justify-between">
+                        <span>
+                          📷 <strong>Mode Foto Artikel Aktif:</strong> Foto yang Anda isi di bawah akan ditampilkan di dalam artikel.
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setGuideModalTab('basic')}
+                          className="text-amber-900 font-bold hover:underline shrink-0 text-[11px] cursor-pointer"
+                        >
+                          Ubah ke Tanpa Foto →
+                        </button>
+                      </div>
+                    )}
 
-                              <div className="flex items-center gap-1">
-                                <button
-                                  type="button"
-                                  disabled={idx === 0}
-                                  onClick={() => handleMoveGuideStep(idx, 'up')}
-                                  title="Pindah ke Atas"
-                                  className="p-1 rounded text-neutral-400 hover:text-neutral-700 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
-                                >
-                                  ▲
-                                </button>
-                                <button
-                                  type="button"
-                                  disabled={idx === (guideFormData.steps?.length || 0) - 1}
-                                  onClick={() => handleMoveGuideStep(idx, 'down')}
-                                  title="Pindah ke Bawah"
-                                  className="p-1 rounded text-neutral-400 hover:text-neutral-700 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
-                                >
-                                  ▼
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => handleDeleteGuideStep(idx)}
-                                  title="Hapus Langkah Ini"
-                                  className="p-1 rounded text-rose-500 hover:bg-rose-100 transition-colors cursor-pointer ml-1"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </button>
-                              </div>
-                            </div>
-
-                            <div>
-                              <label className="block font-bold text-neutral-700 mb-1">
-                                Judul Langkah
-                              </label>
-                              <input
-                                type="text"
-                                value={step.title || ''}
-                                onChange={(e) => handleUpdateGuideStep(idx, { title: e.target.value })}
-                                placeholder="Contoh: Mengatur Posisi dan Ketinggian Monitor"
-                                className="w-full p-2 bg-white border border-[#E9E9E6] rounded-xl text-xs font-semibold"
-                              />
-                            </div>
-
-                            <div>
-                              <label className="block font-bold text-neutral-700 mb-1">
-                                Instruksi / Deskripsi Langkah
-                              </label>
-                              <textarea
-                                rows={3}
-                                value={step.text || ''}
-                                onChange={(e) => handleUpdateGuideStep(idx, { text: e.target.value })}
-                                placeholder="Jelaskan detail langkah secara teknis dan praktis..."
-                                className="w-full p-2 bg-white border border-[#E9E9E6] rounded-xl text-xs"
-                              />
-                            </div>
-
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                              <div>
-                                <label className="block font-bold text-neutral-700 mb-1">
-                                  Rekomendasi Produk untuk Langkah Ini (Opsional)
-                                </label>
-                                <select
-                                  value={step.recommendedProductSlug || ''}
-                                  onChange={(e) => handleUpdateGuideStep(idx, { recommendedProductSlug: e.target.value })}
-                                  className="w-full p-2 bg-white border border-[#E9E9E6] rounded-xl text-xs font-medium"
-                                >
-                                  <option value="">-- Tidak Ada Produk Tertaut --</option>
-                                  {products.map((p) => (
-                                    <option key={p.id} value={p.slug}>
-                                      {p.name} ({p.category})
-                                    </option>
-                                  ))}
-                                </select>
-                              </div>
-
-                              <div>
-                                <label className="block font-bold text-neutral-700 mb-1">
-                                  URL Gambar Langkah (Opsional)
-                                </label>
-                                <input
-                                  type="text"
-                                  value={step.image || ''}
-                                  onChange={(e) => handleUpdateGuideStep(idx, { image: e.target.value })}
-                                  placeholder="/acer-nitro.png atau URL gambar"
-                                  className="w-full p-2 bg-white border border-[#E9E9E6] rounded-xl text-xs"
-                                />
-                              </div>
-                            </div>
+                    {/* JIKA FORMAT DOKUMEN: EDITOR LEMBAR DOKUMEN BIASA */}
+                    {guideFormData.layoutFormat === 'document' ? (
+                      <div className="bg-[#F7F6F2] p-4 sm:p-5 rounded-2xl border border-[#E9E9E6] space-y-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-[#E9E9E6]">
+                          <div>
+                            <h4 className="font-extrabold text-neutral-900 text-sm flex items-center gap-1.5">
+                              <FileText className="w-4 h-4 text-[#FF6B00]" />
+                              <span>Lembar Dokumen Biasa (Bebas / Tanpa Poin)</span>
+                            </h4>
+                            <p className="text-[11px] text-neutral-500">
+                              Tulis mengalir layaknya dokumen, esai, atau artikel berita biasa tanpa dipaksa menjadi poin 01, 02.
+                            </p>
                           </div>
-                        ))}
+
+                          {/* Write vs Preview Toggle */}
+                          <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-[#E9E9E6] shrink-0 self-start sm:self-auto">
+                            <button
+                              type="button"
+                              onClick={() => setGuideDocPreview(false)}
+                              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                !guideDocPreview
+                                  ? 'bg-[#111111] text-white shadow-2xs'
+                                  : 'text-neutral-600 hover:text-neutral-900'
+                              }`}
+                            >
+                              ✍️ Tulis Dokumen
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setGuideDocPreview(true)}
+                              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                guideDocPreview
+                                  ? 'bg-[#111111] text-white shadow-2xs'
+                                  : 'text-neutral-600 hover:text-neutral-900'
+                              }`}
+                            >
+                              👁️ Live Preview
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Quick Format Toolbar (Active in Write Mode) */}
+                        {!guideDocPreview && (
+                          <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                            <span className="text-[11px] font-bold text-neutral-500 mr-1">Sisipkan Format:</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const addition = '\n\n## Subjudul Pembahasan\n';
+                                setGuideFormData((prev) => ({ ...prev, content: (prev.content || '') + addition }));
+                              }}
+                              className="px-2.5 py-1 bg-white hover:bg-neutral-100 border border-[#E9E9E6] rounded-lg text-[11px] font-bold text-neutral-700 cursor-pointer"
+                            >
+                              + H2 Subjudul
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const addition = '\n\n### Topik Pembahasan\n';
+                                setGuideFormData((prev) => ({ ...prev, content: (prev.content || '') + addition }));
+                              }}
+                              className="px-2.5 py-1 bg-white hover:bg-neutral-100 border border-[#E9E9E6] rounded-lg text-[11px] font-bold text-neutral-700 cursor-pointer"
+                            >
+                              + H3 Topik
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const addition = '\n\n- Poin catatan pertama\n- Poin catatan kedua\n';
+                                setGuideFormData((prev) => ({ ...prev, content: (prev.content || '') + addition }));
+                              }}
+                              className="px-2.5 py-1 bg-white hover:bg-neutral-100 border border-[#E9E9E6] rounded-lg text-[11px] font-bold text-neutral-700 cursor-pointer"
+                            >
+                              + Poin List (-)
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const addition = '\n\n> Catatan atau prinsip penting di sini...\n';
+                                setGuideFormData((prev) => ({ ...prev, content: (prev.content || '') + addition }));
+                              }}
+                              className="px-2.5 py-1 bg-white hover:bg-neutral-100 border border-[#E9E9E6] rounded-lg text-[11px] font-bold text-neutral-700 cursor-pointer"
+                            >
+                              + Kutipan (&gt;)
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const addition = '\n\n---\n\n';
+                                setGuideFormData((prev) => ({ ...prev, content: (prev.content || '') + addition }));
+                              }}
+                              className="px-2.5 py-1 bg-white hover:bg-neutral-100 border border-[#E9E9E6] rounded-lg text-[11px] font-bold text-neutral-700 cursor-pointer"
+                            >
+                              + Pembatas (---)
+                            </button>
+
+                            {/* Convert existing steps if available */}
+                            {guideFormData.steps && guideFormData.steps.length > 0 && (
+                              <button
+                                type="button"
+                                onClick={handleConvertStepsToDocument}
+                                className="px-2.5 py-1 bg-orange-100 hover:bg-orange-200 border border-orange-300 rounded-lg text-[11px] font-bold text-[#FF6B00] cursor-pointer ml-auto"
+                                title="Satukan poin-poin langkah yang sudah ada ke dalam teks dokumen mengalir"
+                              >
+                                🔄 Konversi {guideFormData.steps.length} Langkah ke Teks Dokumen
+                              </button>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Editor Body or Live Preview */}
+                        {!guideDocPreview ? (
+                          <div className="space-y-1.5">
+                            <textarea
+                              rows={12}
+                              value={guideFormData.content || ''}
+                              onChange={(e) => setGuideFormData({ ...guideFormData, content: e.target.value })}
+                              placeholder="Tuliskan isi artikel Anda di sini layaknya lembar dokumen biasa...&#10;&#10;## 1. Pembahasan Utama&#10;Tulis paragraf penjelasan secara mengalir bebas tanpa harus dipecah menjadi kartu poin terpisah.&#10;&#10;## 2. Penjelasan Lanjutan&#10;Semua paragraf mengalir rapi dan indah tanpa kewajiban foto!"
+                              className="w-full p-3.5 bg-white border border-[#E9E9E6] rounded-xl text-xs font-sans leading-relaxed focus:border-[#FF6B00] focus:outline-none"
+                            />
+                            <p className="text-[11px] text-neutral-500">
+                              Tips: Gunakan <code>## Judul Bagian</code> untuk membuat subjudul, <code>**tebal**</code> untuk teks tebal, dan baris kosong untuk paragraf baru.
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            <div className="text-[11px] font-bold text-neutral-500">
+                              Preview Tampilan Dokumen di Halaman Publik:
+                            </div>
+                            {renderAdminDocPreview(guideFormData.content || '')}
+                          </div>
+                        )}
+
+                        {/* Optional Hardware Mention in Document */}
+                        <div className="pt-3 border-t border-[#E9E9E6]">
+                          <label className="block font-bold text-neutral-800 text-xs mb-1">
+                            Rekomendasi Hardware Tertaut untuk Dokumen Ini (Opsional)
+                          </label>
+                          <select
+                            value={guideFormData.steps?.[0]?.recommendedProductSlug || ''}
+                            onChange={(e) => {
+                              const slug = e.target.value;
+                              if (slug) {
+                                setGuideFormData((prev) => ({
+                                  ...prev,
+                                  steps: [{ number: '01', title: 'Hardware Rekomendasi', text: '', recommendedProductSlug: slug }],
+                                }));
+                              } else {
+                                setGuideFormData((prev) => ({
+                                  ...prev,
+                                  steps: [],
+                                }));
+                              }
+                            }}
+                            className="w-full p-2.5 bg-white border border-[#E9E9E6] rounded-xl text-xs font-medium"
+                          >
+                            <option value="">-- Tidak Ada Hardware Tertaut --</option>
+                            {products.map((p) => (
+                              <option key={p.id} value={p.slug}>
+                                {p.name} ({p.category})
+                              </option>
+                            ))}
+                          </select>
+                          <p className="text-[11px] text-neutral-500 mt-1">
+                            Jika dipilih, kartu spesifikasi produk ini akan ditampilkan secara rapi di bagian akhir lembar dokumen.
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      /* JIKA FORMAT POIN TERSTRUKTUR: EDITOR LANGKAH PER LANGKAH */
+                      <div className="space-y-4 pt-1">
+                        <div className="flex items-center justify-between pb-2 border-b border-[#E9E9E6]">
+                          <div>
+                            <h4 className="font-extrabold text-neutral-900 text-sm flex items-center gap-1.5">
+                              <ListOrdered className="w-4 h-4 text-[#FF6B00]" />
+                              <span>Langkah Panduan Terstruktur ({guideFormData.steps?.length || 0})</span>
+                            </h4>
+                            <p className="text-[11px] text-neutral-500">
+                              Tambahkan tahapan poin (01, 02, dst.) atau poin tanpa angka.
+                            </p>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={handleAddGuideStep}
+                            className="px-3.5 py-1.5 bg-[#FF6B00] hover:bg-[#E05E00] text-white font-bold text-xs rounded-xl transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                            <span>Tambah Langkah</span>
+                          </button>
+                        </div>
+
+                        {(!guideFormData.steps || guideFormData.steps.length === 0) ? (
+                          <div className="p-6 text-center bg-[#F7F6F2] rounded-2xl border border-dashed border-[#E9E9E6] text-neutral-500 space-y-1">
+                            <p className="text-xs">Belum ada langkah panduan terstruktur.</p>
+                            <button
+                              type="button"
+                              onClick={handleAddGuideStep}
+                              className="text-xs font-bold text-[#FF6B00] hover:underline cursor-pointer"
+                            >
+                              + Tambah Langkah Pertama
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="space-y-4">
+                            {guideFormData.steps.map((step, idx) => (
+                              <div
+                                key={idx}
+                                className="bg-[#F7F6F2] rounded-2xl p-4 border border-[#E9E9E6] space-y-3"
+                              >
+                                <div className="flex items-center justify-between pb-2 border-b border-neutral-200">
+                                  <div className="flex items-center gap-2">
+                                    <span className="w-7 h-7 rounded-lg bg-[#FF6B00] text-white font-black font-mono flex items-center justify-center text-xs">
+                                      {step.number || String(idx + 1).padStart(2, '0')}
+                                    </span>
+                                    <span className="font-extrabold text-neutral-800 text-xs">
+                                      Langkah #{idx + 1}
+                                    </span>
+                                  </div>
+
+                                  <div className="flex items-center gap-1">
+                                    <button
+                                      type="button"
+                                      disabled={idx === 0}
+                                      onClick={() => handleMoveGuideStep(idx, 'up')}
+                                      title="Pindah ke Atas"
+                                      className="p-1 rounded text-neutral-400 hover:text-neutral-700 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                                    >
+                                      ▲
+                                    </button>
+                                    <button
+                                      type="button"
+                                      disabled={idx === (guideFormData.steps?.length || 0) - 1}
+                                      onClick={() => handleMoveGuideStep(idx, 'down')}
+                                      title="Pindah ke Bawah"
+                                      className="p-1 rounded text-neutral-400 hover:text-neutral-700 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                                    >
+                                      ▼
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleDeleteGuideStep(idx)}
+                                      title="Hapus Langkah Ini"
+                                      className="p-1 rounded text-rose-500 hover:bg-rose-100 transition-colors cursor-pointer ml-1"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
+                                </div>
+
+                                <div>
+                                  <label className="block font-bold text-neutral-700 mb-1">
+                                    Judul Langkah
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={step.title || ''}
+                                    onChange={(e) => handleUpdateGuideStep(idx, { title: e.target.value })}
+                                    placeholder="Contoh: Mengatur Posisi dan Ketinggian Monitor"
+                                    className="w-full p-2 bg-white border border-[#E9E9E6] rounded-xl text-xs font-semibold"
+                                  />
+                                </div>
+
+                                <div>
+                                  <label className="block font-bold text-neutral-700 mb-1">
+                                    Instruksi / Deskripsi Langkah
+                                  </label>
+                                  <textarea
+                                    rows={3}
+                                    value={step.text || ''}
+                                    onChange={(e) => handleUpdateGuideStep(idx, { text: e.target.value })}
+                                    placeholder="Tuliskan isi langkah secara detail..."
+                                    className="w-full p-2 bg-white border border-[#E9E9E6] rounded-xl text-xs"
+                                  />
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                  <div>
+                                    <label className="block font-bold text-neutral-700 mb-1">
+                                      Rekomendasi Produk (Opsional)
+                                    </label>
+                                    <select
+                                      value={step.recommendedProductSlug || ''}
+                                      onChange={(e) => handleUpdateGuideStep(idx, { recommendedProductSlug: e.target.value })}
+                                      className="w-full p-2 bg-white border border-[#E9E9E6] rounded-xl text-xs font-medium"
+                                    >
+                                      <option value="">-- Tidak Ada Produk Tertaut --</option>
+                                      {products.map((p) => (
+                                        <option key={p.id} value={p.slug}>
+                                          {p.name} ({p.category})
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </div>
+
+                                  <div>
+                                    <div className="flex items-center justify-between mb-1">
+                                      <label className="block font-bold text-neutral-700">
+                                        Foto Langkah (Opsional)
+                                      </label>
+                                      {step.image && (
+                                        <button
+                                          type="button"
+                                          onClick={() => handleUpdateGuideStep(idx, { image: '' })}
+                                          className="text-[10px] text-rose-600 font-bold hover:underline cursor-pointer"
+                                        >
+                                          ✕ Kosongkan Foto
+                                        </button>
+                                      )}
+                                    </div>
+                                    {guideFormData.showContentImages ? (
+                                      <input
+                                        type="text"
+                                        value={step.image || ''}
+                                        onChange={(e) => handleUpdateGuideStep(idx, { image: e.target.value })}
+                                        placeholder="https://... atau biarkan kosong"
+                                        className="w-full p-2 bg-white border border-[#E9E9E6] rounded-xl text-xs"
+                                      />
+                                    ) : (
+                                      <div className="p-2 bg-neutral-100 rounded-xl text-[11px] text-neutral-500 font-medium">
+                                        🌟 Mode Tanpa Foto Aktif (Hanya foto cover Hero di atas).
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
