@@ -626,7 +626,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
       callout: '',
       summary: '',
       layoutFormat: 'document',
-      showContentImages: false,
+      showContentImages: true,
       content: '',
       hideStepNumbers: false,
     };
@@ -644,8 +644,9 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
     if (!copy.layoutFormat) {
       copy.layoutFormat = copy.content && (!copy.steps || copy.steps.length === 0) ? 'document' : 'steps';
     }
+    const hasAnyStepImage = Array.isArray(copy.steps) && copy.steps.some((s: any) => Boolean(s?.image?.trim()));
     if (copy.showContentImages === undefined) {
-      copy.showContentImages = false;
+      copy.showContentImages = hasAnyStepImage ? true : true;
     }
     if (copy.content === undefined) {
       copy.content = '';
@@ -811,24 +812,16 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
     dataStorage.saveSiteSettings(newSettings);
     
     try {
-      await Promise.allSettled([
-        fetch('/api/settings', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newSettings),
-        }),
-        fetch('/api/sync-seed', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            settings: newSettings,
-            products: products,
-            categories: categories,
-            guides: guides,
-          }),
-        }),
-      ]);
-      showToast('Pengaturan website & gambar hero berhasil disimpan & dikirim ke Supabase!');
+      const res = await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newSettings),
+      });
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error || 'Server error');
+      }
+      showToast('Pengaturan website & gambar hero berhasil disimpan ke Supabase!');
     } catch (err: any) {
       showToast(`Tersimpan lokal: ${err.message}`);
       console.error(err);
@@ -2941,6 +2934,16 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                             >
                               + Pembatas (---)
                             </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const addition = '\n\n![Deskripsi Gambar](https://example.com/foto.jpg)\n\n';
+                                setGuideFormData((prev) => ({ ...prev, content: (prev.content || '') + addition }));
+                              }}
+                              className="px-2.5 py-1 bg-white hover:bg-neutral-100 border border-orange-200 text-[#FF6B00] rounded-lg text-[11px] font-bold cursor-pointer flex items-center gap-1"
+                            >
+                              📷 + Sisipkan Foto
+                            </button>
 
                             {/* Convert existing steps if available */}
                             {guideFormData.steps && guideFormData.steps.length > 0 && (
@@ -2963,11 +2966,11 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                               rows={12}
                               value={guideFormData.content || ''}
                               onChange={(e) => setGuideFormData({ ...guideFormData, content: e.target.value })}
-                              placeholder="Tuliskan isi artikel Anda di sini layaknya lembar dokumen biasa...&#10;&#10;## 1. Pembahasan Utama&#10;Tulis paragraf penjelasan secara mengalir bebas tanpa harus dipecah menjadi kartu poin terpisah.&#10;&#10;## 2. Penjelasan Lanjutan&#10;Semua paragraf mengalir rapi dan indah tanpa kewajiban foto!"
+                              placeholder="Tuliskan isi artikel Anda di sini layaknya lembar dokumen biasa...&#10;&#10;## 1. Pembahasan Utama&#10;Tulis paragraf penjelasan secara mengalir bebas tanpa harus dipecah menjadi kartu poin terpisah.&#10;&#10;## 2. Penjelasan Lanjutan&#10;Semua paragraf mengalir rapi dan indah tanpa kewajiban foto!&#10;&#10;![Foto Ruang Setup](https://example.com/foto.jpg)"
                               className="w-full p-3.5 bg-white border border-[#E9E9E6] rounded-xl text-xs font-sans leading-relaxed focus:border-[#FF6B00] focus:outline-none"
                             />
                             <p className="text-[11px] text-neutral-500">
-                              Tips: Gunakan <code>## Judul Bagian</code> untuk membuat subjudul, <code>**tebal**</code> untuk teks tebal, dan baris kosong untuk paragraf baru.
+                              Tips: Gunakan <code>## Judul Bagian</code> untuk membuat subjudul, <code>**tebal**</code> untuk teks tebal, dan <code>![Keterangan](URL_GAMBAR)</code> untuk menyisipkan foto.
                             </p>
                           </div>
                         ) : (
@@ -2988,17 +2991,18 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                             value={guideFormData.steps?.[0]?.recommendedProductSlug || ''}
                             onChange={(e) => {
                               const slug = e.target.value;
-                              if (slug) {
-                                setGuideFormData((prev) => ({
-                                  ...prev,
-                                  steps: [{ number: '01', title: 'Hardware Rekomendasi', text: '', recommendedProductSlug: slug }],
-                                }));
+                              const currentSteps = Array.isArray(guideFormData.steps) ? [...guideFormData.steps] : [];
+                              if (currentSteps.length === 0) {
+                                if (slug) {
+                                  currentSteps.push({ number: '01', title: 'Hardware Rekomendasi', text: '', recommendedProductSlug: slug });
+                                }
                               } else {
-                                setGuideFormData((prev) => ({
-                                  ...prev,
-                                  steps: [],
-                                }));
+                                currentSteps[0] = { ...currentSteps[0], recommendedProductSlug: slug };
                               }
+                              setGuideFormData((prev) => ({
+                                ...prev,
+                                steps: currentSteps,
+                              }));
                             }}
                             className="w-full p-2.5 bg-white border border-[#E9E9E6] rounded-xl text-xs font-medium"
                           >
@@ -3142,31 +3146,47 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                                   </div>
 
                                   <div>
-                                    <div className="flex items-center justify-between mb-1">
-                                      <label className="block font-bold text-neutral-700">
-                                        Foto Langkah (Opsional)
-                                      </label>
-                                      {step.image && (
+                                    <AdminImageUploader
+                                      label={`Foto Langkah #${step.number || String(idx + 1).padStart(2, '0')} (Article Block)`}
+                                      value={step.image || ''}
+                                      onChange={async (newUrl) => {
+                                        handleUpdateGuideStep(idx, { image: newUrl, image_url: newUrl });
+                                        // Targeted save to public.article_blocks without rewriting whole article
+                                        const gId = editingGuide?.id || guideFormData.id;
+                                        if (gId) {
+                                          const stepNum = step.number || String(idx + 1).padStart(2, '0');
+                                          const blockId = step.id || `${gId}-step-${stepNum}`;
+                                          try {
+                                            const res = await dataStorage.saveArticleBlock(blockId, {
+                                              image: newUrl,
+                                              image_url: newUrl,
+                                              step_number: stepNum,
+                                              title: step.title || '',
+                                              text: step.text || '',
+                                              guide_id: gId,
+                                            });
+                                            if (res.success) {
+                                              showToast(`Foto langkah #${stepNum} tersimpan ke database!`);
+                                            }
+                                          } catch (err) {
+                                            console.warn('Targeted article block save error:', err);
+                                          }
+                                        }
+                                      }}
+                                      presets={['/hero-setup.jpg', '/og-image.jpg', '/acer-nitro.png', '/acer-creator.png', '/powerpac.png', '/acer-portable.png']}
+                                      placeholder="https://... atau upload foto langkah"
+                                      helperText="Foto diupload langsung ke Supabase Storage & tersimpan aman di database article_blocks."
+                                    />
+                                    {!guideFormData.showContentImages && (
+                                      <div className="mt-2 p-2 bg-orange-50 border border-orange-200/60 rounded-xl text-[11px] text-orange-950 flex items-center justify-between">
+                                        <span>🌟 Mode Tanpa Foto aktif di Tab 1 (Foto ini disimpan tetapi disembunyikan di publik).</span>
                                         <button
                                           type="button"
-                                          onClick={() => handleUpdateGuideStep(idx, { image: '' })}
-                                          className="text-[10px] text-rose-600 font-bold hover:underline cursor-pointer"
+                                          onClick={() => setGuideFormData((prev) => ({ ...prev, showContentImages: true }))}
+                                          className="text-[#FF6B00] font-bold hover:underline shrink-0 text-[10px] cursor-pointer ml-1"
                                         >
-                                          ✕ Kosongkan Foto
+                                          Aktifkan Foto →
                                         </button>
-                                      )}
-                                    </div>
-                                    {guideFormData.showContentImages ? (
-                                      <input
-                                        type="text"
-                                        value={step.image || ''}
-                                        onChange={(e) => handleUpdateGuideStep(idx, { image: e.target.value })}
-                                        placeholder="https://... atau biarkan kosong"
-                                        className="w-full p-2 bg-white border border-[#E9E9E6] rounded-xl text-xs"
-                                      />
-                                    ) : (
-                                      <div className="p-2 bg-neutral-100 rounded-xl text-[11px] text-neutral-500 font-medium">
-                                        🌟 Mode Tanpa Foto Aktif (Hanya foto cover Hero di atas).
                                       </div>
                                     )}
                                   </div>

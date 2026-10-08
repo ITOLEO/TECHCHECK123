@@ -1,0 +1,191 @@
+{
+  "categories": [
+    {
+      "id": "cat-desk-setup",
+      "name": "Desk Setup",
+      "slug": "desk-setup",
+      "description": "Monitor arms, desk shelves, and ergonomic elevation accessories that maximize usable desk real estate.",
+      "productCount": 1,
+      "image": "/acer-nitro.png"
+    },
+    {
+      "id": "cat-cable-management",
+      "name": "Cable Management",
+      "slug": "cable-management",
+      "description": "Under-desk trays, wire channels, and magnetic clips to eliminate tangled cords on compact desks.",
+      "productCount": 0,
+      "image": "/powerpac.png"
+    },
+    {
+      "id": "cat-audio",
+      "name": "Audio",
+      "slug": "audio",
+      "description": "Low-profile desktop speakers, wireless DACs, and slim soundbars that tuck neatly under displays.",
+      "productCount": 1,
+      "image": "/acer-nitro.png"
+    },
+    {
+      "id": "cat-monitors",
+      "name": "Monitors",
+      "slug": "monitors",
+      "description": "Compact, high refresh rate IPS and OLED gaming monitors for narrow tabletops.",
+      "productCount": 1,
+      "image": "/acer-nitro.png"
+    },
+    {
+      "id": "cat-lighting",
+      "name": "Lighting",
+      "slug": "lighting",
+      "description": "Screenbars and bias lights designed to mount on monitors without consuming any desktop surface.",
+      "productCount": 0,
+      "image": "/acer-creator.png"
+    },
+    {
+      "id": "cat-storage",
+      "name": "Storage",
+      "slug": "storage",
+      "description": "Vertical laptop docks, headphone hangers, and modular organizers for clean vertical space.",
+      "productCount": 0,
+      "image": "/acer-portable.png"
+    },
+    {
+      "id": "cat-ergonomics",
+      "name": "Ergonomics",
+      "slug": "ergonomics",
+      "description": "Compact wrist rests, posture supports, and footrests tailored for space-conscious workstations.",
+      "productCount": 0,
+      "image": "/acer-creator.png"
+    }
+  ],
+  "products": [
+    {
+      "id": "prod-acer-nitro-kg271u",
+      "slug": "acer-nitro-kg271u-z2-gaming-monitor",
+      "name": "Acer Nitro KG271U Z2 27-Inch WQHD IPS Gaming Monitor",
+      "category": "Monitors",
+      "rating": 4.8,
+      "reviewCount": 342,
+      "image": "/acer-nitro.png",
+      "gallery": [
+        "/acer-nitro.png"
+      ],
+      "badge": "Compact Setup Best Pick",
+      "shortBenefit": "1440p 240Hz High Refresh Rate in a Compact 61cm Bezel",
+      "description": "The Acer Nitro KG271U Z2 is our top-rated 27-inch gaming monitor tailored specifically for desk widths of 100cm to 120cm. Combining a crisp 2560x1440 WQHD IPS panel with an ultra-responsive 240Hz refresh rate and 0.5ms response time.",
+      "benefits": [
+        "Zero-frame bezel design maximizes visual area",
+        "Integrated 100x100mm VESA mount makes monitor arm installation seamless",
+        "Built-in AMD FreeSync Premium prevents screen tearing without input lag"
+      ],
+      "highlights": [
+        "27-inch WQHD (2560 x 1440) IPS display with 99% sRGB color accuracy",
+        "240Hz refresh rate via DisplayPort 1.4 for fluid competitive frame pacing",
+        "0.5ms (G to G, Min.) response time eliminates high-speed motion blur",
+        "Dual HDMI 2.0 + DisplayPort 1.4 inputs for seamless PC and console switching"
+      ],
+      "specifications": {
+        "ScreenSize": "27 Inches",
+        "Resolution": "2560 x 1440 (WQHD)",
+        "PanelType": "IPS",
+        "RefreshRate": "240Hz",
+        "ResponseTime": "0.5ms",
+        "VesaMount": "100 x 100 mm",
+        "Dimensions": "61.4 x 45.3 x 20.2 cm (with stand)"
+      },
+      "bestFor": "Gamers seeking maximum 1440p frame rates and competitive clarity on compact desks where 32-inch displays overwhelm viewing distance.",
+      "greatFor": [
+        "100cm-120cm Small Desks",
+        "Competitive FPS & MOBA Gaming",
+        "Hybrid Gaming & Work from Home"
+      ],
+      "setupConsiderations": [
+        "Pair with a desk-clamped gas spring monitor arm to reclaim approximately 22cm of central desk depth normally occupied by the factory foot."
+      ],
+      "verdict": "An exceptional high-speed 1440p monitor that delivers competitive responsiveness without monopolizing tabletop footprint.",
+      "affiliateUrl": "https://s.shopee.co.id/14139310000",
+      "featured": true,
+      "productType": "Hardware",
+      "deskSizeCompatibility": "100cm - 120cm"
+    }
+  ],
+  "guides": [
+    {
+      "id": "guide-100cm-desk-optimization",
+      "slug": "how-to-optimize-a-100cm-small-gaming-desk",
+      "title": "How to Build a High-Performance Gaming Setup on a 100cm Desk",
+      "category": "Desk Setup",
+      "readTime": "6 min read",
+      "publishDate": "March 2026",
+      "excerpt": "A spatial blueprint for fitting a 27-inch display, PC, and peripherals on a compact 100cm tabletop without feeling cramped.",
+      "image": "/hero-setup.jpg",
+      "featured": true,
+      "layoutFormat": "steps",
+      "showContentImages": true,
+      "author": {
+        "name": "TechCheck Editorial Team",
+        "role": "Setup Ergonomics Specialist",
+        "avatar": "/favicon.png"
+      },
+      "intro": "A 100cm desk is one of the most common dimensions in modern compact apartments and studios. While many gamers assume a small tabletop restricts hardware choices, strategic vertical mounting and intentional peripheral footprints can reclaim over 60% of usable surface space.",
+      "content": "",
+      "steps": [
+        {
+          "number": "01",
+          "title": "Elevate the Monitor with a C-Clamp Gas Arm",
+          "text": "The factory plastic stand on most 27-inch monitors consumes up to 25cm of central desk depth. By installing a heavy-duty gas spring monitor arm clamped to the rear edge, your screen floats above the desk, leaving the entire area underneath open for a keyboard and wrist rest.",
+          "image": "/hero-setup.jpg",
+          "recommendedProductSlug": "acer-nitro-kg271u-z2-gaming-monitor",
+          "id": "guide-100cm-desk-optimization-step-01",
+          "image_url": "/hero-setup.jpg"
+        },
+        {
+          "number": "02",
+          "title": "Shift from Desk Lamps to an Asymmetric Screenbar",
+          "text": "Traditional desk lamps occupy valuable corner surface area and often cause glare on monitor screens. An asymmetric monitor light bar clips directly onto your display bezel, casting warm or cool illumination only across your keyboard and notepad without reflection.",
+          "image": "/og-image.jpg",
+          "id": "guide-100cm-desk-optimization-step-02",
+          "image_url": "/og-image.jpg"
+        },
+        {
+          "number": "03",
+          "title": "Dock Secondary Laptops Vertically",
+          "text": "If you use a dual-computer setup (e.g. work laptop and personal gaming rig), never leave laptops sitting open flat on the tabletop. A weighted dual vertical stand holds devices upright in clamshell mode, freeing up crucial mouse glide room.",
+          "image": "/hero-setup.jpg",
+          "id": "guide-100cm-desk-optimization-step-03",
+          "image_url": "/hero-setup.jpg"
+        },
+        {
+          "number": "04",
+          "title": "Tuck Audio Beneath the Display",
+          "text": "Left and right desktop satellite speakers encroach on mouse swing territory during fast-paced competitive gaming. A slim horizontal soundbar fits neatly between your monitor arm base and display bezel for centered acoustics with zero lateral desk loss.",
+          "image": "/og-image.jpg",
+          "id": "guide-100cm-desk-optimization-step-04",
+          "image_url": "/og-image.jpg"
+        }
+      ],
+      "callout": "Pro Setup Rule: Maintain at least 50cm between your eyes and a 27-inch 1440p monitor. If your desk is only 55cm deep, use a low-profile monitor arm to set the screen flush against the back edge.",
+      "summary": "With four calculated hardware adjustments — a monitor arm, screenbar, vertical dock, and under-monitor soundbar — a 100cm desk performs with the spatial freedom and visual calm of a 160cm executive desk."
+    }
+  ],
+  "settings": {
+    "announcementText": "🔥 Update: Rekomendasi Monitor & Aksesoris Compact Setup Terbaru Sudah Tersedia!",
+    "announcementEnabled": false,
+    "announcementLink": "",
+    "heroEyebrow": "SMART TECH FOR BETTER SETUPS",
+    "heroHeadline1": "Better Gear.",
+    "heroHeadline2": "Smarter Spaces.",
+    "heroSubtext": "Discover space-saving tech and accessories that help you build a cleaner, more functional gaming setup — without the clutter.",
+    "heroImage": "/hero-setup.jpg",
+    "heroImageAlt": "Compact Gaming Setup",
+    "heroBadgeEyebrow": "SETUP ARCHITECTURE 2026",
+    "heroBadgeTitle": "100cm Compact Studio Desk",
+    "heroBadgeStat": "45% Surface Cleared",
+    "heroCtaPrimaryText": "Explore Products",
+    "heroCtaPrimaryUrl": "recommendations",
+    "heroCtaSecondaryText": "Read Our Guides",
+    "heroCtaSecondaryUrl": "guides",
+    "supportEmail": "itleo4444@gmail.com",
+    "defaultAffiliateSubId": "14139310000",
+    "adminPasscode": "654321"
+  }
+}

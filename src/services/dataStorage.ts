@@ -166,8 +166,18 @@ export const dataStorage = {
       if (prodRes.status === 'fulfilled' && prodRes.value.ok) {
         const prodData: Product[] = await prodRes.value.json();
         if (Array.isArray(prodData) && prodData.length > 0) {
-          result.products = prodData;
-          localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(prodData));
+          const currentLocalProds = safeParse<Product[]>(STORAGE_KEYS.PRODUCTS, []);
+          const mergedProds = prodData.map((remoteP) => {
+            const localP = currentLocalProds.find((p) => p.id === remoteP.id);
+            if (!localP) return remoteP;
+            return {
+              ...localP,
+              ...remoteP,
+              image: remoteP.image?.trim() || localP.image || '',
+            };
+          });
+          result.products = mergedProds;
+          localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(mergedProds));
         }
       }
 
@@ -182,8 +192,41 @@ export const dataStorage = {
       if (guideRes.status === 'fulfilled' && guideRes.value.ok) {
         const guideData: Guide[] = await guideRes.value.json();
         if (Array.isArray(guideData) && guideData.length > 0) {
-          result.guides = guideData;
-          localStorage.setItem(STORAGE_KEYS.GUIDES, JSON.stringify(guideData));
+          const currentLocalGuides = safeParse<Guide[]>(STORAGE_KEYS.GUIDES, []);
+          const mergedGuides = guideData.map((remoteG) => {
+            const localG = currentLocalGuides.find((g) => g.id === remoteG.id);
+            if (!localG) {
+              return {
+                ...remoteG,
+                showContentImages: remoteG.showContentImages !== false,
+                steps: (remoteG.steps || []).map((st: any, i: number) => ({
+                  ...st,
+                  id: st.id || `${remoteG.id}-step-${st.number || String(i + 1).padStart(2, '0')}`,
+                  image: st.image?.trim() || st.image_url?.trim() || '',
+                  image_url: st.image?.trim() || st.image_url?.trim() || '',
+                })),
+              };
+            }
+            return {
+              ...localG,
+              ...remoteG,
+              image: remoteG.image?.trim() || localG.image || '',
+              showContentImages: remoteG.showContentImages !== undefined ? remoteG.showContentImages : (localG.showContentImages ?? true),
+              steps: (remoteG.steps || []).map((st: any, i: number) => {
+                const localStep = localG.steps?.[i];
+                const stepId = st.id || localStep?.id || `${remoteG.id}-step-${st.number || String(i + 1).padStart(2, '0')}`;
+                const resolvedImg = st.image?.trim() || st.image_url?.trim() || localStep?.image?.trim() || localStep?.image_url?.trim() || '';
+                return {
+                  ...st,
+                  id: stepId,
+                  image: resolvedImg,
+                  image_url: resolvedImg,
+                };
+              }),
+            };
+          });
+          result.guides = mergedGuides;
+          localStorage.setItem(STORAGE_KEYS.GUIDES, JSON.stringify(mergedGuides));
         }
       }
 
@@ -196,7 +239,6 @@ export const dataStorage = {
             ...currentLocalSettings,
             ...settData,
           };
-          // Ensure heroImage is retained if current local has custom image but remote is empty
           if ((!settData.heroImage || settData.heroImage.trim() === '') && currentLocalSettings.heroImage) {
             mergedSett.heroImage = currentLocalSettings.heroImage;
           }
@@ -240,40 +282,37 @@ export const dataStorage = {
 
   getProducts(): Product[] {
     const raw = safeParse<Product[]>(STORAGE_KEYS.PRODUCTS, INITIAL_PRODUCTS);
-    const inventedIds = new Set([
-      'prod-gas-spring-arm',
-      'prod-mesh-cable-tray',
-      'prod-screenbar-light',
-      'prod-vertical-laptop-stand',
-      'prod-slim-soundbar',
-    ]);
-    const clean = raw.filter((p) => !inventedIds.has(p.id)).map((p) => {
-      if (p.id === 'prod-acer-nitro-kg271u') {
-        return {
-          ...p,
-          name: 'Acer Nitro KG271U Z2 27-Inch WQHD IPS Gaming Monitor',
-        };
-      }
-      return p;
-    });
-
-    if (raw.some((p) => inventedIds.has(p.id)) || (clean.length > 0 && clean[0].name !== raw[0]?.name)) {
-      this.saveProducts(clean.length > 0 ? clean : INITIAL_PRODUCTS);
-      return clean.length > 0 ? clean : INITIAL_PRODUCTS;
-    }
-    return clean.length > 0 ? clean : INITIAL_PRODUCTS;
+    return Array.isArray(raw) && raw.length > 0 ? raw : INITIAL_PRODUCTS;
   },
 
+  // Save product collection locally
   saveProducts(products: Product[]): void {
     try {
       localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
-      fetch('/api/sync-seed', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ products }),
-      }).catch(() => {});
+      this.notifyListeners({ products });
     } catch (e) {
       console.error('Failed to save products', e);
+    }
+  },
+
+  // Targeted single product save (Calls targeted /api/products)
+  async saveProduct(product: Product): Promise<boolean> {
+    try {
+      const current = this.getProducts();
+      const updated = current.some((p) => p.id === product.id)
+        ? current.map((p) => (p.id === product.id ? product : p))
+        : [product, ...current];
+      this.saveProducts(updated);
+
+      const res = await fetch('/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(product),
+      });
+      return res.ok;
+    } catch (e) {
+      console.warn('Targeted product remote save error:', e);
+      return false;
     }
   },
 
@@ -281,48 +320,168 @@ export const dataStorage = {
     return safeParse<CategoryInfo[]>(STORAGE_KEYS.CATEGORIES, INITIAL_CATEGORIES);
   },
 
+  // Save category collection locally
   saveCategories(categories: CategoryInfo[]): void {
     try {
       localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(categories));
-      fetch('/api/sync-seed', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ categories }),
-      }).catch(() => {});
+      this.notifyListeners({ categories });
     } catch (e) {
       console.error('Failed to save categories', e);
+    }
+  },
+
+  // Targeted single category save (Calls targeted /api/categories)
+  async saveCategory(cat: CategoryInfo): Promise<boolean> {
+    try {
+      const current = this.getCategories();
+      const updated = current.some((c) => c.id === cat.id)
+        ? current.map((c) => (c.id === cat.id ? cat : c))
+        : [...current, cat];
+      this.saveCategories(updated);
+
+      const res = await fetch('/api/categories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(cat),
+      });
+      return res.ok;
+    } catch (e) {
+      console.warn('Targeted category remote save error:', e);
+      return false;
     }
   },
 
   getGuides(): Guide[] {
     const list = safeParse<Guide[]>(STORAGE_KEYS.GUIDES, INITIAL_GUIDES);
     return list.map((g) => {
-      if (g.showContentImages === undefined) {
-        g.showContentImages = false;
-      }
-      if (!g.layoutFormat) {
-        g.layoutFormat = g.content && (!g.steps || g.steps.length === 0) ? 'document' : 'steps';
-      }
-      if (g.content === undefined) {
-        g.content = '';
-      }
-      if (g.hideStepNumbers === undefined) {
-        g.hideStepNumbers = false;
-      }
-      return g;
+      // Ensure steps have stable unique IDs
+      const steps = (g.steps || []).map((st: any, idx: number) => {
+        const stepNumber = st.number || String(idx + 1).padStart(2, '0');
+        const stableId = st.id || `${g.id}-step-${stepNumber}`;
+        const img = st.image?.trim() || st.image_url?.trim() || '';
+        return {
+          ...st,
+          id: stableId,
+          number: stepNumber,
+          image: img,
+          image_url: img,
+        };
+      });
+
+      // Default to true so images added by user are never hidden by accident
+      const showContentImages = g.showContentImages !== false;
+      const layoutFormat = g.layoutFormat || (g.content && (!steps || steps.length === 0) ? 'document' : 'steps');
+      const content = g.content !== undefined ? g.content : '';
+      const hideStepNumbers = Boolean(g.hideStepNumbers);
+
+      return {
+        ...g,
+        steps,
+        showContentImages,
+        layoutFormat,
+        content,
+        hideStepNumbers,
+      };
     });
   },
 
+  // Save guide collection locally
   saveGuides(guides: Guide[]): void {
     try {
       localStorage.setItem(STORAGE_KEYS.GUIDES, JSON.stringify(guides));
-      fetch('/api/sync-seed', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ guides }),
-      }).catch(() => {});
+      this.notifyListeners({ guides });
     } catch (e) {
       console.error('Failed to save guides', e);
+    }
+  },
+
+  // Targeted single guide metadata & content save (Calls targeted /api/guides)
+  async saveGuide(guide: Guide): Promise<boolean> {
+    try {
+      const current = this.getGuides();
+      const updated = current.some((g) => g.id === guide.id)
+        ? current.map((g) => (g.id === guide.id ? guide : g))
+        : [guide, ...current];
+      this.saveGuides(updated);
+
+      const res = await fetch('/api/guides', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(guide),
+      });
+      return res.ok;
+    } catch (e) {
+      console.warn('Targeted guide remote save error:', e);
+      return false;
+    }
+  },
+
+  // Targeted single article block save (Updates ONLY article_blocks WHERE id = blockId)
+  // Replaces the heavy sync-seed pattern with a zero-friction targeted patch
+  async saveArticleBlock(
+    blockId: string,
+    data: {
+      image_url?: string;
+      image?: string;
+      title?: string;
+      text?: string;
+      caption?: string;
+      alt_text?: string;
+      recommendedProductSlug?: string;
+      step_number?: string;
+      guide_id?: string;
+    }
+  ): Promise<{ success: boolean; block?: any; error?: string }> {
+    try {
+      const newImg = data.image_url !== undefined ? data.image_url : data.image;
+
+      // 1. Immediately update local state in localStorage
+      const guides = this.getGuides();
+      let matched = false;
+      const updatedGuides = guides.map((g) => {
+        if (!Array.isArray(g.steps)) return g;
+        const newSteps = g.steps.map((st, idx) => {
+          const stepNumber = st.number || String(idx + 1).padStart(2, '0');
+          const candidateId = st.id || `${g.id}-step-${stepNumber}`;
+          if (candidateId === blockId || st.id === blockId) {
+            matched = true;
+            return {
+              ...st,
+              id: candidateId,
+              ...(newImg !== undefined ? { image: newImg, image_url: newImg } : {}),
+              ...(data.title !== undefined ? { title: data.title } : {}),
+              ...(data.text !== undefined ? { text: data.text } : {}),
+              ...(data.caption !== undefined ? { caption: data.caption } : {}),
+              ...(data.recommendedProductSlug !== undefined ? { recommendedProductSlug: data.recommendedProductSlug } : {}),
+            };
+          }
+          return st;
+        });
+        return matched ? { ...g, steps: newSteps } : g;
+      });
+
+      if (matched) {
+        localStorage.setItem(STORAGE_KEYS.GUIDES, JSON.stringify(updatedGuides));
+        this.notifyListeners({ guides: updatedGuides });
+      }
+
+      // 2. Send targeted PATCH request to backend (Updates Supabase public.article_blocks directly)
+      const res = await fetch(`/api/article-blocks/${encodeURIComponent(blockId)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        return { success: false, error: errJson.error || `HTTP ${res.status}` };
+      }
+
+      const json = await res.json();
+      return { success: true, block: json.block };
+    } catch (err: any) {
+      console.warn('Failed to save article block remotely:', err);
+      return { success: false, error: err.message };
     }
   },
 

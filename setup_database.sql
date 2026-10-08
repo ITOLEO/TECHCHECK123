@@ -65,6 +65,25 @@ CREATE TABLE IF NOT EXISTS guides (
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS article_blocks (
+    id VARCHAR(64) PRIMARY KEY,
+    guide_id VARCHAR(64) NOT NULL REFERENCES guides(id) ON DELETE CASCADE,
+    step_number VARCHAR(20) DEFAULT '01',
+    title VARCHAR(255) DEFAULT '',
+    text TEXT DEFAULT '',
+    image TEXT DEFAULT '',
+    image_url TEXT DEFAULT '',
+    caption TEXT DEFAULT '',
+    alt_text TEXT DEFAULT '',
+    recommended_product_slug VARCHAR(255) DEFAULT '',
+    sort_order INT DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_article_blocks_guide_id ON article_blocks(guide_id);
+CREATE INDEX IF NOT EXISTS idx_article_blocks_sort_order ON article_blocks(guide_id, sort_order);
+
 CREATE TABLE IF NOT EXISTS site_settings (
     id INT PRIMARY KEY DEFAULT 1 CHECK (id = 1),
     announcement_text TEXT DEFAULT '🔥 Update: Rekomendasi Monitor & Aksesoris Compact Setup Terbaru Sudah Tersedia!',
@@ -106,17 +125,31 @@ CREATE TRIGGER set_timestamp_guides BEFORE UPDATE ON guides FOR EACH ROW EXECUTE
 DROP TRIGGER IF EXISTS set_timestamp_site_settings ON site_settings;
 CREATE TRIGGER set_timestamp_site_settings BEFORE UPDATE ON site_settings FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
 
--- 3. DISABLE ROW LEVEL SECURITY
--- Since you are running a closed Admin Architecture with a backend server that handles requests using the SUPABASE_KEY/SUPABASE_SERVICE_ROLE_KEY,
--- the simplest and most foolproof way to prevent 401/403 block errors is to simply disable RLS entirely for these specific tables.
--- The backend server (server.ts) inherently has full access and handles the API payload security.
+DROP TRIGGER IF EXISTS set_timestamp_article_blocks ON article_blocks;
+CREATE TRIGGER set_timestamp_article_blocks BEFORE UPDATE ON article_blocks FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
+
+-- 3. DISABLE ROW LEVEL SECURITY OR GRANT ACCESS
 ALTER TABLE categories DISABLE ROW LEVEL SECURITY;
 ALTER TABLE products DISABLE ROW LEVEL SECURITY;
 ALTER TABLE guides DISABLE ROW LEVEL SECURITY;
 ALTER TABLE site_settings DISABLE ROW LEVEL SECURITY;
+ALTER TABLE article_blocks DISABLE ROW LEVEL SECURITY;
 
 -- Explicitly grant permissions to standard roles just in case
 GRANT ALL ON TABLE categories TO anon, authenticated, service_role;
 GRANT ALL ON TABLE products TO anon, authenticated, service_role;
 GRANT ALL ON TABLE guides TO anon, authenticated, service_role;
 GRANT ALL ON TABLE site_settings TO anon, authenticated, service_role;
+GRANT ALL ON TABLE article_blocks TO anon, authenticated, service_role;
+
+-- 4. Supabase Storage Bucket Setup
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('techcheck-images', 'techcheck-images', true)
+ON CONFLICT (id) DO UPDATE SET public = true;
+
+DROP POLICY IF EXISTS "Public Read techcheck-images" ON storage.objects;
+CREATE POLICY "Public Read techcheck-images" ON storage.objects FOR SELECT USING (bucket_id = 'techcheck-images');
+DROP POLICY IF EXISTS "Public Insert techcheck-images" ON storage.objects;
+CREATE POLICY "Public Insert techcheck-images" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'techcheck-images');
+DROP POLICY IF EXISTS "Public Update techcheck-images" ON storage.objects;
+CREATE POLICY "Public Update techcheck-images" ON storage.objects FOR UPDATE USING (bucket_id = 'techcheck-images');

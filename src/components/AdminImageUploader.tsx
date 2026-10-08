@@ -183,10 +183,7 @@ export const AdminImageUploader: React.FC<AdminImageUploaderProps> = ({
         size: sizeFormatted,
       });
 
-      // Provide immediate preview to parent
-      onChange(dataUrl);
-
-      // Attempt server-side upload to create persistent /uploads/... path
+      // Attempt server-side upload to Supabase Storage or /uploads
       try {
         const res = await fetch('/api/upload', {
           method: 'POST',
@@ -201,15 +198,23 @@ export const AdminImageUploader: React.FC<AdminImageUploaderProps> = ({
         if (res.ok) {
           const json = await res.json();
           if (json.url) {
+            // Set the clean CDN or persistent URL returned by storage
             onChange(json.url);
             setMetaInfo((prev) => ({
               ...prev,
               filename: json.filename || file.name,
             }));
+            setErrorMessage(null);
+          } else {
+            setErrorMessage('Server tidak mengembalikan URL penyimpanan yang valid.');
           }
+        } else {
+          const errJson = await res.json().catch(() => ({}));
+          setErrorMessage(errJson.error || `Upload gambar gagal (HTTP ${res.status}). Gambar sebelumnya tetap aman.`);
         }
-      } catch (uploadErr) {
-        console.warn('Backend upload skipped, preserved data URL:', uploadErr);
+      } catch (uploadErr: any) {
+        console.warn('Backend upload failed:', uploadErr);
+        setErrorMessage(`Gagal menghubungi server upload: ${uploadErr.message || uploadErr}. Gambar sebelumnya dipertahankan.`);
       } finally {
         setIsUploading(false);
       }

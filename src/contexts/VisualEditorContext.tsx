@@ -323,19 +323,38 @@ export const VisualEditorProvider: React.FC<VisualEditorProviderProps> = ({
       dataStorage.saveCategories(nextCats);
       dataStorage.saveGuides(nextGuides);
 
-      // 3. Sync immediately to Supabase database
-      fetch('/api/sync-seed', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          settings: nextSettings,
-          products: nextProducts,
-          categories: nextCats,
-          guides: nextGuides,
-        }),
-      }).catch((err) => {
-        console.warn('Auto-sync to Supabase failed (saved locally):', err);
-      });
+      // 3. Targeted persistence to database based on what changed (No full dataset dump / No 413)
+      try {
+        if (activeTarget.type === 'guide-step') {
+          const { guideId, stepIndex, step } = updatedData;
+          const stepNum = step?.number || String(stepIndex + 1).padStart(2, '0');
+          const blockId = step?.id || `${guideId}-step-${stepNum}`;
+          dataStorage.saveArticleBlock(blockId, {
+            image_url: step?.image,
+            image: step?.image,
+            step_number: stepNum,
+            title: step?.title,
+            text: step?.text,
+            caption: step?.title,
+            recommendedProductSlug: step?.recommendedProductSlug,
+            guide_id: guideId,
+          });
+        } else if (activeTarget.type.startsWith('hero-') || activeTarget.type === 'section-heading') {
+          fetch('/api/settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(nextSettings),
+          }).catch(() => {});
+        } else if (activeTarget.type === 'product') {
+          dataStorage.saveProduct(updatedData);
+        } else if (activeTarget.type === 'category') {
+          dataStorage.saveCategory(updatedData);
+        } else if (activeTarget.type === 'guide') {
+          dataStorage.saveGuide(updatedData);
+        }
+      } catch (syncErr) {
+        console.warn('Targeted auto-sync failed (saved locally):', syncErr);
+      }
 
       dataStorage.clearDraftState();
       setHasUnsavedChanges(false);
@@ -392,20 +411,15 @@ export const VisualEditorProvider: React.FC<VisualEditorProviderProps> = ({
         newValue: changesSummary.join(', '),
       });
 
-      // 4. Remote sync to backend/Supabase database
+      // 4. Remote targeted sync to backend/Supabase database
       try {
-        await fetch('/api/sync-seed', {
+        await fetch('/api/settings', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            settings: draftSettings,
-            products: draftProducts,
-            categories: draftCategories,
-            guides: draftGuides,
-          }),
+          body: JSON.stringify(draftSettings),
         });
       } catch (err) {
-        console.warn('Sync to Supabase backend skipped/failed (saved locally):', err);
+        console.warn('Sync to backend skipped/failed (saved locally):', err);
       }
 
       // 5. Clear draft state

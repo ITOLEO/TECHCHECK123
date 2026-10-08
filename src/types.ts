@@ -37,21 +37,33 @@ export interface CategoryInfo {
 
 export interface ArticleBlock {
   id: string;
-  type: 'heading' | 'subheading' | 'paragraph' | 'image' | 'quote' | 'bullet_list' | 'numbered_list' | 'divider' | 'callout';
+  guide_id?: string;
+  step_number?: string;
+  title?: string;
+  text?: string;
+  type?: 'heading' | 'subheading' | 'paragraph' | 'image' | 'quote' | 'bullet_list' | 'numbered_list' | 'divider' | 'callout' | 'step';
   content?: string;
   level?: 1 | 2 | 3;
   src?: string;
+  image?: string;
+  image_url?: string;
   caption?: string;
   alt?: string;
+  alt_text?: string;
   items?: string[];
   recommendedProductSlug?: string;
+  recommended_product_slug?: string;
+  sort_order?: number;
 }
 
 export interface GuideStep {
+  id?: string;
   number: string;
   title: string;
   text: string;
   image?: string;
+  image_url?: string;
+  caption?: string;
   recommendedProductSlug?: string;
 }
 

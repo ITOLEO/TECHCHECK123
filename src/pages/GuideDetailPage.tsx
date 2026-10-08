@@ -69,6 +69,25 @@ function renderDocumentProse(text: string) {
         const trimmed = block.trim();
         if (!trimmed) return null;
 
+        // Markdown Image: ![Alt Text](https://image.url)
+        const imgMatch = trimmed.match(/^!\[(.*?)\]\((.*?)\)$/);
+        if (imgMatch) {
+          const [, alt, src] = imgMatch;
+          return (
+            <div
+              key={idx}
+              className="rounded-2xl overflow-hidden aspect-16/9 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 my-6 shadow-xs"
+            >
+              <SafeImage
+                src={src}
+                alt={alt || 'Foto Artikel'}
+                fallbackText={alt || 'Foto Artikel'}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          );
+        }
+
         if (trimmed === '---' || trimmed === '***') {
           return (
             <hr key={idx} className="border-t border-neutral-200 dark:border-neutral-800 my-8" />
@@ -241,8 +260,8 @@ export const GuideDetailPage: React.FC<GuideDetailPageProps> = ({
 
   // Format checks
   const isDocumentFormat = guide.layoutFormat === 'document';
-  // ONLY show images inside the article content if explicitly enabled AND URL is non-empty
-  const canShowContentImages = guide.showContentImages === true;
+  // Allow images inside the article content unless explicitly disabled (showContentImages === false)
+  const canShowContentImages = guide.showContentImages !== false;
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-12">

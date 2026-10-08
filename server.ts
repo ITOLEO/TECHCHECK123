@@ -52,12 +52,15 @@ app.get('/sitemap.xml', (req: Request, res: Response) => {
 let supabaseClient: SupabaseClient | null = null;
 
 function getSupabase(): SupabaseClient | null {
-  const url = process.env.SUPABASE_URL?.trim();
+  let url = process.env.SUPABASE_URL?.trim();
   const key = (process.env.SUPABASE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY)?.trim();
 
   if (!url || !key || url.includes('your-project-id') || key.includes('your-supabase')) {
     return null;
   }
+
+  // Clean URL: Strip any trailing /rest/v1 or trailing slashes (common user configuration issue)
+  url = url.replace(/\/rest\/v1\/?$/, '').replace(/\/+$/, '');
 
   if (!supabaseClient) {
     try {
@@ -74,6 +77,58 @@ function getSupabase(): SupabaseClient | null {
   }
 
   return supabaseClient;
+}
+
+// ==========================================
+// Persistent Local Server DB (Fallback & Cache)
+// Ensures data and images are NEVER lost upon refresh even if Supabase is offline
+// ==========================================
+const DATA_DIR = path.join(process.cwd(), 'data');
+const DB_FILE = path.join(DATA_DIR, 'db.json');
+
+interface LocalDbSchema {
+  categories: any[];
+  products: any[];
+  guides: any[];
+  settings: any;
+}
+
+function initLocalDb(): LocalDbSchema {
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    if (fs.existsSync(DB_FILE)) {
+      const content = fs.readFileSync(DB_FILE, 'utf8');
+      return JSON.parse(content);
+    }
+  } catch (e) {
+    console.warn('Error reading local db file:', e);
+  }
+  return {
+    categories: [],
+    products: [],
+    guides: [],
+    settings: null,
+  };
+}
+
+let localDbCache: LocalDbSchema = initLocalDb();
+
+function getLocalDb(): LocalDbSchema {
+  return localDbCache;
+}
+
+function saveLocalDb(partial: Partial<LocalDbSchema>) {
+  localDbCache = { ...localDbCache, ...partial };
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    fs.writeFileSync(DB_FILE, JSON.stringify(localDbCache, null, 2), 'utf8');
+  } catch (err) {
+    console.warn('Failed to write local db:', err);
+  }
 }
 
 // Helpers for Data Transformation
@@ -155,13 +210,30 @@ function fromCategoryRow(row: any) {
 }
 
 function toGuideRow(g: any) {
-  const cleanSteps = Array.isArray(g.steps) ? g.steps.filter((s: any) => !s?.__guideMeta) : [];
+  const rawSteps = Array.isArray(g.steps) ? g.steps.filter((s: any) => !s?.__guideMeta) : [];
+  const cleanSteps = rawSteps.map((s: any, idx: number) => {
+    const stepNumber = s.number || String(idx + 1).padStart(2, '0');
+    const stableId = s.id || `${g.id}-step-${stepNumber}`;
+    const img = s.image?.trim() || s.image_url?.trim() || '';
+    return {
+      ...s,
+      id: stableId,
+      number: stepNumber,
+      image: img,
+      image_url: img,
+    };
+  });
+  const layoutFormat = g.layoutFormat ?? (g.content && cleanSteps.length === 0 ? 'document' : 'steps');
+  const showContentImages = g.showContentImages !== false;
+  const content = g.content ?? '';
+  const hideStepNumbers = Boolean(g.hideStepNumbers);
+
   const metaItem = {
     __guideMeta: true,
-    layoutFormat: g.layoutFormat ?? (g.content && cleanSteps.length === 0 ? 'document' : 'steps'),
-    showContentImages: Boolean(g.showContentImages),
-    content: g.content ?? '',
-    hideStepNumbers: Boolean(g.hideStepNumbers),
+    layoutFormat,
+    showContentImages,
+    content,
+    hideStepNumbers,
   };
   const stepsWithMeta = [...cleanSteps, metaItem];
 
@@ -182,13 +254,40 @@ function toGuideRow(g: any) {
     steps: stepsWithMeta,
     callout: g.callout ?? '',
     summary: g.summary ?? '',
+    // Explicit columns
+    layout_format: layoutFormat,
+    show_content_images: showContentImages,
+    content,
+    hide_step_numbers: hideStepNumbers,
   };
 }
 
 function fromGuideRow(row: any) {
   const rawSteps = Array.isArray(row.steps) ? row.steps : [];
   const metaItem = rawSteps.find((s: any) => s && s.__guideMeta);
-  const cleanSteps = rawSteps.filter((s: any) => !s || !s.__guideMeta);
+  const cleanSteps = rawSteps
+    .filter((s: any) => !s || !s.__guideMeta)
+    .map((s: any, idx: number) => {
+      const stepNumber = s.number || String(idx + 1).padStart(2, '0');
+      const stableId = s.id || `${row.id}-step-${stepNumber}`;
+      const img = s.image?.trim() || s.image_url?.trim() || '';
+      return {
+        ...s,
+        id: stableId,
+        number: stepNumber,
+        image: img,
+        image_url: img,
+      };
+    });
+
+  const layoutFormat = row.layout_format || metaItem?.layoutFormat || (cleanSteps.length === 0 ? 'document' : 'steps');
+  const showContentImages = row.show_content_images !== undefined
+    ? Boolean(row.show_content_images)
+    : metaItem?.showContentImages !== undefined
+      ? Boolean(metaItem.showContentImages)
+      : true; // Default to true so images are NEVER hidden by accident
+  const content = row.content !== undefined ? row.content : (metaItem?.content || '');
+  const hideStepNumbers = row.hide_step_numbers !== undefined ? Boolean(row.hide_step_numbers) : Boolean(metaItem?.hideStepNumbers);
 
   return {
     id: row.id,
@@ -209,10 +308,10 @@ function fromGuideRow(row: any) {
     steps: cleanSteps,
     callout: row.callout ?? '',
     summary: row.summary ?? '',
-    layoutFormat: metaItem?.layoutFormat ?? (cleanSteps.length === 0 ? 'document' : 'steps'),
-    showContentImages: Boolean(metaItem?.showContentImages),
-    content: metaItem?.content ?? '',
-    hideStepNumbers: Boolean(metaItem?.hideStepNumbers),
+    layoutFormat,
+    showContentImages,
+    content,
+    hideStepNumbers,
   };
 }
 
@@ -269,7 +368,7 @@ function fromSettingsRow(row: any) {
 // API ROUTES
 // ==========================================
 
-// 0. Image Upload API (Supports JPG, JPEG, PNG, WEBP, GIF, SVG)
+// 0. Image Upload API (Uploads to Supabase Storage with local / disk fallback)
 app.post('/api/upload', async (req: Request, res: Response) => {
   try {
     const { filename, fileData, mimeType } = req.body;
@@ -306,34 +405,78 @@ app.post('/api/upload', async (req: Request, res: Response) => {
       }
     }
 
-    // Try saving to public/uploads
-    const uploadsPath = path.join(process.cwd(), 'public', 'uploads');
-    if (!fs.existsSync(uploadsPath)) {
-      fs.mkdirSync(uploadsPath, { recursive: true });
-    }
-
     const safeExt = ext || (mimeType === 'image/jpeg' ? '.jpg' : '.png');
     const baseName = path.basename(filename, ext).replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 50);
     const uniqueFilename = `${baseName}-${Date.now()}${safeExt}`;
-    const targetPath = path.join(uploadsPath, uniqueFilename);
-
     const base64Data = fileData.includes('base64,') ? fileData.split('base64,')[1] : fileData;
-    fs.writeFileSync(targetPath, Buffer.from(base64Data, 'base64'));
+    const fileBuffer = Buffer.from(base64Data, 'base64');
 
-    res.json({
-      success: true,
-      url: `/uploads/${uniqueFilename}`,
-      filename: uniqueFilename,
-      mimeType,
-    });
-  } catch (err: any) {
-    console.warn('Local disk write failed, fallback to data url:', err.message);
+    // 1. Primary: Upload directly to Supabase Storage (Generates persistent public CDN URL)
+    const supabase = getSupabase();
+    if (supabase) {
+      try {
+        const BUCKET_NAME = 'techcheck-images';
+        const { error: storageErr } = await supabase.storage
+          .from(BUCKET_NAME)
+          .upload(uniqueFilename, fileBuffer, {
+            contentType: mimeType || (safeExt === '.png' ? 'image/png' : 'image/jpeg'),
+            upsert: true,
+          });
+
+        if (!storageErr) {
+          const { data: publicUrlData } = supabase.storage
+            .from(BUCKET_NAME)
+            .getPublicUrl(uniqueFilename);
+
+          if (publicUrlData?.publicUrl) {
+            res.json({
+              success: true,
+              url: publicUrlData.publicUrl,
+              filename: uniqueFilename,
+              mimeType,
+              storage: 'supabase',
+            });
+            return;
+          }
+        } else {
+          console.warn('Supabase storage bucket upload error:', storageErr.message);
+        }
+      } catch (storageEx: any) {
+        console.warn('Supabase storage upload attempt skipped:', storageEx.message);
+      }
+    }
+
+    // 2. Fallback: Save to public/uploads directory
+    try {
+      const uploadsPath = path.join(process.cwd(), 'public', 'uploads');
+      if (!fs.existsSync(uploadsPath)) {
+        fs.mkdirSync(uploadsPath, { recursive: true });
+      }
+      const targetPath = path.join(uploadsPath, uniqueFilename);
+      fs.writeFileSync(targetPath, fileBuffer);
+
+      res.json({
+        success: true,
+        url: `/uploads/${uniqueFilename}`,
+        filename: uniqueFilename,
+        mimeType,
+        storage: 'local',
+      });
+      return;
+    } catch (diskErr: any) {
+      console.warn('Local disk write failed (e.g. read-only serverless):', diskErr.message);
+    }
+
+    // 3. Fallback: Return clean data URL only if storage and disk fail
     res.json({
       success: true,
       url: req.body.fileData,
       filename: req.body.filename,
       mimeType: req.body.mimeType,
+      storage: 'fallback_data_url',
     });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Image upload failed' });
   }
 });
 
@@ -451,61 +594,77 @@ app.get('/api/schema', (req: Request, res: Response) => {
 // 2. Categories API
 app.get('/api/categories', async (req: Request, res: Response) => {
   const supabase = getSupabase();
-  if (!supabase) {
-    res.status(503).json({ error: 'Supabase not configured' });
-    return;
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*')
+        .order('sort_order', { ascending: true });
+
+      if (!error && Array.isArray(data) && data.length > 0) {
+        const categories = data.map(fromCategoryRow);
+        saveLocalDb({ categories });
+        res.json(categories);
+        return;
+      }
+    } catch (err: any) {
+      console.warn('Supabase categories fetch failed, falling back to localDb:', err.message);
+    }
   }
 
-  const { data, error } = await supabase
-    .from('categories')
-    .select('*')
-    .order('sort_order', { ascending: true });
-
-  if (error) {
-    res.status(500).json({ error: error.message });
-    return;
-  }
-
-  res.json(data.map(fromCategoryRow));
+  // Fallback to local persistent storage
+  const localDb = getLocalDb();
+  res.json(localDb.categories || []);
 });
 
 app.post('/api/categories', async (req: Request, res: Response) => {
-  const supabase = getSupabase();
-  if (!supabase) {
-    res.status(503).json({ error: 'Supabase not configured' });
-    return;
-  }
-
   const category = req.body;
   const row = toCategoryRow(category);
 
-  const { data, error } = await supabase
-    .from('categories')
-    .upsert(row)
-    .select()
-    .single();
+  // Update local persistent storage immediately
+  const localDb = getLocalDb();
+  const existing = localDb.categories || [];
+  const updated = existing.some((c: any) => c.id === category.id)
+    ? existing.map((c: any) => (c.id === category.id ? category : c))
+    : [...existing, category];
+  saveLocalDb({ categories: updated });
 
-  if (error) {
-    res.status(500).json({ error: error.message });
-    return;
+  const supabase = getSupabase();
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('categories')
+        .upsert(row)
+        .select()
+        .single();
+
+      if (!error && data) {
+        res.json(fromCategoryRow(data));
+        return;
+      }
+    } catch (err: any) {
+      console.warn('Supabase category upsert failed, preserved in localDb:', err.message);
+    }
   }
 
-  res.json(fromCategoryRow(data));
+  res.json(category);
 });
 
 app.delete('/api/categories/:id', async (req: Request, res: Response) => {
-  const supabase = getSupabase();
-  if (!supabase) {
-    res.status(503).json({ error: 'Supabase not configured' });
-    return;
-  }
-
   const { id } = req.params;
-  const { error } = await supabase.from('categories').delete().eq('id', id);
 
-  if (error) {
-    res.status(500).json({ error: error.message });
-    return;
+  // Remove from local persistent storage
+  const localDb = getLocalDb();
+  const updated = (localDb.categories || []).filter((c: any) => c.id !== id);
+  saveLocalDb({ categories: updated });
+
+  const supabase = getSupabase();
+  if (supabase) {
+    try {
+      await supabase.from('categories').delete().eq('id', id);
+    } catch (err: any) {
+      console.warn('Supabase category delete failed:', err.message);
+    }
   }
 
   res.json({ success: true, id });
@@ -514,61 +673,76 @@ app.delete('/api/categories/:id', async (req: Request, res: Response) => {
 // 3. Products API
 app.get('/api/products', async (req: Request, res: Response) => {
   const supabase = getSupabase();
-  if (!supabase) {
-    res.status(503).json({ error: 'Supabase not configured' });
-    return;
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (!error && Array.isArray(data) && data.length > 0) {
+        const products = data.map(fromProductRow);
+        saveLocalDb({ products });
+        res.json(products);
+        return;
+      }
+    } catch (err: any) {
+      console.warn('Supabase products fetch failed, falling back to localDb:', err.message);
+    }
   }
 
-  const { data, error } = await supabase
-    .from('products')
-    .select('*')
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    res.status(500).json({ error: error.message });
-    return;
-  }
-
-  res.json(data.map(fromProductRow));
+  const localDb = getLocalDb();
+  res.json(localDb.products || []);
 });
 
 app.post('/api/products', async (req: Request, res: Response) => {
-  const supabase = getSupabase();
-  if (!supabase) {
-    res.status(503).json({ error: 'Supabase not configured' });
-    return;
-  }
-
   const product = req.body;
   const row = toProductRow(product);
 
-  const { data, error } = await supabase
-    .from('products')
-    .upsert(row)
-    .select()
-    .single();
+  // Update local persistent storage immediately
+  const localDb = getLocalDb();
+  const existing = localDb.products || [];
+  const updated = existing.some((p: any) => p.id === product.id)
+    ? existing.map((p: any) => (p.id === product.id ? product : p))
+    : [product, ...existing];
+  saveLocalDb({ products: updated });
 
-  if (error) {
-    res.status(500).json({ error: error.message });
-    return;
+  const supabase = getSupabase();
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .upsert(row)
+        .select()
+        .single();
+
+      if (!error && data) {
+        res.json(fromProductRow(data));
+        return;
+      }
+    } catch (err: any) {
+      console.warn('Supabase product upsert failed, preserved in localDb:', err.message);
+    }
   }
 
-  res.json(fromProductRow(data));
+  res.json(product);
 });
 
 app.delete('/api/products/:id', async (req: Request, res: Response) => {
-  const supabase = getSupabase();
-  if (!supabase) {
-    res.status(503).json({ error: 'Supabase not configured' });
-    return;
-  }
-
   const { id } = req.params;
-  const { error } = await supabase.from('products').delete().eq('id', id);
 
-  if (error) {
-    res.status(500).json({ error: error.message });
-    return;
+  // Remove from local persistent storage
+  const localDb = getLocalDb();
+  const updated = (localDb.products || []).filter((p: any) => p.id !== id);
+  saveLocalDb({ products: updated });
+
+  const supabase = getSupabase();
+  if (supabase) {
+    try {
+      await supabase.from('products').delete().eq('id', id);
+    } catch (err: any) {
+      console.warn('Supabase product delete failed:', err.message);
+    }
   }
 
   res.json({ success: true, id });
@@ -577,167 +751,536 @@ app.delete('/api/products/:id', async (req: Request, res: Response) => {
 // 4. Guides API
 app.get('/api/guides', async (req: Request, res: Response) => {
   const supabase = getSupabase();
-  if (!supabase) {
-    res.status(503).json({ error: 'Supabase not configured' });
-    return;
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('guides')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (!error && Array.isArray(data) && data.length > 0) {
+        const guides = data.map(fromGuideRow);
+        saveLocalDb({ guides });
+        res.json(guides);
+        return;
+      }
+    } catch (err: any) {
+      console.warn('Supabase guides fetch failed, falling back to localDb:', err.message);
+    }
   }
 
-  const { data, error } = await supabase
-    .from('guides')
-    .select('*')
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    res.status(500).json({ error: error.message });
-    return;
-  }
-
-  res.json(data.map(fromGuideRow));
+  const localDb = getLocalDb();
+  res.json(localDb.guides || []);
 });
 
 app.post('/api/guides', async (req: Request, res: Response) => {
-  const supabase = getSupabase();
-  if (!supabase) {
-    res.status(503).json({ error: 'Supabase not configured' });
-    return;
-  }
-
   const guide = req.body;
   const row = toGuideRow(guide);
 
-  const { data, error } = await supabase
-    .from('guides')
-    .upsert(row)
-    .select()
-    .single();
+  // Update local persistent storage immediately
+  const localDb = getLocalDb();
+  const existing = localDb.guides || [];
+  const updated = existing.some((g: any) => g.id === guide.id)
+    ? existing.map((g: any) => (g.id === guide.id ? guide : g))
+    : [guide, ...existing];
+  saveLocalDb({ guides: updated });
 
-  if (error) {
-    res.status(500).json({ error: error.message });
-    return;
+  const supabase = getSupabase();
+  if (supabase) {
+    try {
+      let { data, error } = await supabase
+        .from('guides')
+        .upsert(row)
+        .select()
+        .single();
+
+      if (error && error.message.includes('column')) {
+        // Fallback for pre-existing guides table without the new columns
+        const fallbackRow = { ...row };
+        delete (fallbackRow as any).layout_format;
+        delete (fallbackRow as any).show_content_images;
+        delete (fallbackRow as any).content;
+        delete (fallbackRow as any).hide_step_numbers;
+        const retry = await supabase.from('guides').upsert(fallbackRow).select().single();
+        if (!retry.error) {
+          data = retry.data;
+          error = null;
+        }
+      }
+
+      if (!error && data) {
+        res.json(fromGuideRow(data));
+        return;
+      }
+    } catch (err: any) {
+      console.warn('Supabase guide upsert failed, preserved in localDb:', err.message);
+    }
   }
 
-  res.json(fromGuideRow(data));
+  res.json(guide);
 });
 
 app.delete('/api/guides/:id', async (req: Request, res: Response) => {
-  const supabase = getSupabase();
-  if (!supabase) {
-    res.status(503).json({ error: 'Supabase not configured' });
-    return;
-  }
-
   const { id } = req.params;
-  const { error } = await supabase.from('guides').delete().eq('id', id);
 
-  if (error) {
-    res.status(500).json({ error: error.message });
-    return;
+  // Remove from local persistent storage
+  const localDb = getLocalDb();
+  const updated = (localDb.guides || []).filter((g: any) => g.id !== id);
+  saveLocalDb({ guides: updated });
+
+  const supabase = getSupabase();
+  if (supabase) {
+    try {
+      await supabase.from('guides').delete().eq('id', id);
+    } catch (err: any) {
+      console.warn('Supabase guide delete failed:', err.message);
+    }
   }
 
   res.json({ success: true, id });
 });
 
-// 5. Site Settings API
-app.get('/api/settings', async (req: Request, res: Response) => {
+// ==========================================
+// 4b. Targeted Article Blocks API (Zero-Payload Save Architecture)
+// ==========================================
+
+// Helper: Extract all article blocks from current guides in memory/db
+function extractArticleBlocksFromGuides(): any[] {
+  const localDb = getLocalDb();
+  const guides = localDb.guides && localDb.guides.length > 0 ? localDb.guides : [];
+  const blocks: any[] = [];
+
+  guides.forEach((g: any) => {
+    const rawSteps = Array.isArray(g.steps) ? g.steps.filter((s: any) => !s?.__guideMeta) : [];
+    rawSteps.forEach((st: any, idx: number) => {
+      const stepNumber = st.number || String(idx + 1).padStart(2, '0');
+      const blockId = st.id || `${g.id}-step-${stepNumber}`;
+      const img = st.image?.trim() || st.image_url?.trim() || '';
+      blocks.push({
+        id: blockId,
+        guide_id: g.id,
+        step_number: stepNumber,
+        title: st.title || '',
+        text: st.text || '',
+        image: img,
+        image_url: img,
+        caption: st.caption || st.title || '',
+        alt_text: st.title || '',
+        recommended_product_slug: st.recommendedProductSlug || st.recommended_product_slug || '',
+        sort_order: idx,
+      });
+    });
+  });
+
+  return blocks;
+}
+
+// GET all article blocks
+app.get('/api/article-blocks', async (req: Request, res: Response) => {
   const supabase = getSupabase();
-  if (!supabase) {
-    res.status(503).json({ error: 'Supabase not configured' });
-    return;
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('article_blocks')
+        .select('*')
+        .order('sort_order', { ascending: true });
+
+      if (!error && Array.isArray(data) && data.length > 0) {
+        res.json(data);
+        return;
+      }
+
+      // If table exists but has 0 rows, perform safe automatic backfill from existing guides
+      if (!error && Array.isArray(data) && data.length === 0) {
+        const backfillBlocks = extractArticleBlocksFromGuides();
+        if (backfillBlocks.length > 0) {
+          console.log(`[Auto-Backfill] Seeding ${backfillBlocks.length} records into public.article_blocks...`);
+          await supabase.from('article_blocks').upsert(backfillBlocks);
+          res.json(backfillBlocks);
+          return;
+        }
+      }
+    } catch (err: any) {
+      console.warn('Supabase article_blocks fetch failed, falling back to localDb:', err.message);
+    }
   }
 
-  const { data, error } = await supabase
-    .from('site_settings')
-    .select('*')
-    .eq('id', 1)
-    .maybeSingle();
-
-  if (error) {
-    res.status(500).json({ error: error.message });
-    return;
-  }
-
-  if (!data) {
-    res.json(null);
-    return;
-  }
-
-  res.json(fromSettingsRow(data));
+  // Fallback: return extracted blocks from local storage
+  res.json(extractArticleBlocksFromGuides());
 });
 
-app.post('/api/settings', async (req: Request, res: Response) => {
+// GET article blocks for a specific guide
+app.get('/api/article-blocks/:guideId', async (req: Request, res: Response) => {
+  const { guideId } = req.params;
   const supabase = getSupabase();
-  if (!supabase) {
-    res.status(503).json({ error: 'Supabase not configured' });
-    return;
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('article_blocks')
+        .select('*')
+        .eq('guide_id', guideId)
+        .order('sort_order', { ascending: true });
+
+      if (!error && Array.isArray(data) && data.length > 0) {
+        res.json(data);
+        return;
+      }
+    } catch (err: any) {
+      console.warn('Supabase guide blocks fetch error:', err.message);
+    }
   }
 
-  const settings = req.body;
-  const row = toSettingsRow(settings);
+  const all = extractArticleBlocksFromGuides();
+  const filtered = all.filter((b) => b.guide_id === guideId);
+  res.json(filtered);
+});
 
-  let { data, error } = await supabase
-    .from('site_settings')
-    .upsert(row)
-    .select()
-    .maybeSingle();
+// PATCH a single article block (Targeted Update: Updates ONLY image/text without rewriting entire guide or dataset)
+app.patch('/api/article-blocks/:id', async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const {
+    image_url,
+    image,
+    title,
+    text,
+    caption,
+    alt_text,
+    recommendedProductSlug,
+    recommended_product_slug,
+    step_number,
+    guide_id,
+  } = req.body;
 
-  if (error && error.message.includes('column')) {
-    console.warn('[Supabase Settings Column Missing] Falling back to core columns. Please run schema.sql in Supabase SQL Editor.', error.message);
-    // Fallback row with core columns if schema.sql migrations haven't been executed on Supabase yet
-    const fallbackRow = {
-      id: 1,
-      announcement_text: row.announcement_text,
-      announcement_enabled: row.announcement_enabled,
-      announcement_link: row.announcement_link,
-      hero_eyebrow: row.hero_eyebrow,
-      hero_headline1: row.hero_headline1,
-      hero_headline2: row.hero_headline2,
-      hero_subtext: row.hero_subtext,
-      support_email: row.support_email,
-      default_affiliate_sub_id: row.default_affiliate_sub_id,
-      admin_passcode: row.admin_passcode,
-    };
-    const fallbackResult = await supabase
-      .from('site_settings')
-      .upsert(fallbackRow)
-      .select()
-      .maybeSingle();
+  const newImageUrl = image_url !== undefined ? image_url : (image !== undefined ? image : undefined);
 
-    if (!fallbackResult.error) {
-      res.json({
-        ...fromSettingsRow(fallbackResult.data || fallbackRow),
-        heroImage: row.hero_image,
-        heroImageAlt: row.hero_image_alt,
-        heroBadgeEyebrow: row.hero_badge_eyebrow,
-        heroBadgeTitle: row.hero_badge_title,
-        heroBadgeStat: row.hero_badge_stat,
-        heroCtaPrimaryText: row.hero_cta_primary_text,
-        heroCtaPrimaryUrl: row.hero_cta_primary_url,
-        heroCtaSecondaryText: row.hero_cta_secondary_text,
-        heroCtaSecondaryUrl: row.hero_cta_secondary_url,
-      });
+  // 1. Update local database persistent cache
+  const localDb = getLocalDb();
+  let foundGuideId: string | null = guide_id || null;
+  let updatedBlockRecord: any = null;
+
+  if (localDb.guides && Array.isArray(localDb.guides)) {
+    localDb.guides = localDb.guides.map((g: any) => {
+      if (Array.isArray(g.steps)) {
+        let stepFound = false;
+        const newSteps = g.steps.map((st: any, idx: number) => {
+          const stepNumber = st.number || String(idx + 1).padStart(2, '0');
+          const candidateId = st.id || `${g.id}-step-${stepNumber}`;
+          if (candidateId === id || st.id === id) {
+            stepFound = true;
+            foundGuideId = g.id;
+            const updatedSt = {
+              ...st,
+              id: candidateId,
+              ...(newImageUrl !== undefined ? { image: newImageUrl, image_url: newImageUrl } : {}),
+              ...(title !== undefined ? { title } : {}),
+              ...(text !== undefined ? { text } : {}),
+              ...(caption !== undefined ? { caption } : {}),
+              ...(recommendedProductSlug !== undefined ? { recommendedProductSlug } : {}),
+              ...(recommended_product_slug !== undefined ? { recommendedProductSlug: recommended_product_slug } : {}),
+            };
+            updatedBlockRecord = {
+              id: candidateId,
+              guide_id: g.id,
+              step_number: stepNumber,
+              ...updatedSt,
+            };
+            return updatedSt;
+          }
+          return st;
+        });
+        if (stepFound) {
+          return { ...g, steps: newSteps };
+        }
+      }
+      return g;
+    });
+    saveLocalDb({ guides: localDb.guides });
+  }
+
+  // 2. Targeted update in Supabase public.article_blocks
+  const supabase = getSupabase();
+  let supabaseResult: any = null;
+  let supabaseError: any = null;
+
+  if (supabase) {
+    try {
+      const updateData: Record<string, any> = {};
+      if (newImageUrl !== undefined) {
+        updateData.image_url = newImageUrl;
+        updateData.image = newImageUrl;
+      }
+      if (title !== undefined) updateData.title = title;
+      if (text !== undefined) updateData.text = text;
+      if (caption !== undefined) updateData.caption = caption;
+      if (alt_text !== undefined) updateData.alt_text = alt_text;
+      if (recommendedProductSlug !== undefined) updateData.recommended_product_slug = recommendedProductSlug;
+      if (recommended_product_slug !== undefined) updateData.recommended_product_slug = recommended_product_slug;
+      if (step_number !== undefined) updateData.step_number = step_number;
+
+      // Update targeted article_blocks row
+      const { data, error } = await supabase
+        .from('article_blocks')
+        .update(updateData)
+        .eq('id', id)
+        .select()
+        .maybeSingle();
+
+      if (error) {
+        supabaseError = error.message;
+        console.warn('Supabase article_blocks targeted update failed:', error.message);
+      } else {
+        supabaseResult = data;
+      }
+
+      // Also sync step update to guides table if guide was matched
+      if (foundGuideId) {
+        const guideRow = localDb.guides.find((g: any) => g.id === foundGuideId);
+        if (guideRow) {
+          const row = toGuideRow(guideRow);
+          await supabase.from('guides').update({ steps: row.steps }).eq('id', foundGuideId);
+        }
+      }
+    } catch (err: any) {
+      supabaseError = err.message;
+      console.warn('Supabase article_blocks patch error:', err.message);
+    }
+  }
+
+  res.json({
+    success: true,
+    id,
+    block: supabaseResult || updatedBlockRecord || { id, image_url: newImageUrl },
+    supabaseUpdated: Boolean(supabaseResult),
+    error: supabaseError || undefined,
+  });
+});
+
+// Explicit backfill endpoint
+app.post('/api/article-blocks/backfill', async (req: Request, res: Response) => {
+  const supabase = getSupabase();
+  const blocks = extractArticleBlocksFromGuides();
+
+  if (supabase) {
+    try {
+      const { error } = await supabase.from('article_blocks').upsert(blocks);
+      if (error) {
+        res.status(500).json({ error: error.message });
+        return;
+      }
+      res.json({ success: true, count: blocks.length, message: `Berhasil backfill ${blocks.length} blok artikel ke Supabase!` });
+      return;
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
       return;
     }
   }
 
-  if (error) {
-    res.status(500).json({ error: error.message });
-    return;
-  }
-
-  res.json(fromSettingsRow(data || row));
+  res.json({ success: true, count: blocks.length, message: 'Backfill tersimpan di localDb.' });
 });
 
-// 6. Bulk Sync / Seed API (Pushes existing data to Supabase)
-app.post('/api/sync-seed', async (req: Request, res: Response) => {
+// Targeted PUT for single guide
+app.put('/api/guides/:id', async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const guide = { ...req.body, id };
+  const row = toGuideRow(guide);
+
+  const localDb = getLocalDb();
+  const existing = localDb.guides || [];
+  const updated = existing.some((g: any) => g.id === id)
+    ? existing.map((g: any) => (g.id === id ? guide : g))
+    : [...existing, guide];
+  saveLocalDb({ guides: updated });
+
   const supabase = getSupabase();
-  if (!supabase) {
-    res.status(503).json({ error: 'Supabase not configured' });
-    return;
+  if (supabase) {
+    try {
+      const { data, error } = await supabase.from('guides').upsert(row).select().maybeSingle();
+      if (!error && data) {
+        res.json(fromGuideRow(data));
+        return;
+      }
+    } catch (err: any) {
+      console.warn('Supabase targeted guide update failed:', err.message);
+    }
   }
 
+  res.json(guide);
+});
+
+// Targeted PUT for single product
+app.put('/api/products/:id', async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const product = { ...req.body, id };
+  const row = toProductRow(product);
+
+  const localDb = getLocalDb();
+  const existing = localDb.products || [];
+  const updated = existing.some((p: any) => p.id === id)
+    ? existing.map((p: any) => (p.id === id ? product : p))
+    : [...existing, product];
+  saveLocalDb({ products: updated });
+
+  const supabase = getSupabase();
+  if (supabase) {
+    try {
+      const { data, error } = await supabase.from('products').upsert(row).select().maybeSingle();
+      if (!error && data) {
+        res.json(fromProductRow(data));
+        return;
+      }
+    } catch (err: any) {
+      console.warn('Supabase targeted product update failed:', err.message);
+    }
+  }
+
+  res.json(product);
+});
+
+// Targeted PUT for single category
+app.put('/api/categories/:id', async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const cat = { ...req.body, id };
+  const row = toCategoryRow(cat);
+
+  const localDb = getLocalDb();
+  const existing = localDb.categories || [];
+  const updated = existing.some((c: any) => c.id === id)
+    ? existing.map((c: any) => (c.id === id ? cat : c))
+    : [...existing, cat];
+  saveLocalDb({ categories: updated });
+
+  const supabase = getSupabase();
+  if (supabase) {
+    try {
+      const { data, error } = await supabase.from('categories').upsert(row).select().maybeSingle();
+      if (!error && data) {
+        res.json(fromCategoryRow(data));
+        return;
+      }
+    } catch (err: any) {
+      console.warn('Supabase targeted category update failed:', err.message);
+    }
+  }
+
+  res.json(cat);
+});
+
+// 5. Site Settings API
+app.get('/api/settings', async (req: Request, res: Response) => {
+  const supabase = getSupabase();
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('site_settings')
+        .select('*')
+        .eq('id', 1)
+        .maybeSingle();
+
+      if (!error && data) {
+        const settings = fromSettingsRow(data);
+        saveLocalDb({ settings });
+        res.json(settings);
+        return;
+      }
+    } catch (err: any) {
+      console.warn('Supabase settings fetch failed, falling back to localDb:', err.message);
+    }
+  }
+
+  const localDb = getLocalDb();
+  res.json(localDb.settings || null);
+});
+
+app.post('/api/settings', async (req: Request, res: Response) => {
+  const settings = req.body;
+  const row = toSettingsRow(settings);
+
+  // Update local persistent storage immediately
+  saveLocalDb({ settings });
+
+  const supabase = getSupabase();
+  if (supabase) {
+    try {
+      let { data, error } = await supabase
+        .from('site_settings')
+        .upsert(row)
+        .select()
+        .maybeSingle();
+
+      if (error && error.message.includes('column')) {
+        console.warn('[Supabase Settings Column Missing] Falling back to core columns.');
+        const fallbackRow = {
+          id: 1,
+          announcement_text: row.announcement_text,
+          announcement_enabled: row.announcement_enabled,
+          announcement_link: row.announcement_link,
+          hero_eyebrow: row.hero_eyebrow,
+          hero_headline1: row.hero_headline1,
+          hero_headline2: row.hero_headline2,
+          hero_subtext: row.hero_subtext,
+          support_email: row.support_email,
+          default_affiliate_sub_id: row.default_affiliate_sub_id,
+          admin_passcode: row.admin_passcode,
+        };
+        const fallbackResult = await supabase
+          .from('site_settings')
+          .upsert(fallbackRow)
+          .select()
+          .maybeSingle();
+
+        if (!fallbackResult.error) {
+          res.json({
+            ...fromSettingsRow(fallbackResult.data || fallbackRow),
+            heroImage: row.hero_image,
+            heroImageAlt: row.hero_image_alt,
+            heroBadgeEyebrow: row.hero_badge_eyebrow,
+            heroBadgeTitle: row.hero_badge_title,
+            heroBadgeStat: row.hero_badge_stat,
+            heroCtaPrimaryText: row.hero_cta_primary_text,
+            heroCtaPrimaryUrl: row.hero_cta_primary_url,
+            heroCtaSecondaryText: row.hero_cta_secondary_text,
+            heroCtaSecondaryUrl: row.hero_cta_secondary_url,
+          });
+          return;
+        }
+      }
+
+      if (!error && (data || row)) {
+        res.json(fromSettingsRow(data || row));
+        return;
+      }
+    } catch (err: any) {
+      console.warn('Supabase settings upsert failed, preserved in localDb:', err.message);
+    }
+  }
+
+  res.json(settings);
+});
+
+// 6. Bulk Sync / Seed API (Pushes existing data to Supabase and persists locally)
+app.post('/api/sync-seed', async (req: Request, res: Response) => {
   try {
     const { categories = [], products = [], guides = [], settings } = req.body;
-    const results: Record<string, any> = {};
+    const partial: any = {};
+    if (categories.length > 0) partial.categories = categories;
+    if (products.length > 0) partial.products = products;
+    if (guides.length > 0) partial.guides = guides;
+    if (settings) partial.settings = settings;
+
+    // Always persist to local server database first!
+    saveLocalDb(partial);
+
+    const supabase = getSupabase();
+    if (!supabase) {
+      res.json({
+        success: true,
+        message: 'Data berhasil disimpan aman di server (penyimpanan lokal aktif).',
+        results: { localDb: true },
+      });
+      return;
+    }
+
+    const results: Record<string, any> = { localDb: true };
 
     // 1. Categories
     if (categories.length > 0) {
@@ -756,14 +1299,43 @@ app.post('/api/sync-seed', async (req: Request, res: Response) => {
     // 3. Guides
     if (guides.length > 0) {
       const guideRows = guides.map(toGuideRow);
-      const { error: guideErr } = await supabase.from('guides').upsert(guideRows);
+      let { error: guideErr } = await supabase.from('guides').upsert(guideRows);
+      if (guideErr && guideErr.message.includes('column')) {
+        const fallbackGuideRows = guideRows.map((r: any) => {
+          const fb = { ...r };
+          delete fb.layout_format;
+          delete fb.show_content_images;
+          delete fb.content;
+          delete fb.hide_step_numbers;
+          return fb;
+        });
+        const retry = await supabase.from('guides').upsert(fallbackGuideRows);
+        guideErr = retry.error;
+      }
       results.guides = guideErr ? `Error: ${guideErr.message}` : `Synced ${guideRows.length} guides`;
     }
 
     // 4. Settings
     if (settings) {
       const settRow = toSettingsRow(settings);
-      const { error: settErr } = await supabase.from('site_settings').upsert(settRow);
+      let { error: settErr } = await supabase.from('site_settings').upsert(settRow);
+      if (settErr && settErr.message.includes('column')) {
+        const fallbackSettRow = {
+          id: 1,
+          announcement_text: settRow.announcement_text,
+          announcement_enabled: settRow.announcement_enabled,
+          announcement_link: settRow.announcement_link,
+          hero_eyebrow: settRow.hero_eyebrow,
+          hero_headline1: settRow.hero_headline1,
+          hero_headline2: settRow.hero_headline2,
+          hero_subtext: settRow.hero_subtext,
+          support_email: settRow.support_email,
+          default_affiliate_sub_id: settRow.default_affiliate_sub_id,
+          admin_passcode: settRow.admin_passcode,
+        };
+        const retry = await supabase.from('site_settings').upsert(fallbackSettRow);
+        settErr = retry.error;
+      }
       results.settings = settErr ? `Error: ${settErr.message}` : 'Synced site settings';
     }
 

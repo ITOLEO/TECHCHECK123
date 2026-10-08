@@ -83,9 +83,19 @@ CREATE TABLE IF NOT EXISTS guides (
     steps JSONB DEFAULT '[]'::jsonb,
     callout TEXT,
     summary TEXT,
+    layout_format VARCHAR(50) DEFAULT 'steps',
+    show_content_images BOOLEAN DEFAULT TRUE,
+    content TEXT DEFAULT '',
+    hide_step_numbers BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Migrations for pre-existing guides table (safe to run multiple times)
+ALTER TABLE guides ADD COLUMN IF NOT EXISTS layout_format VARCHAR(50) DEFAULT 'steps';
+ALTER TABLE guides ADD COLUMN IF NOT EXISTS show_content_images BOOLEAN DEFAULT TRUE;
+ALTER TABLE guides ADD COLUMN IF NOT EXISTS content TEXT DEFAULT '';
+ALTER TABLE guides ADD COLUMN IF NOT EXISTS hide_step_numbers BOOLEAN DEFAULT FALSE;
 
 CREATE INDEX IF NOT EXISTS idx_guides_slug ON guides(slug);
 CREATE INDEX IF NOT EXISTS idx_guides_category ON guides(category);
@@ -109,6 +119,38 @@ CREATE TABLE IF NOT EXISTS guide_steps (
 
 CREATE INDEX IF NOT EXISTS idx_guide_steps_guide_id ON guide_steps(guide_id);
 CREATE INDEX IF NOT EXISTS idx_guide_steps_sort_order ON guide_steps(guide_id, sort_order);
+
+-- ==============================================================================
+-- Table: article_blocks
+-- Stores granular content blocks / steps for editorial guides
+-- Supports targeted block-level updates (image, text, caption) without rewriting articles
+-- ==============================================================================
+CREATE TABLE IF NOT EXISTS article_blocks (
+    id VARCHAR(64) PRIMARY KEY,
+    guide_id VARCHAR(64) NOT NULL REFERENCES guides(id) ON DELETE CASCADE,
+    step_number VARCHAR(20) DEFAULT '01',
+    title VARCHAR(255) DEFAULT '',
+    text TEXT DEFAULT '',
+    image TEXT DEFAULT '',
+    image_url TEXT DEFAULT '',
+    caption TEXT DEFAULT '',
+    alt_text TEXT DEFAULT '',
+    recommended_product_slug VARCHAR(255) DEFAULT '',
+    sort_order INT DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Migrations for article_blocks (safe re-run)
+ALTER TABLE article_blocks ADD COLUMN IF NOT EXISTS image TEXT DEFAULT '';
+ALTER TABLE article_blocks ADD COLUMN IF NOT EXISTS image_url TEXT DEFAULT '';
+ALTER TABLE article_blocks ADD COLUMN IF NOT EXISTS caption TEXT DEFAULT '';
+ALTER TABLE article_blocks ADD COLUMN IF NOT EXISTS alt_text TEXT DEFAULT '';
+ALTER TABLE article_blocks ADD COLUMN IF NOT EXISTS recommended_product_slug VARCHAR(255) DEFAULT '';
+ALTER TABLE article_blocks ADD COLUMN IF NOT EXISTS sort_order INT DEFAULT 0;
+
+CREATE INDEX IF NOT EXISTS idx_article_blocks_guide_id ON article_blocks(guide_id);
+CREATE INDEX IF NOT EXISTS idx_article_blocks_sort_order ON article_blocks(guide_id, sort_order);
 
 -- ==============================================================================
 -- Table: site_settings (Singleton row)
@@ -225,6 +267,11 @@ CREATE TRIGGER set_timestamp_site_settings
 BEFORE UPDATE ON site_settings
 FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
 
+DROP TRIGGER IF EXISTS set_timestamp_article_blocks ON article_blocks;
+CREATE TRIGGER set_timestamp_article_blocks
+BEFORE UPDATE ON article_blocks
+FOR EACH ROW EXECUTE PROCEDURE trigger_set_timestamp();
+
 -- ==============================================================================
 -- ROW LEVEL SECURITY (RLS) & ACCESS POLICIES (Supabase PostgREST)
 -- ==============================================================================
@@ -232,6 +279,7 @@ ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE guides ENABLE ROW LEVEL SECURITY;
 ALTER TABLE site_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE article_blocks ENABLE ROW LEVEL SECURITY;
 
 -- Drop old policies if they exist (safe re-run)
 DROP POLICY IF EXISTS "Allow public read categories" ON categories;
@@ -242,21 +290,50 @@ DROP POLICY IF EXISTS "Allow public read guides" ON guides;
 DROP POLICY IF EXISTS "Allow full access guides" ON guides;
 DROP POLICY IF EXISTS "Allow public read site_settings" ON site_settings;
 DROP POLICY IF EXISTS "Allow full access site_settings" ON site_settings;
+DROP POLICY IF EXISTS "Allow public read article_blocks" ON article_blocks;
+DROP POLICY IF EXISTS "Allow full access article_blocks" ON article_blocks;
 
--- Public read policies (anyone can read catalog, guides, categories, settings)
+-- Public read policies (anyone can read catalog, guides, categories, settings, article_blocks)
 CREATE POLICY "Allow public read categories" ON categories FOR SELECT USING (true);
 CREATE POLICY "Allow public read products" ON products FOR SELECT USING (true);
 CREATE POLICY "Allow public read guides" ON guides FOR SELECT USING (true);
 CREATE POLICY "Allow public read site_settings" ON site_settings FOR SELECT USING (true);
+CREATE POLICY "Allow public read article_blocks" ON article_blocks FOR SELECT USING (true);
 
 -- Full access policies for data synchronization and admin operations
 CREATE POLICY "Allow full access categories" ON categories FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow full access products" ON products FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow full access guides" ON guides FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow full access site_settings" ON site_settings FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow full access article_blocks" ON article_blocks FOR ALL USING (true) WITH CHECK (true);
 
 -- Explicitly grant permissions to anon, authenticated, and service_role
 GRANT ALL ON TABLE categories TO anon, authenticated, service_role;
 GRANT ALL ON TABLE products TO anon, authenticated, service_role;
 GRANT ALL ON TABLE guides TO anon, authenticated, service_role;
 GRANT ALL ON TABLE site_settings TO anon, authenticated, service_role;
+GRANT ALL ON TABLE article_blocks TO anon, authenticated, service_role;
+
+-- ==============================================================================
+-- SUPABASE STORAGE BUCKET: techcheck-images (For High-Efficiency CDN Image Storage)
+-- ==============================================================================
+-- Run these lines in Supabase SQL editor to enable the public image bucket:
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('techcheck-images', 'techcheck-images', true)
+ON CONFLICT (id) DO UPDATE SET public = true;
+
+DROP POLICY IF EXISTS "Public Read techcheck-images" ON storage.objects;
+CREATE POLICY "Public Read techcheck-images"
+ON storage.objects FOR SELECT
+USING (bucket_id = 'techcheck-images');
+
+DROP POLICY IF EXISTS "Public Insert techcheck-images" ON storage.objects;
+CREATE POLICY "Public Insert techcheck-images"
+ON storage.objects FOR INSERT
+WITH CHECK (bucket_id = 'techcheck-images');
+
+DROP POLICY IF EXISTS "Public Update techcheck-images" ON storage.objects;
+CREATE POLICY "Public Update techcheck-images"
+ON storage.objects FOR UPDATE
+USING (bucket_id = 'techcheck-images');
+
