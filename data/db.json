@@ -110,6 +110,29 @@
   ],
   "guides": [
     {
+      "id": "guide-1791525231853",
+      "slug": "tiny-room-big-setup-how-to-fit-a-full-gaming-station-in-an-hdb-bedroom",
+      "title": "Tiny Room, Big Setup: How to Fit a Full Gaming Station in an HDB Bedroom",
+      "category": "Setup Advice",
+      "readTime": "6 min read",
+      "publishDate": "Oct 9, 2026",
+      "excerpt": "A small HDB bedroom can still support a comfortable gaming station. Measure your room, choose a layout that fits, organise cables, and prioritise airflow and comfortable seating. The goal is not to fit the most equipment into the smallest space. It is to build a gaming setup that works without making your bedroom feel crowded.",
+      "image": "/hero-setup.jpg",
+      "featured": false,
+      "layoutFormat": "document",
+      "showContentImages": true,
+      "author": {
+        "name": "TechCheck Editorial Team",
+        "role": "Setup Specialist",
+        "avatar": "/acer-nitro.png"
+      },
+      "intro": "A small HDB bedroom can still support a comfortable gaming station. Measure your room, choose a layout that fits, organise cables, and prioritise airflow and comfortable seating. The goal is not to fit the most equipment into the smallest space. It is to build a gaming setup that works without making your bedroom feel crowded.",
+      "content": "A small HDB bedroom can still support a comfortable gaming station. Measure your room, choose a layout that fits, organise cables, and prioritise airflow and comfortable seating. The goal is not to fit the most equipment into the smallest space. It is to build a gaming setup that works without making your bedroom feel crowded.\n\n## 1. Room Dimension & Spatial Planning\nBefore purchasing any new furniture or hardware, measure your exact usable wall space and doorway swing radius. A standard 100cm to 120cm desk provides ample room for a 27-inch display and keyboard without choking the room flow.\n\n## 2. Elevate Equipment Vertically\nUse heavy-duty C-clamp monitor arms to lift monitors off the desk. Mount your power extension cords and PC cables underneath the desk using wire management trays.\n\n## 3. Airflow & Acoustic Control\nIn compact bedrooms, gaming PCs generate heat quickly. Position your tower off the carpeted floor using an elevated cart or clamp to allow clear intake and exhaust airflow.",
+      "steps": [],
+      "callout": "Spatial Tip: In an HDB bedroom, every centimeter of floor space matters. Using vertical clamp arms frees up 60% of surface area.",
+      "summary": "A compact room does not restrict you to compromises. With smart vertical storage and clean cable management, your HDB setup will look and feel twice as large."
+    },
+    {
       "id": "guide-100cm-desk-optimization",
       "slug": "how-to-optimize-a-100cm-small-gaming-desk",
       "title": "How to Build a High-Performance Gaming Setup on a 100cm Desk",
@@ -168,24 +191,7 @@
     }
   ],
   "settings": {
-    "announcementText": "🔥 Update: Rekomendasi Monitor & Aksesoris Compact Setup Terbaru Sudah Tersedia!",
-    "announcementEnabled": false,
-    "announcementLink": "",
-    "heroEyebrow": "SMART TECH FOR BETTER SETUPS",
-    "heroHeadline1": "Better Gear.",
-    "heroHeadline2": "Smarter Spaces.",
-    "heroSubtext": "Discover space-saving tech and accessories that help you build a cleaner, more functional gaming setup — without the clutter.",
-    "heroImage": "/hero-setup.jpg",
-    "heroImageAlt": "Compact Gaming Setup",
-    "heroBadgeEyebrow": "SETUP ARCHITECTURE 2026",
-    "heroBadgeTitle": "100cm Compact Studio Desk",
-    "heroBadgeStat": "45% Surface Cleared",
-    "heroCtaPrimaryText": "Explore Products",
-    "heroCtaPrimaryUrl": "recommendations",
-    "heroCtaSecondaryText": "Read Our Guides",
-    "heroCtaSecondaryUrl": "guides",
-    "supportEmail": "itleo4444@gmail.com",
-    "defaultAffiliateSubId": "14139310000",
-    "adminPasscode": "654321"
+    "announcementText": "Sync Test",
+    "heroImage": "/acer-nitro.png"
   }
 }

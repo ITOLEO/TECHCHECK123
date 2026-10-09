@@ -192,4 +192,36 @@ For setups under 120cm, a screenbar is objectively superior in spatial efficienc
     callout: 'Space Comparison: A typical architect desk lamp base covers approximately 300cm² of desktop area. A monitor light bar covers exactly 0cm².',
     summary: 'For desks under 120cm, a monitor screenbar is unquestionably the superior choice for eye comfort, clean aesthetics, and space preservation.',
   },
+  {
+    id: 'guide-1791525231853',
+    slug: 'tiny-room-big-setup-how-to-fit-a-full-gaming-station-in-an-hdb-bedroom',
+    title: 'Tiny Room, Big Setup: How to Fit a Full Gaming Station in an HDB Bedroom',
+    category: 'Setup Advice',
+    readTime: '6 min read',
+    publishDate: 'Oct 9, 2026',
+    excerpt: 'A small HDB bedroom can still support a comfortable gaming station. Measure your room, choose a layout that fits, organise cables, and prioritise airflow and comfortable seating. The goal is not to fit the most equipment into the smallest space. It is to build a gaming setup that works without making your bedroom feel crowded.',
+    image: '/hero-setup.jpg',
+    featured: false,
+    layoutFormat: 'document',
+    showContentImages: true,
+    author: {
+      name: 'TechCheck Editorial Team',
+      role: 'Setup Specialist',
+      avatar: '/acer-nitro.png',
+    },
+    intro: 'A small HDB bedroom can still support a comfortable gaming station. Measure your room, choose a layout that fits, organise cables, and prioritise airflow and comfortable seating. The goal is not to fit the most equipment into the smallest space. It is to build a gaming setup that works without making your bedroom feel crowded.',
+    content: `A small HDB bedroom can still support a comfortable gaming station. Measure your room, choose a layout that fits, organise cables, and prioritise airflow and comfortable seating. The goal is not to fit the most equipment into the smallest space. It is to build a gaming setup that works without making your bedroom feel crowded.
+
+## 1. Room Dimension & Spatial Planning
+Before purchasing any new furniture or hardware, measure your exact usable wall space and doorway swing radius. A standard 100cm to 120cm desk provides ample room for a 27-inch display and keyboard without choking the room flow.
+
+## 2. Elevate Equipment Vertically
+Use heavy-duty C-clamp monitor arms to lift monitors off the desk. Mount your power extension cords and PC cables underneath the desk using wire management trays.
+
+## 3. Airflow & Acoustic Control
+In compact bedrooms, gaming PCs generate heat quickly. Position your tower off the carpeted floor using an elevated cart or clamp to allow clear intake and exhaust airflow.`,
+    steps: [],
+    callout: 'Spatial Tip: In an HDB bedroom, every centimeter of floor space matters. Using vertical clamp arms frees up 60% of surface area.',
+    summary: 'A compact room does not restrict you to compromises. With smart vertical storage and clean cable management, your HDB setup will look and feel twice as large.',
+  },
 ];

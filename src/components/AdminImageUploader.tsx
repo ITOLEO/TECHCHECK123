@@ -167,60 +167,107 @@ export const AdminImageUploader: React.FC<AdminImageUploaderProps> = ({
 
     setIsUploading(true);
 
-    const reader = new FileReader();
-    reader.onerror = () => {
-      setErrorMessage('Failed to read file from computer.');
-      setIsUploading(false);
-    };
+    // Update meta immediately
+    setMetaInfo({
+      filename: file.name,
+      format,
+      size: sizeFormatted,
+    });
 
-    reader.onload = async () => {
-      const dataUrl = reader.result as string;
+    try {
+      // Client-side image optimization to prevent HTTP/2 ping failure and connection drops
+      const compressImage = async (inputFile: File): Promise<{ dataUrl: string; mimeType: string }> => {
+        if (inputFile.type === 'image/svg+xml' || inputFile.type === 'image/gif') {
+          return new Promise((resolve, reject) => {
+            const r = new FileReader();
+            r.onload = () => resolve({ dataUrl: r.result as string, mimeType: inputFile.type });
+            r.onerror = reject;
+            r.readAsDataURL(inputFile);
+          });
+        }
 
-      // Update meta immediately
-      setMetaInfo({
-        filename: file.name,
-        format,
-        size: sizeFormatted,
-      });
+        return new Promise((resolve) => {
+          const r = new FileReader();
+          r.onload = () => {
+            const img = new Image();
+            img.onload = () => {
+              const MAX_DIM = 1920;
+              let width = img.width;
+              let height = img.height;
+              if (width > MAX_DIM || height > MAX_DIM) {
+                if (width > height) {
+                  height = Math.round((height * MAX_DIM) / width);
+                  width = MAX_DIM;
+                } else {
+                  width = Math.round((width * MAX_DIM) / height);
+                  height = MAX_DIM;
+                }
+              }
+              const canvas = document.createElement('canvas');
+              canvas.width = width;
+              canvas.height = height;
+              const ctx = canvas.getContext('2d');
+              if (ctx) {
+                ctx.drawImage(img, 0, 0, width, height);
+                const compressed = canvas.toDataURL('image/jpeg', 0.86);
+                resolve({ dataUrl: compressed, mimeType: 'image/jpeg' });
+                return;
+              }
+              resolve({ dataUrl: r.result as string, mimeType: inputFile.type || 'image/jpeg' });
+            };
+            img.onerror = () => {
+              resolve({ dataUrl: r.result as string, mimeType: inputFile.type || 'image/jpeg' });
+            };
+            img.src = r.result as string;
+          };
+          r.onerror = () => {
+            resolve({ dataUrl: '', mimeType: inputFile.type || 'image/jpeg' });
+          };
+          r.readAsDataURL(inputFile);
+        });
+      };
+
+      const { dataUrl, mimeType } = await compressImage(file);
+      if (!dataUrl) {
+        setErrorMessage('Failed to read file from computer.');
+        setIsUploading(false);
+        return;
+      }
 
       // Attempt server-side upload to Supabase Storage or /uploads
-      try {
-        const res = await fetch('/api/upload', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            filename: file.name,
-            fileData: dataUrl,
-            mimeType: file.type || 'image/jpeg',
-          }),
-        });
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          filename: file.name,
+          fileData: dataUrl,
+          mimeType: mimeType || file.type || 'image/jpeg',
+        }),
+      });
 
-        if (res.ok) {
-          const json = await res.json();
-          if (json.url) {
-            // Set the clean CDN or persistent URL returned by storage
-            onChange(json.url);
-            setMetaInfo((prev) => ({
-              ...prev,
-              filename: json.filename || file.name,
-            }));
-            setErrorMessage(null);
-          } else {
-            setErrorMessage('Server tidak mengembalikan URL penyimpanan yang valid.');
-          }
+      if (res.ok) {
+        const json = await res.json();
+        if (json.url) {
+          // Set the clean CDN or persistent URL returned by storage
+          onChange(json.url);
+          setMetaInfo((prev) => ({
+            ...prev,
+            filename: json.filename || file.name,
+          }));
+          setErrorMessage(null);
         } else {
-          const errJson = await res.json().catch(() => ({}));
-          setErrorMessage(errJson.error || `Upload gambar gagal (HTTP ${res.status}). Gambar sebelumnya tetap aman.`);
+          setErrorMessage('Server tidak mengembalikan URL penyimpanan yang valid.');
         }
-      } catch (uploadErr: any) {
-        console.warn('Backend upload failed:', uploadErr);
-        setErrorMessage(`Gagal menghubungi server upload: ${uploadErr.message || uploadErr}. Gambar sebelumnya dipertahankan.`);
-      } finally {
-        setIsUploading(false);
+      } else {
+        const errJson = await res.json().catch(() => ({}));
+        setErrorMessage(errJson.error || `Upload gambar gagal (HTTP ${res.status}). Gambar sebelumnya tetap aman.`);
       }
-    };
-
-    reader.readAsDataURL(file);
+    } catch (uploadErr: any) {
+      console.warn('Backend upload failed:', uploadErr);
+      setErrorMessage(`Gagal menghubungi server upload: ${uploadErr.message || uploadErr}. Gambar sebelumnya dipertahankan.`);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

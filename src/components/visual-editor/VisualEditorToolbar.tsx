@@ -75,12 +75,12 @@ export const VisualEditorToolbar: React.FC<VisualEditorToolbarProps> = ({
             {hasUnsavedChanges ? (
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-                <span>{changesCount} Perubahan Draft</span>
+                <span>{changesCount} Draft Tersimpan (Klik Publish untuk Live)</span>
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-semibold text-neutral-400">
-                <CheckCircle2 className="w-3.5 h-3.5 text-[#FF6B00]" />
-                <span>Semua tersimpan</span>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                <span>100% Aktif di Live Website</span>
               </span>
             )}
           </div>
@@ -183,10 +183,14 @@ export const VisualEditorToolbar: React.FC<VisualEditorToolbarProps> = ({
           <button
             type="button"
             onClick={onOpenPublishModal}
-            className="px-3.5 py-1.5 text-xs font-bold text-white bg-[#FF6B00] hover:bg-[#E05E00] rounded-lg shadow-sm hover:shadow transition-all flex items-center gap-1.5 cursor-pointer"
+            className={`px-3.5 py-1.5 text-xs font-bold text-white rounded-lg shadow-sm hover:shadow transition-all flex items-center gap-1.5 cursor-pointer ${
+              hasUnsavedChanges
+                ? 'bg-[#FF6B00] hover:bg-[#E05E00] ring-2 ring-orange-500/50'
+                : 'bg-emerald-600 hover:bg-emerald-700'
+            }`}
           >
             <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>Publish</span>
+            <span>{hasUnsavedChanges ? 'Publish ke Live' : 'Sudah Live'}</span>
           </button>
 
           <div className="w-px h-4 bg-neutral-800 mx-1 hidden sm:block" />

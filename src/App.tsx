@@ -229,7 +229,20 @@ const AppContent: React.FC<AppContentProps> = ({
           )}
 
           {currentRoute.page === 'guide-detail' && (() => {
-            const guide = effectiveGuides.find((g) => g.slug === currentRoute.slug);
+            const rawSlug = currentRoute.slug || '';
+            const cleanSlug = decodeURIComponent(rawSlug).trim().toLowerCase();
+            const guide = effectiveGuides.find((g) => {
+              const gSlug = (g.slug || '').toLowerCase();
+              const gId = (g.id || '').toLowerCase();
+              const gTitleSlug = (g.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-');
+              return (
+                gSlug === cleanSlug ||
+                gId === cleanSlug ||
+                gTitleSlug === cleanSlug ||
+                cleanSlug.includes(gSlug) ||
+                gSlug.includes(cleanSlug)
+              );
+            });
             return (
               <GuideDetailPage
                 guide={guide}

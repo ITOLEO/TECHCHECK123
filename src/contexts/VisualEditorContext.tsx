@@ -411,36 +411,27 @@ export const VisualEditorProvider: React.FC<VisualEditorProviderProps> = ({
         newValue: changesSummary.join(', '),
       });
 
-      // 4. Remote targeted sync to backend/Supabase database
+      // 4. Remote atomic sync to backend/Supabase database (Single request to prevent HTTP/2 ping failure and connection drops)
       try {
-        await Promise.allSettled([
-          fetch('/api/settings', {
+        const syncRes = await fetch('/api/sync-seed', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            settings: draftSettings,
+            guides: draftGuides,
+            products: draftProducts,
+            categories: draftCategories,
+          }),
+        });
+
+        if (!syncRes.ok) {
+          // Graceful fallback to single settings endpoint if bulk fails
+          await fetch('/api/settings', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(draftSettings),
-          }),
-          ...draftGuides.map((g) =>
-            fetch('/api/guides', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(g),
-            })
-          ),
-          ...draftProducts.map((p) =>
-            fetch('/api/products', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(p),
-            })
-          ),
-          ...draftCategories.map((c) =>
-            fetch('/api/categories', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(c),
-            })
-          ),
-        ]);
+          }).catch(() => {});
+        }
       } catch (err) {
         console.warn('Sync to backend skipped/failed (saved locally):', err);
       }

@@ -10,14 +10,29 @@ dotenv.config();
 const app = express();
 const PORT = 3000;
 
+// Disable ETag completely so browsers never receive 304 Not Modified
+app.set('etag', false);
+
 app.use(express.json({ limit: '15mb' }));
 
-// Prevent 304 and browser caching on dynamic CMS API endpoints
-app.use('/api', (req: Request, res: Response, next) => {
-  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-  res.setHeader('Pragma', 'no-cache');
-  res.setHeader('Expires', '0');
-  res.setHeader('Surrogate-Control', 'no-store');
+// CORS & Anti-Cache Middleware for dynamic API routes
+app.use((req: Request, res: Response, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(204);
+    return;
+  }
+
+  if (req.path.startsWith('/api')) {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('Surrogate-Control', 'no-store');
+    res.removeHeader('ETag');
+  }
   next();
 });
 
@@ -77,6 +92,18 @@ app.get('/robots.txt', (req: Request, res: Response) => {
     return;
   }
   res.type('text/plain').send('User-agent: *\nAllow: /\nSitemap: https://techcheck.media/sitemap.xml\n');
+});
+
+// Dedicated Favicon.ico route for Googlebot-Image and search engine crawlers
+app.get('/favicon.ico', (req: Request, res: Response) => {
+  const icoPath = path.join(process.cwd(), 'public', 'favicon.ico');
+  if (fs.existsSync(icoPath)) {
+    res.setHeader('Content-Type', 'image/x-icon');
+    res.setHeader('Cache-Control', 'public, max-age=604800');
+    res.sendFile(icoPath);
+    return;
+  }
+  res.status(404).end();
 });
 
 // Sitemap.xml
@@ -174,6 +201,68 @@ function getSupabase(): SupabaseClient | null {
   }
 
   return supabaseClient;
+}
+
+// Convert any oversized base64 data URLs to clean persistent image URLs (Supabase CDN or Server Image Route)
+// This prevents multi-megabyte payloads that cause network crashes (net::ERR_HTTP2_PING_FAILED, net::ERR_CONNECTION_CLOSED)
+async function normalizeAndUploadImageIfBase64(imageUrl: string | undefined | null, prefix = 'img'): Promise<string> {
+  if (!imageUrl || typeof imageUrl !== 'string') return imageUrl || '';
+  if (!imageUrl.startsWith('data:image/')) return imageUrl;
+
+  try {
+    const mimeMatch = imageUrl.match(/^data:(image\/[a-zA-Z0-9+.-]+);base64,/);
+    const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+    const ext = mimeType === 'image/png' ? '.png' : mimeType === 'image/webp' ? '.webp' : mimeType === 'image/svg+xml' ? '.svg' : '.jpg';
+    const base64Data = imageUrl.includes('base64,') ? imageUrl.split('base64,')[1] : imageUrl;
+    const fileBuffer = Buffer.from(base64Data, 'base64');
+    const uniqueFilename = `${prefix}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}${ext}`;
+
+    // 1. Cache in memory and disk so /api/images/:filename is instantly available and never 404s
+    saveImageToCache(uniqueFilename, mimeType, base64Data);
+    try {
+      const targetPath = path.join(uploadsDir, uniqueFilename);
+      fs.writeFileSync(targetPath, fileBuffer);
+    } catch (e) {}
+
+    // 2. Primary: Upload to Supabase Storage if configured
+    const supabase = getSupabase();
+    if (supabase) {
+      try {
+        const BUCKET_NAME = 'techcheck-images';
+        try {
+          const { data: buckets } = await supabase.storage.listBuckets();
+          if (!buckets?.some((b: any) => b.name === BUCKET_NAME)) {
+            await supabase.storage.createBucket(BUCKET_NAME, { public: true });
+          }
+        } catch (bErr) {}
+
+        const { error: storageErr } = await supabase.storage
+          .from(BUCKET_NAME)
+          .upload(uniqueFilename, fileBuffer, {
+            contentType: mimeType,
+            upsert: true,
+          });
+
+        if (!storageErr) {
+          const { data: publicUrlData } = supabase.storage
+            .from(BUCKET_NAME)
+            .getPublicUrl(uniqueFilename);
+
+          if (publicUrlData?.publicUrl) {
+            return publicUrlData.publicUrl;
+          }
+        }
+      } catch (sErr: any) {
+        console.warn('Supabase image upload warning:', sErr.message);
+      }
+    }
+
+    // 3. Reliable server route fallback
+    return `/api/images/${uniqueFilename}`;
+  } catch (err: any) {
+    console.warn('normalizeAndUploadImageIfBase64 failed:', err.message);
+    return imageUrl;
+  }
 }
 
 interface LocalDbSchema {
@@ -848,7 +937,10 @@ app.get('/api/products', async (req: Request, res: Response) => {
 });
 
 app.post('/api/products', async (req: Request, res: Response) => {
-  const product = req.body;
+  const product = { ...req.body };
+  if (product.image && product.image.startsWith('data:image/')) {
+    product.image = await normalizeAndUploadImageIfBase64(product.image, `prod-${product.slug || 'item'}`);
+  }
   const row = toProductRow(product);
 
   // Update local persistent storage immediately
@@ -911,6 +1003,17 @@ app.get('/api/guides', async (req: Request, res: Response) => {
         .order('created_at', { ascending: false });
 
       if (!error && Array.isArray(data) && data.length > 0) {
+        // Auto-heal guides with oversized base64 images in background
+        data.forEach((g: any) => {
+          if (g.image && g.image.startsWith('data:image/')) {
+            normalizeAndUploadImageIfBase64(g.image, `guide-${g.slug || 'hero'}`).then(async (cleanUrl) => {
+              try {
+                await supabase.from('guides').update({ image: cleanUrl }).eq('id', g.id);
+              } catch (e) {}
+            });
+          }
+        });
+
         const guides = data.map(fromGuideRow);
         saveLocalDb({ guides });
         res.json(guides);
@@ -926,7 +1029,22 @@ app.get('/api/guides', async (req: Request, res: Response) => {
 });
 
 app.post('/api/guides', async (req: Request, res: Response) => {
-  const guide = req.body;
+  const guide = { ...req.body };
+
+  // Convert raw base64 guide image and step images to compact persistent URLs
+  if (guide.image && guide.image.startsWith('data:image/')) {
+    guide.image = await normalizeAndUploadImageIfBase64(guide.image, `guide-${guide.slug || 'hero'}`);
+  }
+  if (Array.isArray(guide.steps)) {
+    for (let i = 0; i < guide.steps.length; i++) {
+      const st = guide.steps[i];
+      if (st.image && st.image.startsWith('data:image/')) {
+        st.image = await normalizeAndUploadImageIfBase64(st.image, `guide-step-${guide.slug || 'step'}-${i + 1}`);
+        st.image_url = st.image;
+      }
+    }
+  }
+
   const row = toGuideRow(guide);
 
   // Update local persistent storage immediately
@@ -1129,7 +1247,10 @@ app.patch('/api/article-blocks/:id', async (req: Request, res: Response) => {
     guide_id,
   } = req.body;
 
-  const newImageUrl = image_url !== undefined ? image_url : (image !== undefined ? image : undefined);
+  let newImageUrl = image_url !== undefined ? image_url : (image !== undefined ? image : undefined);
+  if (newImageUrl && typeof newImageUrl === 'string' && newImageUrl.startsWith('data:image/')) {
+    newImageUrl = await normalizeAndUploadImageIfBase64(newImageUrl, `block-${id}`);
+  }
 
   // 1. Update local database persistent cache
   const localDb = getLocalDb();
@@ -1260,6 +1381,20 @@ app.post('/api/article-blocks/backfill', async (req: Request, res: Response) => 
 app.put('/api/guides/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
   const guide = { ...req.body, id };
+
+  if (guide.image && guide.image.startsWith('data:image/')) {
+    guide.image = await normalizeAndUploadImageIfBase64(guide.image, `guide-${guide.slug || 'hero'}`);
+  }
+  if (Array.isArray(guide.steps)) {
+    for (let i = 0; i < guide.steps.length; i++) {
+      const st = guide.steps[i];
+      if (st.image && st.image.startsWith('data:image/')) {
+        st.image = await normalizeAndUploadImageIfBase64(st.image, `guide-step-${guide.slug || 'step'}-${i + 1}`);
+        st.image_url = st.image;
+      }
+    }
+  }
+
   const row = toGuideRow(guide);
 
   const localDb = getLocalDb();
@@ -1314,6 +1449,11 @@ app.put('/api/guides/:id', async (req: Request, res: Response) => {
 app.put('/api/products/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
   const product = { ...req.body, id };
+
+  if (product.image && product.image.startsWith('data:image/')) {
+    product.image = await normalizeAndUploadImageIfBase64(product.image, `prod-${product.slug || 'item'}`);
+  }
+
   const row = toProductRow(product);
 
   const localDb = getLocalDb();
@@ -1380,6 +1520,15 @@ app.get('/api/settings', async (req: Request, res: Response) => {
         .maybeSingle();
 
       if (!error && data) {
+        // Auto-heal oversized base64 images if found in database
+        if (data.hero_image && data.hero_image.startsWith('data:image/')) {
+          normalizeAndUploadImageIfBase64(data.hero_image, 'hero-banner').then(async (cleanUrl) => {
+            try {
+              await supabase.from('site_settings').update({ hero_image: cleanUrl }).eq('id', 1);
+            } catch (e) {}
+          });
+        }
+
         const settings = fromSettingsRow(data);
         saveLocalDb({ settings });
         res.json(settings);
@@ -1395,7 +1544,13 @@ app.get('/api/settings', async (req: Request, res: Response) => {
 });
 
 app.post('/api/settings', async (req: Request, res: Response) => {
-  const settings = req.body;
+  const settings = { ...req.body };
+
+  // Convert raw base64 heroImage to compact CDN or persistent image URL
+  if (settings.heroImage && settings.heroImage.startsWith('data:image/')) {
+    settings.heroImage = await normalizeAndUploadImageIfBase64(settings.heroImage, 'hero-banner');
+  }
+
   const row = toSettingsRow(settings);
 
   // Update local persistent storage immediately
@@ -1464,6 +1619,32 @@ app.post('/api/settings', async (req: Request, res: Response) => {
 app.post('/api/sync-seed', async (req: Request, res: Response) => {
   try {
     const { categories = [], products = [], guides = [], settings } = req.body;
+
+    // 1. Normalize oversized base64 images to prevent network crashes
+    if (settings && settings.heroImage && settings.heroImage.startsWith('data:image/')) {
+      settings.heroImage = await normalizeAndUploadImageIfBase64(settings.heroImage, 'hero-banner');
+    }
+
+    for (const g of guides) {
+      if (g.image && g.image.startsWith('data:image/')) {
+        g.image = await normalizeAndUploadImageIfBase64(g.image, `guide-${g.slug || 'hero'}`);
+      }
+      if (Array.isArray(g.steps)) {
+        for (let i = 0; i < g.steps.length; i++) {
+          if (g.steps[i].image && g.steps[i].image.startsWith('data:image/')) {
+            g.steps[i].image = await normalizeAndUploadImageIfBase64(g.steps[i].image, `guide-step-${g.slug || 'step'}-${i + 1}`);
+            g.steps[i].image_url = g.steps[i].image;
+          }
+        }
+      }
+    }
+
+    for (const p of products) {
+      if (p.image && p.image.startsWith('data:image/')) {
+        p.image = await normalizeAndUploadImageIfBase64(p.image, `prod-${p.slug || 'item'}`);
+      }
+    }
+
     const partial: any = {};
     if (categories.length > 0) partial.categories = categories;
     if (products.length > 0) partial.products = products;

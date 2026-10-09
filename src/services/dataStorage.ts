@@ -550,13 +550,24 @@ export const dataStorage = {
   saveSiteSettings(settings: SiteSettings): void {
     try {
       safeSetItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
-      fetch('/api/settings', {
+      this.notifyListeners({ settings });
+    } catch (e) {
+      console.error('Failed to save site settings', e);
+    }
+  },
+
+  async syncSiteSettings(settings: SiteSettings): Promise<boolean> {
+    this.saveSiteSettings(settings);
+    try {
+      const res = await fetch('/api/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(settings),
-      }).catch(() => {});
+      });
+      return res.ok;
     } catch (e) {
-      console.error('Failed to save site settings', e);
+      console.warn('Sync site settings failed:', e);
+      return false;
     }
   },
 
