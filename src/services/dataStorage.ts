@@ -241,8 +241,31 @@ export const dataStorage = {
               };
             }),
           }));
-          result.guides = formattedGuides;
-          safeSetItem(STORAGE_KEYS.GUIDES, JSON.stringify(formattedGuides));
+
+          // Smart-merge: Keep newly created local guides if not yet in remote response
+          const currentLocalGuides = safeParse<Guide[]>(STORAGE_KEYS.GUIDES, INITIAL_GUIDES);
+          const mergedGuides: Guide[] = [...formattedGuides];
+
+          currentLocalGuides.forEach((localG) => {
+            const existsOnRemote = mergedGuides.some(
+              (rg) => rg.id === localG.id || rg.slug === localG.slug
+            );
+            if (!existsOnRemote) {
+              mergedGuides.push({
+                ...localG,
+                showContentImages: localG.showContentImages !== false,
+              });
+              // Auto-push this local guide to backend so it gets permanently stored in Supabase
+              fetch('/api/guides', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(localG),
+              }).catch(() => {});
+            }
+          });
+
+          result.guides = mergedGuides;
+          safeSetItem(STORAGE_KEYS.GUIDES, JSON.stringify(mergedGuides));
         }
       }
 

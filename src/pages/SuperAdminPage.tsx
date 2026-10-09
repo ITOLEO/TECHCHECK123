@@ -494,7 +494,13 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
         const errJson = await res.json().catch(() => ({}));
         throw new Error(errJson.error || 'Server error');
       }
-      showToast(editingProduct ? `Produk "${newProduct.name}" berhasil diperbarui di Supabase!` : `Produk "${newProduct.name}" berhasil ditambahkan ke Supabase!`);
+      const savedProd: Product = await res.json();
+      const reconciledList = updatedList.map((p) => (p.id === newProduct.id || p.slug === newProduct.slug ? { ...p, ...savedProd } : p));
+      onUpdateProducts(reconciledList);
+      dataStorage.saveProducts(reconciledList);
+      dataStorage.clearDraftState();
+      dataStorage.fetchRemoteData();
+      showToast(editingProduct ? `Produk "${savedProd.name || newProduct.name}" berhasil diperbarui di Supabase!` : `Produk "${savedProd.name || newProduct.name}" berhasil ditambahkan ke Supabase!`);
     } catch (err: any) {
       showToast(`Tersimpan lokal, tapi gagal dikirim ke Supabase: ${err.message}`);
       console.error(err);
@@ -618,7 +624,13 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
         const errJson = await res.json().catch(() => ({}));
         throw new Error(errJson.error || 'Server error');
       }
-      showToast(editingCategory ? `Kategori "${newCat.name}" diperbarui di Supabase!` : `Kategori "${newCat.name}" ditambahkan ke Supabase!`);
+      const savedCat: CategoryInfo = await res.json();
+      const reconciledList = updatedList.map((c) => (c.id === newCat.id || c.slug === newCat.slug ? { ...c, ...savedCat } : c));
+      onUpdateCategories(reconciledList);
+      dataStorage.saveCategories(reconciledList);
+      dataStorage.clearDraftState();
+      dataStorage.fetchRemoteData();
+      showToast(editingCategory ? `Kategori "${savedCat.name || newCat.name}" diperbarui di Supabase!` : `Kategori "${savedCat.name || newCat.name}" ditambahkan ke Supabase!`);
     } catch (err: any) {
       showToast(`Tersimpan lokal, tapi gagal dikirim ke Supabase: ${err.message}`);
       console.error(err);
@@ -825,14 +837,21 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
         throw new Error(errJson.error || 'Server error');
       }
 
+      const savedGuide: Guide = await res.json();
+      const reconciledList = updatedList.map((g) => (g.id === newGuide.id || g.slug === newGuide.slug ? { ...g, ...savedGuide } : g));
+      onUpdateGuides(reconciledList);
+      dataStorage.saveGuides(reconciledList);
+      dataStorage.clearDraftState();
+      dataStorage.fetchRemoteData();
+
       // Sync step records to article_blocks table in Supabase
-      if (Array.isArray(newGuide.steps) && newGuide.steps.length > 0) {
-        newGuide.steps.forEach((st, idx) => {
+      if (Array.isArray(savedGuide.steps || newGuide.steps) && (savedGuide.steps || newGuide.steps).length > 0) {
+        (savedGuide.steps || newGuide.steps).forEach((st, idx) => {
           const stepNumber = st.number || String(idx + 1).padStart(2, '0');
-          const blockId = st.id || `${newGuide.id}-step-${stepNumber}`;
+          const blockId = st.id || `${savedGuide.id || newGuide.id}-step-${stepNumber}`;
           const imgUrl = st.image?.trim() || st.image_url?.trim() || '';
           dataStorage.saveArticleBlock(blockId, {
-            guide_id: newGuide.id,
+            guide_id: savedGuide.id || newGuide.id,
             step_number: stepNumber,
             title: st.title || '',
             text: st.text || '',
@@ -845,7 +864,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
         });
       }
 
-      showToast(editingGuide ? `Panduan "${newGuide.title}" diperbarui di Supabase!` : `Panduan "${newGuide.title}" ditambahkan ke Supabase!`);
+      showToast(editingGuide ? `Panduan "${savedGuide.title || newGuide.title}" diperbarui di Supabase!` : `Panduan "${savedGuide.title || newGuide.title}" ditambahkan ke Supabase!`);
     } catch (err: any) {
       showToast(`Tersimpan lokal, tapi gagal dikirim ke Supabase: ${err.message}`);
       console.error(err);
@@ -877,6 +896,11 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
         const errJson = await res.json().catch(() => ({}));
         throw new Error(errJson.error || 'Server error');
       }
+      const savedSettings = await res.json();
+      onUpdateSettings(savedSettings);
+      dataStorage.saveSiteSettings(savedSettings);
+      dataStorage.clearDraftState();
+      dataStorage.fetchRemoteData();
       showToast('Pengaturan website & gambar hero berhasil disimpan ke Supabase!');
     } catch (err: any) {
       showToast(`Tersimpan lokal: ${err.message}`);

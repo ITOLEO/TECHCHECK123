@@ -125,6 +125,23 @@ export const VisualEditorProvider: React.FC<VisualEditorProviderProps> = ({
       setDraftProducts(publishedProducts);
       setDraftCategories(publishedCategories);
       setDraftGuides(publishedGuides);
+    } else {
+      // Even if there are unsaved changes, merge any newly added published items so new articles/products are never hidden
+      setDraftGuides((prevDraft) => {
+        const draftIds = new Set(prevDraft.map((g) => g.id));
+        const newFromPub = publishedGuides.filter((g) => !draftIds.has(g.id));
+        return newFromPub.length > 0 ? [...newFromPub, ...prevDraft] : prevDraft;
+      });
+      setDraftProducts((prevDraft) => {
+        const draftIds = new Set(prevDraft.map((p) => p.id));
+        const newFromPub = publishedProducts.filter((p) => !draftIds.has(p.id));
+        return newFromPub.length > 0 ? [...newFromPub, ...prevDraft] : prevDraft;
+      });
+      setDraftCategories((prevDraft) => {
+        const draftIds = new Set(prevDraft.map((c) => c.id));
+        const newFromPub = publishedCategories.filter((c) => !draftIds.has(c.id));
+        return newFromPub.length > 0 ? [...newFromPub, ...prevDraft] : prevDraft;
+      });
     }
   }, [publishedSettings, publishedProducts, publishedCategories, publishedGuides, hasUnsavedChanges]);
 

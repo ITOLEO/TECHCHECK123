@@ -858,37 +858,345 @@ app.get('/api/categories', async (req: Request, res: Response) => {
   res.json(localDb.categories || []);
 });
 
-app.post('/api/categories', async (req: Request, res: Response) => {
-  const category = req.body;
-  const row = toCategoryRow(category);
+// ==========================================
+// UNIFIED DATA PERSISTENCE HELPERS
+// ==========================================
 
-  // Update local persistent storage immediately
+async function persistCategoryToStorage(categoryInput: any): Promise<{ success: boolean; category: any; error?: string }> {
+  const cat = { ...categoryInput };
+  const catId = cat.id || `cat-${Date.now()}`;
+  cat.id = catId;
+
   const localDb = getLocalDb();
-  const existing = localDb.categories || [];
-  const updated = existing.some((c: any) => c.id === category.id)
-    ? existing.map((c: any) => (c.id === category.id ? category : c))
-    : [...existing, category];
-  saveLocalDb({ categories: updated });
+  const existingLocal = (localDb.categories || []).find((c: any) => c.id === catId || (cat.slug && c.slug === cat.slug));
+  const merged = {
+    ...(existingLocal || {}),
+    ...cat,
+  };
+
+  if (!merged.slug?.trim()) {
+    merged.slug = merged.name?.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-') || `cat-${catId}`;
+  }
+  merged.name = merged.name?.trim() || 'Untitled Category';
+
+  const row = toCategoryRow(merged);
+
+  const existingCats = localDb.categories || [];
+  const updatedCats = existingCats.some((c: any) => c.id === merged.id)
+    ? existingCats.map((c: any) => (c.id === merged.id ? merged : c))
+    : [...existingCats, merged];
+  saveLocalDb({ categories: updatedCats });
 
   const supabase = getSupabase();
   if (supabase) {
     try {
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from('categories')
         .upsert(row)
         .select()
-        .single();
+        .maybeSingle();
+
+      if (error && (error.message.includes('unique') || error.message.includes('duplicate'))) {
+        const updateAttempt = await supabase
+          .from('categories')
+          .update(row)
+          .eq('id', row.id)
+          .select()
+          .maybeSingle();
+        if (!updateAttempt.error && updateAttempt.data) {
+          data = updateAttempt.data;
+          error = null;
+        }
+      }
 
       if (!error && data) {
-        res.json(fromCategoryRow(data));
-        return;
+        return { success: true, category: fromCategoryRow(data) };
+      }
+      if (error) {
+        console.error('[Supabase Category Upsert Error]:', error.message);
+        return { success: false, category: merged, error: error.message };
       }
     } catch (err: any) {
-      console.warn('Supabase category upsert failed, preserved in localDb:', err.message);
+      return { success: false, category: merged, error: err.message };
     }
   }
 
-  res.json(category);
+  return { success: true, category: merged };
+}
+
+async function persistProductToStorage(productInput: any): Promise<{ success: boolean; product: any; error?: string }> {
+  const product = { ...productInput };
+  const prodId = product.id || `prod-${Date.now()}`;
+  product.id = prodId;
+
+  if (product.image && product.image.startsWith('data:image/')) {
+    product.image = await normalizeAndUploadImageIfBase64(product.image, `prod-${product.slug || 'item'}`);
+  }
+
+  const localDb = getLocalDb();
+  const existingLocal = (localDb.products || []).find((p: any) => p.id === prodId || (product.slug && p.slug === product.slug));
+  const merged = {
+    ...(existingLocal || {}),
+    ...product,
+  };
+
+  if (!merged.slug?.trim()) {
+    merged.slug = merged.name?.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-') || `prod-${prodId}`;
+  }
+  merged.name = merged.name?.trim() || 'Untitled Product';
+  merged.category = merged.category?.trim() || 'Desk Setup';
+  merged.description = merged.description ?? '';
+  merged.affiliateUrl = merged.affiliateUrl ?? merged.affiliate_url ?? '';
+
+  const row = toProductRow(merged);
+
+  const existingProds = localDb.products || [];
+  const updatedProds = existingProds.some((p: any) => p.id === merged.id)
+    ? existingProds.map((p: any) => (p.id === merged.id ? merged : p))
+    : [...existingProds, merged];
+  saveLocalDb({ products: updatedProds });
+
+  const supabase = getSupabase();
+  if (supabase) {
+    try {
+      const { data: existingProd } = await supabase
+        .from('products')
+        .select('id, slug')
+        .eq('slug', row.slug)
+        .maybeSingle();
+
+      if (existingProd && existingProd.id && existingProd.id !== row.id) {
+        row.id = existingProd.id;
+        merged.id = existingProd.id;
+      }
+
+      let { data, error } = await supabase
+        .from('products')
+        .upsert(row)
+        .select()
+        .maybeSingle();
+
+      if (error && (error.message.includes('unique') || error.message.includes('duplicate'))) {
+        const updateAttempt = await supabase
+          .from('products')
+          .update(row)
+          .eq('id', row.id)
+          .select()
+          .maybeSingle();
+        if (!updateAttempt.error && updateAttempt.data) {
+          data = updateAttempt.data;
+          error = null;
+        }
+      }
+
+      if (!error && data) {
+        return { success: true, product: fromProductRow(data) };
+      }
+      if (error) {
+        console.error('[Supabase Product Upsert Error]:', error.message);
+        return { success: false, product: merged, error: error.message };
+      }
+    } catch (err: any) {
+      console.warn('Supabase product upsert failed:', err.message);
+      return { success: false, product: merged, error: err.message };
+    }
+  }
+
+  return { success: true, product: merged };
+}
+
+async function persistGuideToStorage(guideInput: any): Promise<{ success: boolean; guide: any; error?: string }> {
+  const guide = { ...guideInput };
+  const guideId = guide.id || `guide-${Date.now()}`;
+  guide.id = guideId;
+
+  // Convert raw base64 guide image and step images to compact persistent URLs
+  if (guide.image && guide.image.startsWith('data:image/')) {
+    guide.image = await normalizeAndUploadImageIfBase64(guide.image, `guide-${guide.slug || 'hero'}`);
+  }
+  if (Array.isArray(guide.steps)) {
+    for (let i = 0; i < guide.steps.length; i++) {
+      const st = guide.steps[i];
+      if (st.image && st.image.startsWith('data:image/')) {
+        st.image = await normalizeAndUploadImageIfBase64(st.image, `guide-step-${guide.slug || 'step'}-${i + 1}`);
+        st.image_url = st.image;
+      }
+    }
+  }
+
+  // Merge with existing guide if updating
+  const localDb = getLocalDb();
+  const existingLocal = (localDb.guides || []).find((g: any) => g.id === guideId || (guide.slug && g.slug === guide.slug));
+
+  let merged = {
+    ...(existingLocal || {}),
+    ...guide,
+  };
+
+  // Derive slug and required non-null fields
+  if (!merged.slug?.trim()) {
+    merged.slug = merged.title?.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-') || `guide-${guideId}`;
+  }
+  merged.title = merged.title?.trim() || 'Untitled Guide';
+  merged.category = merged.category?.trim() || 'Desk Setup';
+  merged.readTime = merged.readTime || '5 min read';
+  merged.publishDate = merged.publishDate || 'Recent';
+  if (!merged.author || !merged.author.name?.trim()) {
+    merged.author = {
+      name: merged.author?.name?.trim() || 'TechCheck Editorial',
+      role: merged.author?.role?.trim() || 'Setup Specialist',
+      avatar: merged.author?.avatar?.trim() || '',
+    };
+  }
+
+  const row = toGuideRow(merged);
+
+  // Update local persistent storage immediately
+  const existingGuides = localDb.guides || [];
+  const updatedGuides = existingGuides.some((g: any) => g.id === merged.id)
+    ? existingGuides.map((g: any) => (g.id === merged.id ? merged : g))
+    : [merged, ...existingGuides];
+  saveLocalDb({ guides: updatedGuides });
+
+  const supabase = getSupabase();
+  if (supabase) {
+    try {
+      // Reconcile slug conflict
+      const { data: existingGuide } = await supabase
+        .from('guides')
+        .select('id, slug')
+        .eq('slug', row.slug)
+        .maybeSingle();
+
+      if (existingGuide && existingGuide.id && existingGuide.id !== row.id) {
+        row.id = existingGuide.id;
+        merged.id = existingGuide.id;
+      }
+
+      let { data, error } = await supabase
+        .from('guides')
+        .upsert(row)
+        .select()
+        .maybeSingle();
+
+      if (error && error.message.includes('column')) {
+        // Fallback for pre-existing guides table without the new columns
+        const fallbackRow = { ...row };
+        delete (fallbackRow as any).layout_format;
+        delete (fallbackRow as any).show_content_images;
+        delete (fallbackRow as any).content;
+        delete (fallbackRow as any).hide_step_numbers;
+        const retry = await supabase.from('guides').upsert(fallbackRow).select().maybeSingle();
+        if (!retry.error) {
+          data = retry.data;
+          error = null;
+        } else {
+          error = retry.error;
+        }
+      }
+
+      // If upsert still failed with duplicate/unique conflict, perform explicit UPDATE
+      if (error && (error.message.includes('unique') || error.message.includes('duplicate'))) {
+        const fallbackRow = { ...row };
+        delete (fallbackRow as any).layout_format;
+        delete (fallbackRow as any).show_content_images;
+        delete (fallbackRow as any).content;
+        delete (fallbackRow as any).hide_step_numbers;
+
+        let updateAttempt = await supabase
+          .from('guides')
+          .update(row)
+          .eq('id', row.id)
+          .select()
+          .maybeSingle();
+
+        if (updateAttempt.error && updateAttempt.error.message.includes('column')) {
+          updateAttempt = await supabase
+            .from('guides')
+            .update(fallbackRow)
+            .eq('id', row.id)
+            .select()
+            .maybeSingle();
+        }
+
+        if (!updateAttempt.error && updateAttempt.data) {
+          data = updateAttempt.data;
+          error = null;
+        } else {
+          // Try update by slug
+          let slugUpdate = await supabase
+            .from('guides')
+            .update(row)
+            .eq('slug', row.slug)
+            .select()
+            .maybeSingle();
+          if (slugUpdate.error && slugUpdate.error.message.includes('column')) {
+            slugUpdate = await supabase
+              .from('guides')
+              .update(fallbackRow)
+              .eq('slug', row.slug)
+              .select()
+              .maybeSingle();
+          }
+          if (!slugUpdate.error && slugUpdate.data) {
+            data = slugUpdate.data;
+            error = null;
+          }
+        }
+      }
+
+      if (!error && data) {
+        // Sync step blocks to public.article_blocks in Supabase
+        if (Array.isArray(merged.steps) && merged.steps.length > 0) {
+          try {
+            const blocks = merged.steps.map((st: any, idx: number) => {
+              const stepNum = st.number || String(idx + 1).padStart(2, '0');
+              const blockId = st.id || `${merged.id}-step-${stepNum}`;
+              const img = st.image?.trim() || st.image_url?.trim() || '';
+              return {
+                id: blockId,
+                guide_id: merged.id,
+                step_number: stepNum,
+                title: st.title || '',
+                text: st.text || '',
+                image: img,
+                image_url: img,
+                caption: st.caption || st.title || '',
+                alt_text: st.title || '',
+                recommended_product_slug: st.recommendedProductSlug || st.recommended_product_slug || '',
+                sort_order: idx,
+              };
+            });
+            await supabase.from('article_blocks').upsert(blocks);
+          } catch (bErr: any) {
+            console.warn('Sync to article_blocks table error:', bErr.message);
+          }
+        }
+
+        const finalGuide = fromGuideRow(data);
+        return { success: true, guide: finalGuide };
+      }
+
+      if (error) {
+        console.error('[Supabase Guide Upsert Error]:', error.message);
+        return { success: false, guide: merged, error: error.message };
+      }
+    } catch (err: any) {
+      console.warn('Supabase guide upsert failed:', err.message);
+      return { success: false, guide: merged, error: err.message };
+    }
+  }
+
+  return { success: true, guide: merged };
+}
+
+app.post('/api/categories', async (req: Request, res: Response) => {
+  const result = await persistCategoryToStorage(req.body);
+  if (!result.success && result.error) {
+    res.status(500).json({ error: result.error, category: result.category });
+    return;
+  }
+  res.json(result.category);
 });
 
 app.delete('/api/categories/:id', async (req: Request, res: Response) => {
@@ -937,39 +1245,12 @@ app.get('/api/products', async (req: Request, res: Response) => {
 });
 
 app.post('/api/products', async (req: Request, res: Response) => {
-  const product = { ...req.body };
-  if (product.image && product.image.startsWith('data:image/')) {
-    product.image = await normalizeAndUploadImageIfBase64(product.image, `prod-${product.slug || 'item'}`);
+  const result = await persistProductToStorage(req.body);
+  if (!result.success && result.error) {
+    res.status(500).json({ error: result.error, product: result.product });
+    return;
   }
-  const row = toProductRow(product);
-
-  // Update local persistent storage immediately
-  const localDb = getLocalDb();
-  const existing = localDb.products || [];
-  const updated = existing.some((p: any) => p.id === product.id)
-    ? existing.map((p: any) => (p.id === product.id ? product : p))
-    : [product, ...existing];
-  saveLocalDb({ products: updated });
-
-  const supabase = getSupabase();
-  if (supabase) {
-    try {
-      const { data, error } = await supabase
-        .from('products')
-        .upsert(row)
-        .select()
-        .single();
-
-      if (!error && data) {
-        res.json(fromProductRow(data));
-        return;
-      }
-    } catch (err: any) {
-      console.warn('Supabase product upsert failed, preserved in localDb:', err.message);
-    }
-  }
-
-  res.json(product);
+  res.json(result.product);
 });
 
 app.delete('/api/products/:id', async (req: Request, res: Response) => {
@@ -1003,16 +1284,16 @@ app.get('/api/guides', async (req: Request, res: Response) => {
         .order('created_at', { ascending: false });
 
       if (!error && Array.isArray(data) && data.length > 0) {
-        // Auto-heal guides with oversized base64 images in background
-        data.forEach((g: any) => {
+        // Auto-heal guides with oversized base64 images
+        for (const g of data) {
           if (g.image && g.image.startsWith('data:image/')) {
-            normalizeAndUploadImageIfBase64(g.image, `guide-${g.slug || 'hero'}`).then(async (cleanUrl) => {
-              try {
-                await supabase.from('guides').update({ image: cleanUrl }).eq('id', g.id);
-              } catch (e) {}
-            });
+            const cleanUrl = await normalizeAndUploadImageIfBase64(g.image, `guide-${g.slug || 'hero'}`);
+            g.image = cleanUrl;
+            try {
+              await supabase.from('guides').update({ image: cleanUrl }).eq('id', g.id);
+            } catch (e) {}
           }
-        });
+        }
 
         const guides = data.map(fromGuideRow);
         saveLocalDb({ guides });
@@ -1029,91 +1310,12 @@ app.get('/api/guides', async (req: Request, res: Response) => {
 });
 
 app.post('/api/guides', async (req: Request, res: Response) => {
-  const guide = { ...req.body };
-
-  // Convert raw base64 guide image and step images to compact persistent URLs
-  if (guide.image && guide.image.startsWith('data:image/')) {
-    guide.image = await normalizeAndUploadImageIfBase64(guide.image, `guide-${guide.slug || 'hero'}`);
+  const result = await persistGuideToStorage(req.body);
+  if (!result.success && result.error) {
+    res.status(500).json({ error: result.error, guide: result.guide });
+    return;
   }
-  if (Array.isArray(guide.steps)) {
-    for (let i = 0; i < guide.steps.length; i++) {
-      const st = guide.steps[i];
-      if (st.image && st.image.startsWith('data:image/')) {
-        st.image = await normalizeAndUploadImageIfBase64(st.image, `guide-step-${guide.slug || 'step'}-${i + 1}`);
-        st.image_url = st.image;
-      }
-    }
-  }
-
-  const row = toGuideRow(guide);
-
-  // Update local persistent storage immediately
-  const localDb = getLocalDb();
-  const existing = localDb.guides || [];
-  const updated = existing.some((g: any) => g.id === guide.id)
-    ? existing.map((g: any) => (g.id === guide.id ? guide : g))
-    : [guide, ...existing];
-  saveLocalDb({ guides: updated });
-
-  const supabase = getSupabase();
-  if (supabase) {
-    try {
-      let { data, error } = await supabase
-        .from('guides')
-        .upsert(row)
-        .select()
-        .single();
-
-      if (error && error.message.includes('column')) {
-        // Fallback for pre-existing guides table without the new columns
-        const fallbackRow = { ...row };
-        delete (fallbackRow as any).layout_format;
-        delete (fallbackRow as any).show_content_images;
-        delete (fallbackRow as any).content;
-        delete (fallbackRow as any).hide_step_numbers;
-        const retry = await supabase.from('guides').upsert(fallbackRow).select().single();
-        if (!retry.error) {
-          data = retry.data;
-          error = null;
-        }
-      }
-
-      if (!error && data) {
-        // Also sync step blocks to public.article_blocks in Supabase
-        if (Array.isArray(guide.steps) && guide.steps.length > 0) {
-          try {
-            const blocks = guide.steps.map((st: any, idx: number) => {
-              const stepNum = st.number || String(idx + 1).padStart(2, '0');
-              const blockId = st.id || `${guide.id}-step-${stepNum}`;
-              const img = st.image?.trim() || st.image_url?.trim() || '';
-              return {
-                id: blockId,
-                guide_id: guide.id,
-                step_number: stepNum,
-                title: st.title || '',
-                text: st.text || '',
-                image: img,
-                image_url: img,
-                caption: st.caption || st.title || '',
-                alt_text: st.title || '',
-                recommended_product_slug: st.recommendedProductSlug || st.recommended_product_slug || '',
-                sort_order: idx,
-              };
-            });
-            await supabase.from('article_blocks').upsert(blocks);
-          } catch (bErr: any) {
-            console.warn('Sync to article_blocks table error:', bErr.message);
-          }
-        }
-        res.json(fromGuideRow(data));
-        return;
-      }
-    } catch (err: any) {
-      console.warn('Supabase guide upsert failed, preserved in localDb:', err.message);
-    }
-  }
-
-  res.json(guide);
+  res.json(result.guide);
 });
 
 app.delete('/api/guides/:id', async (req: Request, res: Response) => {
@@ -1379,133 +1581,32 @@ app.post('/api/article-blocks/backfill', async (req: Request, res: Response) => 
 
 // Targeted PUT for single guide
 app.put('/api/guides/:id', async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const guide = { ...req.body, id };
-
-  if (guide.image && guide.image.startsWith('data:image/')) {
-    guide.image = await normalizeAndUploadImageIfBase64(guide.image, `guide-${guide.slug || 'hero'}`);
+  const result = await persistGuideToStorage({ ...req.body, id: req.params.id });
+  if (!result.success && result.error) {
+    res.status(500).json({ error: result.error, guide: result.guide });
+    return;
   }
-  if (Array.isArray(guide.steps)) {
-    for (let i = 0; i < guide.steps.length; i++) {
-      const st = guide.steps[i];
-      if (st.image && st.image.startsWith('data:image/')) {
-        st.image = await normalizeAndUploadImageIfBase64(st.image, `guide-step-${guide.slug || 'step'}-${i + 1}`);
-        st.image_url = st.image;
-      }
-    }
-  }
-
-  const row = toGuideRow(guide);
-
-  const localDb = getLocalDb();
-  const existing = localDb.guides || [];
-  const updated = existing.some((g: any) => g.id === id)
-    ? existing.map((g: any) => (g.id === id ? guide : g))
-    : [...existing, guide];
-  saveLocalDb({ guides: updated });
-
-  const supabase = getSupabase();
-  if (supabase) {
-    try {
-      const { data, error } = await supabase.from('guides').upsert(row).select().maybeSingle();
-      if (!error && data) {
-        if (Array.isArray(guide.steps) && guide.steps.length > 0) {
-          try {
-            const blocks = guide.steps.map((st: any, idx: number) => {
-              const stepNum = st.number || String(idx + 1).padStart(2, '0');
-              const blockId = st.id || `${guide.id}-step-${stepNum}`;
-              const img = st.image?.trim() || st.image_url?.trim() || '';
-              return {
-                id: blockId,
-                guide_id: guide.id,
-                step_number: stepNum,
-                title: st.title || '',
-                text: st.text || '',
-                image: img,
-                image_url: img,
-                caption: st.caption || st.title || '',
-                alt_text: st.title || '',
-                recommended_product_slug: st.recommendedProductSlug || st.recommended_product_slug || '',
-                sort_order: idx,
-              };
-            });
-            await supabase.from('article_blocks').upsert(blocks);
-          } catch (bErr: any) {
-            console.warn('Sync to article_blocks table error:', bErr.message);
-          }
-        }
-        res.json(fromGuideRow(data));
-        return;
-      }
-    } catch (err: any) {
-      console.warn('Supabase targeted guide update failed:', err.message);
-    }
-  }
-
-  res.json(guide);
+  res.json(result.guide);
 });
 
 // Targeted PUT for single product
 app.put('/api/products/:id', async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const product = { ...req.body, id };
-
-  if (product.image && product.image.startsWith('data:image/')) {
-    product.image = await normalizeAndUploadImageIfBase64(product.image, `prod-${product.slug || 'item'}`);
+  const result = await persistProductToStorage({ ...req.body, id: req.params.id });
+  if (!result.success && result.error) {
+    res.status(500).json({ error: result.error, product: result.product });
+    return;
   }
-
-  const row = toProductRow(product);
-
-  const localDb = getLocalDb();
-  const existing = localDb.products || [];
-  const updated = existing.some((p: any) => p.id === id)
-    ? existing.map((p: any) => (p.id === id ? product : p))
-    : [...existing, product];
-  saveLocalDb({ products: updated });
-
-  const supabase = getSupabase();
-  if (supabase) {
-    try {
-      const { data, error } = await supabase.from('products').upsert(row).select().maybeSingle();
-      if (!error && data) {
-        res.json(fromProductRow(data));
-        return;
-      }
-    } catch (err: any) {
-      console.warn('Supabase targeted product update failed:', err.message);
-    }
-  }
-
-  res.json(product);
+  res.json(result.product);
 });
 
 // Targeted PUT for single category
 app.put('/api/categories/:id', async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const cat = { ...req.body, id };
-  const row = toCategoryRow(cat);
-
-  const localDb = getLocalDb();
-  const existing = localDb.categories || [];
-  const updated = existing.some((c: any) => c.id === id)
-    ? existing.map((c: any) => (c.id === id ? cat : c))
-    : [...existing, cat];
-  saveLocalDb({ categories: updated });
-
-  const supabase = getSupabase();
-  if (supabase) {
-    try {
-      const { data, error } = await supabase.from('categories').upsert(row).select().maybeSingle();
-      if (!error && data) {
-        res.json(fromCategoryRow(data));
-        return;
-      }
-    } catch (err: any) {
-      console.warn('Supabase targeted category update failed:', err.message);
-    }
+  const result = await persistCategoryToStorage({ ...req.body, id: req.params.id });
+  if (!result.success && result.error) {
+    res.status(500).json({ error: result.error, category: result.category });
+    return;
   }
-
-  res.json(cat);
+  res.json(result.category);
 });
 
 // 5. Site Settings API
@@ -1522,11 +1623,11 @@ app.get('/api/settings', async (req: Request, res: Response) => {
       if (!error && data) {
         // Auto-heal oversized base64 images if found in database
         if (data.hero_image && data.hero_image.startsWith('data:image/')) {
-          normalizeAndUploadImageIfBase64(data.hero_image, 'hero-banner').then(async (cleanUrl) => {
-            try {
-              await supabase.from('site_settings').update({ hero_image: cleanUrl }).eq('id', 1);
-            } catch (e) {}
-          });
+          const cleanUrl = await normalizeAndUploadImageIfBase64(data.hero_image, 'hero-banner');
+          data.hero_image = cleanUrl;
+          try {
+            await supabase.from('site_settings').update({ hero_image: cleanUrl }).eq('id', 1);
+          } catch (e) {}
         }
 
         const settings = fromSettingsRow(data);
