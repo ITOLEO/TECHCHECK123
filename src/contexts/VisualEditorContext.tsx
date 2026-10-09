@@ -413,11 +413,34 @@ export const VisualEditorProvider: React.FC<VisualEditorProviderProps> = ({
 
       // 4. Remote targeted sync to backend/Supabase database
       try {
-        await fetch('/api/settings', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(draftSettings),
-        });
+        await Promise.allSettled([
+          fetch('/api/settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(draftSettings),
+          }),
+          ...draftGuides.map((g) =>
+            fetch('/api/guides', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(g),
+            })
+          ),
+          ...draftProducts.map((p) =>
+            fetch('/api/products', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(p),
+            })
+          ),
+          ...draftCategories.map((c) =>
+            fetch('/api/categories', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(c),
+            })
+          ),
+        ]);
       } catch (err) {
         console.warn('Sync to backend skipped/failed (saved locally):', err);
       }

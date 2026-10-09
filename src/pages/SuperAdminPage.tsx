@@ -764,7 +764,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
       callout: guideFormData.callout || '',
       summary: guideFormData.summary || '',
       layoutFormat: (guideFormData.layoutFormat as 'document' | 'steps') || 'document',
-      showContentImages: guideFormData.showContentImages === true,
+      showContentImages: guideFormData.showContentImages !== false,
       content: guideFormData.content || '',
       hideStepNumbers: Boolean(guideFormData.hideStepNumbers),
     };
@@ -789,6 +789,27 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
         const errJson = await res.json().catch(() => ({}));
         throw new Error(errJson.error || 'Server error');
       }
+
+      // Sync step records to article_blocks table in Supabase
+      if (Array.isArray(newGuide.steps) && newGuide.steps.length > 0) {
+        newGuide.steps.forEach((st, idx) => {
+          const stepNumber = st.number || String(idx + 1).padStart(2, '0');
+          const blockId = st.id || `${newGuide.id}-step-${stepNumber}`;
+          const imgUrl = st.image?.trim() || st.image_url?.trim() || '';
+          dataStorage.saveArticleBlock(blockId, {
+            guide_id: newGuide.id,
+            step_number: stepNumber,
+            title: st.title || '',
+            text: st.text || '',
+            image: imgUrl,
+            image_url: imgUrl,
+            caption: st.caption || st.title || '',
+            alt_text: st.title || '',
+            recommendedProductSlug: st.recommendedProductSlug || '',
+          });
+        });
+      }
+
       showToast(editingGuide ? `Panduan "${newGuide.title}" diperbarui di Supabase!` : `Panduan "${newGuide.title}" ditambahkan ke Supabase!`);
     } catch (err: any) {
       showToast(`Tersimpan lokal, tapi gagal dikirim ke Supabase: ${err.message}`);
