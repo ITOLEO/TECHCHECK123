@@ -10,7 +10,16 @@ dotenv.config();
 const app = express();
 const PORT = 3000;
 
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: '15mb' }));
+
+// Prevent 304 and browser caching on dynamic CMS API endpoints
+app.use('/api', (req: Request, res: Response, next) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  res.setHeader('Surrogate-Control', 'no-store');
+  next();
+});
 
 // Static uploads directory serving
 const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
@@ -22,6 +31,38 @@ try {
   // Ignore in read-only environment
 }
 app.use('/uploads', express.static(uploadsDir));
+
+// Persistent Data Directory
+const DATA_DIR = path.join(process.cwd(), 'data');
+const DB_FILE = path.join(DATA_DIR, 'db.json');
+const SUPABASE_CONFIG_FILE = path.join(DATA_DIR, 'supabase_config.json');
+const IMAGES_FILE = path.join(DATA_DIR, 'images.json');
+
+try {
+  if (!fs.existsSync(DATA_DIR)) {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+  }
+} catch (e) {}
+
+// In-Memory & File Image Cache to guarantee uploaded images NEVER 404 regardless of serverless environment
+let imagesCache: Record<string, { mimeType: string; base64: string }> = {};
+try {
+  if (fs.existsSync(IMAGES_FILE)) {
+    imagesCache = JSON.parse(fs.readFileSync(IMAGES_FILE, 'utf8'));
+  }
+} catch (e) {
+  imagesCache = {};
+}
+
+function saveImageToCache(filename: string, mimeType: string, base64: string) {
+  imagesCache[filename] = { mimeType, base64 };
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    fs.writeFileSync(IMAGES_FILE, JSON.stringify(imagesCache), 'utf8');
+  } catch (e) {}
+}
 
 // Google Search Console Verification route
 app.get('/googlebf09fd737c25f2c1.html', (req: Request, res: Response) => {
@@ -48,21 +89,76 @@ app.get('/sitemap.xml', (req: Request, res: Response) => {
   res.status(404).send('Not found');
 });
 
-// Lazy Supabase Client
+// Dedicated Reliable Image Serving Route: Serves images from disk or in-memory cache
+app.get('/api/images/:filename', (req: Request, res: Response) => {
+  const { filename } = req.params;
+
+  // 1. Try disk
+  const diskPath = path.join(uploadsDir, filename);
+  if (fs.existsSync(diskPath)) {
+    const ext = path.extname(filename).toLowerCase();
+    const mime = ext === '.png' ? 'image/png' : ext === '.webp' ? 'image/webp' : ext === '.svg' ? 'image/svg+xml' : ext === '.gif' ? 'image/gif' : 'image/jpeg';
+    res.setHeader('Content-Type', mime);
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    res.sendFile(diskPath);
+    return;
+  }
+
+  // 2. Try JSON / In-Memory cache
+  if (imagesCache[filename]) {
+    const item = imagesCache[filename];
+    const buffer = Buffer.from(item.base64, 'base64');
+    res.setHeader('Content-Type', item.mimeType || 'image/jpeg');
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    res.send(buffer);
+    return;
+  }
+
+  res.status(404).send('Image not found');
+});
+
+// Dynamic Supabase Client
 let supabaseClient: SupabaseClient | null = null;
+let currentSupabaseConfigSignature = '';
+
+function getSupabaseConfig(): { url: string; key: string } {
+  let url = '';
+  let key = '';
+
+  // 1. Check custom saved configuration file
+  try {
+    if (fs.existsSync(SUPABASE_CONFIG_FILE)) {
+      const conf = JSON.parse(fs.readFileSync(SUPABASE_CONFIG_FILE, 'utf8'));
+      if (conf.url && conf.key) {
+        url = conf.url.trim();
+        key = conf.key.trim();
+      }
+    }
+  } catch (e) {}
+
+  // 2. Fall back to environment variables
+  if (!url) {
+    url = (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '').trim();
+  }
+  if (!key) {
+    key = (process.env.SUPABASE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '').trim();
+  }
+
+  // Clean URL: Strip trailing /rest/v1 or trailing slashes
+  url = url.replace(/\/rest\/v1\/?$/, '').replace(/\/+$/, '');
+
+  return { url, key };
+}
 
 function getSupabase(): SupabaseClient | null {
-  let url = process.env.SUPABASE_URL?.trim();
-  const key = (process.env.SUPABASE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY)?.trim();
+  const { url, key } = getSupabaseConfig();
 
   if (!url || !key || url.includes('your-project-id') || key.includes('your-supabase')) {
     return null;
   }
 
-  // Clean URL: Strip any trailing /rest/v1 or trailing slashes (common user configuration issue)
-  url = url.replace(/\/rest\/v1\/?$/, '').replace(/\/+$/, '');
-
-  if (!supabaseClient) {
+  const sig = `${url}:${key}`;
+  if (!supabaseClient || currentSupabaseConfigSignature !== sig) {
     try {
       supabaseClient = createClient(url, key, {
         auth: {
@@ -70,6 +166,7 @@ function getSupabase(): SupabaseClient | null {
           autoRefreshToken: false,
         },
       });
+      currentSupabaseConfigSignature = sig;
     } catch (err) {
       console.error('[Supabase Init Error]:', err);
       return null;
@@ -78,13 +175,6 @@ function getSupabase(): SupabaseClient | null {
 
   return supabaseClient;
 }
-
-// ==========================================
-// Persistent Local Server DB (Fallback & Cache)
-// Ensures data and images are NEVER lost upon refresh even if Supabase is offline
-// ==========================================
-const DATA_DIR = path.join(process.cwd(), 'data');
-const DB_FILE = path.join(DATA_DIR, 'db.json');
 
 interface LocalDbSchema {
   categories: any[];
@@ -368,7 +458,7 @@ function fromSettingsRow(row: any) {
 // API ROUTES
 // ==========================================
 
-// 0. Image Upload API (Uploads to Supabase Storage with local / disk fallback)
+// 0. Image Upload API (Uploads to Supabase Storage with local / disk / cache fallback)
 app.post('/api/upload', async (req: Request, res: Response) => {
   try {
     const { filename, fileData, mimeType } = req.body;
@@ -411,11 +501,29 @@ app.post('/api/upload', async (req: Request, res: Response) => {
     const base64Data = fileData.includes('base64,') ? fileData.split('base64,')[1] : fileData;
     const fileBuffer = Buffer.from(base64Data, 'base64');
 
+    // Always cache image data so /api/images/:filename NEVER returns 404
+    saveImageToCache(uniqueFilename, mimeType || (safeExt === '.png' ? 'image/png' : 'image/jpeg'), base64Data);
+
+    // Save to disk if writable
+    try {
+      const targetPath = path.join(uploadsDir, uniqueFilename);
+      fs.writeFileSync(targetPath, fileBuffer);
+    } catch (e) {}
+
     // 1. Primary: Upload directly to Supabase Storage (Generates persistent public CDN URL)
     const supabase = getSupabase();
     if (supabase) {
       try {
         const BUCKET_NAME = 'techcheck-images';
+
+        // Auto-create bucket if missing
+        try {
+          const { data: buckets } = await supabase.storage.listBuckets();
+          if (!buckets?.some((b: any) => b.name === BUCKET_NAME)) {
+            await supabase.storage.createBucket(BUCKET_NAME, { public: true });
+          }
+        } catch (bErr) {}
+
         const { error: storageErr } = await supabase.storage
           .from(BUCKET_NAME)
           .upload(uniqueFilename, fileBuffer, {
@@ -439,44 +547,88 @@ app.post('/api/upload', async (req: Request, res: Response) => {
             return;
           }
         } else {
-          console.warn('Supabase storage bucket upload error:', storageErr.message);
+          console.warn('Supabase storage upload error:', storageErr.message);
         }
       } catch (storageEx: any) {
         console.warn('Supabase storage upload attempt skipped:', storageEx.message);
       }
     }
 
-    // 2. Fallback: Save to public/uploads directory
-    try {
-      const uploadsPath = path.join(process.cwd(), 'public', 'uploads');
-      if (!fs.existsSync(uploadsPath)) {
-        fs.mkdirSync(uploadsPath, { recursive: true });
-      }
-      const targetPath = path.join(uploadsPath, uniqueFilename);
-      fs.writeFileSync(targetPath, fileBuffer);
-
-      res.json({
-        success: true,
-        url: `/uploads/${uniqueFilename}`,
-        filename: uniqueFilename,
-        mimeType,
-        storage: 'local',
-      });
-      return;
-    } catch (diskErr: any) {
-      console.warn('Local disk write failed (e.g. read-only serverless):', diskErr.message);
-    }
-
-    // 3. Fallback: Return clean data URL only if storage and disk fail
+    // 2. Reliable Server Endpoint Fallback (Never 404s, works across serverless and browsers)
     res.json({
       success: true,
-      url: req.body.fileData,
-      filename: req.body.filename,
-      mimeType: req.body.mimeType,
-      storage: 'fallback_data_url',
+      url: `/api/images/${uniqueFilename}`,
+      filename: uniqueFilename,
+      mimeType,
+      storage: 'server',
     });
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Image upload failed' });
+  }
+});
+
+// Supabase Configuration Management API (Allows viewing & updating credentials directly from UI)
+app.get('/api/supabase-config', (req: Request, res: Response) => {
+  const { url, key } = getSupabaseConfig();
+  const maskedKey = key ? `${key.slice(0, 6)}...${key.slice(-4)}` : '';
+  res.json({
+    url: url || '',
+    keyMasked: maskedKey,
+    hasKey: Boolean(key),
+    isConfigured: Boolean(url && key),
+  });
+});
+
+app.post('/api/supabase-config', async (req: Request, res: Response) => {
+  try {
+    const { url, key } = req.body;
+    if (!url || !key) {
+      res.status(400).json({ error: 'Supabase URL and API Key are required' });
+      return;
+    }
+
+    const cleanUrl = url.trim().replace(/\/rest\/v1\/?$/, '').replace(/\/+$/, '');
+    const cleanKey = key.trim();
+
+    // Test connection with a light test
+    const testClient = createClient(cleanUrl, cleanKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+
+    // Check bucket or light table read
+    const testResult = await testClient.from('categories').select('id', { head: true, count: 'exact' });
+    if (testResult.error && testResult.error.message.includes('fetch failed')) {
+      res.status(400).json({
+        error: `Gagal terhubung ke host Supabase: ${testResult.error.message}. Pastikan URL proyek aktif dan tidak ada typo.`,
+      });
+      return;
+    }
+
+    // Save configuration
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    fs.writeFileSync(SUPABASE_CONFIG_FILE, JSON.stringify({ url: cleanUrl, key: cleanKey }, null, 2), 'utf8');
+
+    // Invalidate client
+    supabaseClient = null;
+    currentSupabaseConfigSignature = '';
+
+    // Auto-create techcheck-images bucket in newly connected Supabase
+    try {
+      const { data: buckets } = await testClient.storage.listBuckets();
+      if (!buckets?.some((b: any) => b.name === 'techcheck-images')) {
+        await testClient.storage.createBucket('techcheck-images', { public: true });
+      }
+    } catch (e) {}
+
+    res.json({
+      success: true,
+      message: 'Konfigurasi Supabase berhasil disimpan dan terhubung!',
+      url: cleanUrl,
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message || 'Gagal menyimpan konfigurasi Supabase' });
   }
 });
 
@@ -809,6 +961,32 @@ app.post('/api/guides', async (req: Request, res: Response) => {
       }
 
       if (!error && data) {
+        // Also sync step blocks to public.article_blocks in Supabase
+        if (Array.isArray(guide.steps) && guide.steps.length > 0) {
+          try {
+            const blocks = guide.steps.map((st: any, idx: number) => {
+              const stepNum = st.number || String(idx + 1).padStart(2, '0');
+              const blockId = st.id || `${guide.id}-step-${stepNum}`;
+              const img = st.image?.trim() || st.image_url?.trim() || '';
+              return {
+                id: blockId,
+                guide_id: guide.id,
+                step_number: stepNum,
+                title: st.title || '',
+                text: st.text || '',
+                image: img,
+                image_url: img,
+                caption: st.caption || st.title || '',
+                alt_text: st.title || '',
+                recommended_product_slug: st.recommendedProductSlug || st.recommended_product_slug || '',
+                sort_order: idx,
+              };
+            });
+            await supabase.from('article_blocks').upsert(blocks);
+          } catch (bErr: any) {
+            console.warn('Sync to article_blocks table error:', bErr.message);
+          }
+        }
         res.json(fromGuideRow(data));
         return;
       }
@@ -1096,6 +1274,31 @@ app.put('/api/guides/:id', async (req: Request, res: Response) => {
     try {
       const { data, error } = await supabase.from('guides').upsert(row).select().maybeSingle();
       if (!error && data) {
+        if (Array.isArray(guide.steps) && guide.steps.length > 0) {
+          try {
+            const blocks = guide.steps.map((st: any, idx: number) => {
+              const stepNum = st.number || String(idx + 1).padStart(2, '0');
+              const blockId = st.id || `${guide.id}-step-${stepNum}`;
+              const img = st.image?.trim() || st.image_url?.trim() || '';
+              return {
+                id: blockId,
+                guide_id: guide.id,
+                step_number: stepNum,
+                title: st.title || '',
+                text: st.text || '',
+                image: img,
+                image_url: img,
+                caption: st.caption || st.title || '',
+                alt_text: st.title || '',
+                recommended_product_slug: st.recommendedProductSlug || st.recommended_product_slug || '',
+                sort_order: idx,
+              };
+            });
+            await supabase.from('article_blocks').upsert(blocks);
+          } catch (bErr: any) {
+            console.warn('Sync to article_blocks table error:', bErr.message);
+          }
+        }
         res.json(fromGuideRow(data));
         return;
       }

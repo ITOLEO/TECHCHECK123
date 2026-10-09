@@ -65,6 +65,25 @@ function safeParse<T>(key: string, fallback: T): T {
   }
 }
 
+// Safe storage setter that eliminates QuotaExceededError and strips bulky data URLs
+function safeSetItem(key: string, value: string): void {
+  try {
+    localStorage.setItem(key, value);
+  } catch (err: any) {
+    if (err?.name === 'QuotaExceededError' || String(err).includes('quota') || String(err).includes('QuotaExceeded')) {
+      console.warn(`[Storage Quota Exceeded] Preventing crash for key "${key}". Auto-cleaning oversized storage.`);
+      try {
+        localStorage.removeItem('techcheck_draft_v1');
+        localStorage.removeItem('techcheck_audit_log_v1');
+        const stripped = value.replace(/data:image\/[a-zA-Z0-9+.-]+;base64,[^"']+/g, '""');
+        localStorage.setItem(key, stripped);
+      } catch (inner) {
+        // Safe fail without throwing to browser
+      }
+    }
+  }
+}
+
 export interface SupabaseTableDetail {
   name: string;
   label: string;
@@ -118,7 +137,7 @@ export const dataStorage = {
   // Check Supabase connection status via backend
   async checkSupabaseStatus(): Promise<SupabaseStatus> {
     try {
-      const res = await fetch('/api/status');
+      const res = await fetch('/api/status', { cache: 'no-store' });
       if (!res.ok) {
         return {
           configured: false,
@@ -136,7 +155,36 @@ export const dataStorage = {
     }
   },
 
-  // Pull remote data from Supabase if available
+  // Get current Supabase project URL & configuration
+  async getSupabaseConfig(): Promise<{ url: string; keyMasked: string; hasKey: boolean; isConfigured: boolean }> {
+    try {
+      const res = await fetch('/api/supabase-config', { cache: 'no-store' });
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch (e) {}
+    return { url: '', keyMasked: '', hasKey: false, isConfigured: false };
+  },
+
+  // Save new Supabase project URL & API Key
+  async saveSupabaseConfig(url: string, key: string): Promise<{ success: boolean; message?: string; error?: string }> {
+    try {
+      const res = await fetch('/api/supabase-config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url, key }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        return { success: false, error: data.error || `HTTP ${res.status}` };
+      }
+      return { success: true, message: data.message };
+    } catch (e: any) {
+      return { success: false, error: e.message || 'Gagal menyimpan konfigurasi Supabase' };
+    }
+  },
+
+  // Pull remote data from backend / Supabase
   async fetchRemoteData(): Promise<{
     products?: Product[];
     categories?: CategoryInfo[];
@@ -144,16 +192,11 @@ export const dataStorage = {
     settings?: SiteSettings;
   } | null> {
     try {
-      const status = await this.checkSupabaseStatus();
-      if (!status.connected) {
-        return null;
-      }
-
       const [prodRes, catRes, guideRes, settRes] = await Promise.allSettled([
-        fetch('/api/products'),
-        fetch('/api/categories'),
-        fetch('/api/guides'),
-        fetch('/api/settings'),
+        fetch('/api/products', { cache: 'no-store' }),
+        fetch('/api/categories', { cache: 'no-store' }),
+        fetch('/api/guides', { cache: 'no-store' }),
+        fetch('/api/settings', { cache: 'no-store' }),
       ]);
 
       const result: {
@@ -166,18 +209,8 @@ export const dataStorage = {
       if (prodRes.status === 'fulfilled' && prodRes.value.ok) {
         const prodData: Product[] = await prodRes.value.json();
         if (Array.isArray(prodData) && prodData.length > 0) {
-          const currentLocalProds = safeParse<Product[]>(STORAGE_KEYS.PRODUCTS, []);
-          const mergedProds = prodData.map((remoteP) => {
-            const localP = currentLocalProds.find((p) => p.id === remoteP.id);
-            if (!localP) return remoteP;
-            return {
-              ...localP,
-              ...remoteP,
-              image: remoteP.image?.trim() || localP.image || '',
-            };
-          });
-          result.products = mergedProds;
-          localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(mergedProds));
+          result.products = prodData;
+          safeSetItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(prodData));
         }
       }
 
@@ -185,48 +218,31 @@ export const dataStorage = {
         const catData: CategoryInfo[] = await catRes.value.json();
         if (Array.isArray(catData) && catData.length > 0) {
           result.categories = catData;
-          localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(catData));
+          safeSetItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(catData));
         }
       }
 
       if (guideRes.status === 'fulfilled' && guideRes.value.ok) {
         const guideData: Guide[] = await guideRes.value.json();
         if (Array.isArray(guideData) && guideData.length > 0) {
-          const currentLocalGuides = safeParse<Guide[]>(STORAGE_KEYS.GUIDES, []);
-          const mergedGuides = guideData.map((remoteG) => {
-            const localG = currentLocalGuides.find((g) => g.id === remoteG.id);
-            if (!localG) {
+          const formattedGuides = guideData.map((remoteG) => ({
+            ...remoteG,
+            showContentImages: remoteG.showContentImages !== false,
+            steps: (remoteG.steps || []).map((st: any, i: number) => {
+              const stepNumber = st.number || String(i + 1).padStart(2, '0');
+              const stepId = st.id || `${remoteG.id}-step-${stepNumber}`;
+              const img = st.image?.trim() || st.image_url?.trim() || '';
               return {
-                ...remoteG,
-                showContentImages: remoteG.showContentImages !== false,
-                steps: (remoteG.steps || []).map((st: any, i: number) => ({
-                  ...st,
-                  id: st.id || `${remoteG.id}-step-${st.number || String(i + 1).padStart(2, '0')}`,
-                  image: st.image?.trim() || st.image_url?.trim() || '',
-                  image_url: st.image?.trim() || st.image_url?.trim() || '',
-                })),
+                ...st,
+                id: stepId,
+                number: stepNumber,
+                image: img,
+                image_url: img,
               };
-            }
-            return {
-              ...localG,
-              ...remoteG,
-              image: remoteG.image?.trim() || localG.image || '',
-              showContentImages: remoteG.showContentImages !== undefined ? remoteG.showContentImages : (localG.showContentImages ?? true),
-              steps: (remoteG.steps || []).map((st: any, i: number) => {
-                const localStep = localG.steps?.[i];
-                const stepId = st.id || localStep?.id || `${remoteG.id}-step-${st.number || String(i + 1).padStart(2, '0')}`;
-                const resolvedImg = st.image?.trim() || st.image_url?.trim() || localStep?.image?.trim() || localStep?.image_url?.trim() || '';
-                return {
-                  ...st,
-                  id: stepId,
-                  image: resolvedImg,
-                  image_url: resolvedImg,
-                };
-              }),
-            };
-          });
-          result.guides = mergedGuides;
-          localStorage.setItem(STORAGE_KEYS.GUIDES, JSON.stringify(mergedGuides));
+            }),
+          }));
+          result.guides = formattedGuides;
+          safeSetItem(STORAGE_KEYS.GUIDES, JSON.stringify(formattedGuides));
         }
       }
 
@@ -239,18 +255,15 @@ export const dataStorage = {
             ...currentLocalSettings,
             ...settData,
           };
-          if ((!settData.heroImage || settData.heroImage.trim() === '') && currentLocalSettings.heroImage) {
-            mergedSett.heroImage = currentLocalSettings.heroImage;
-          }
           result.settings = mergedSett;
-          localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(mergedSett));
+          safeSetItem(STORAGE_KEYS.SETTINGS, JSON.stringify(mergedSett));
         }
       }
 
       this.notifyListeners(result);
       return result;
     } catch (err) {
-      console.warn('Failed to fetch data from Supabase backend:', err);
+      console.warn('Failed to fetch data from backend API:', err);
       return null;
     }
   },
@@ -288,7 +301,7 @@ export const dataStorage = {
   // Save product collection locally
   saveProducts(products: Product[]): void {
     try {
-      localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
+      safeSetItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
       this.notifyListeners({ products });
     } catch (e) {
       console.error('Failed to save products', e);
@@ -323,7 +336,7 @@ export const dataStorage = {
   // Save category collection locally
   saveCategories(categories: CategoryInfo[]): void {
     try {
-      localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(categories));
+      safeSetItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(categories));
       this.notifyListeners({ categories });
     } catch (e) {
       console.error('Failed to save categories', e);
@@ -388,7 +401,7 @@ export const dataStorage = {
   // Save guide collection locally
   saveGuides(guides: Guide[]): void {
     try {
-      localStorage.setItem(STORAGE_KEYS.GUIDES, JSON.stringify(guides));
+      safeSetItem(STORAGE_KEYS.GUIDES, JSON.stringify(guides));
       this.notifyListeners({ guides });
     } catch (e) {
       console.error('Failed to save guides', e);
@@ -461,7 +474,7 @@ export const dataStorage = {
       });
 
       if (matched) {
-        localStorage.setItem(STORAGE_KEYS.GUIDES, JSON.stringify(updatedGuides));
+        safeSetItem(STORAGE_KEYS.GUIDES, JSON.stringify(updatedGuides));
         this.notifyListeners({ guides: updatedGuides });
       }
 
@@ -536,7 +549,7 @@ export const dataStorage = {
 
   saveSiteSettings(settings: SiteSettings): void {
     try {
-      localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
+      safeSetItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
       fetch('/api/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

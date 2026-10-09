@@ -204,14 +204,49 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
   const [schemaSql, setSchemaSql] = useState<string>('');
   const [copiedSchema, setCopiedSchema] = useState(false);
 
+  // Supabase Configuration Management
+  const [supabaseConfig, setSupabaseConfig] = useState<{ url: string; keyMasked: string; hasKey: boolean; isConfigured: boolean }>({
+    url: '',
+    keyMasked: '',
+    hasKey: false,
+    isConfigured: false,
+  });
+  const [inputSupabaseUrl, setInputSupabaseUrl] = useState('');
+  const [inputSupabaseKey, setInputSupabaseKey] = useState('');
+  const [isSavingSupabaseConfig, setIsSavingSupabaseConfig] = useState(false);
+  const [showConfigForm, setShowConfigForm] = useState(false);
+
   React.useEffect(() => {
     if (isAuthenticated) {
       dataStorage.checkSupabaseStatus().then(setSupabaseStatus);
+      dataStorage.getSupabaseConfig().then((cfg) => {
+        setSupabaseConfig(cfg);
+        if (cfg.url) setInputSupabaseUrl(cfg.url);
+      });
       if (!visualEditor.isVisualEditMode) {
         visualEditor.enterVisualEditMode();
       }
     }
   }, [isAuthenticated, visualEditor]);
+
+  const handleSaveSupabaseConfig = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inputSupabaseUrl.trim() || !inputSupabaseKey.trim()) {
+      showToast('Mohon masukkan URL Proyek dan API Key Supabase');
+      return;
+    }
+    setIsSavingSupabaseConfig(true);
+    const res = await dataStorage.saveSupabaseConfig(inputSupabaseUrl, inputSupabaseKey);
+    setIsSavingSupabaseConfig(false);
+    if (res.success) {
+      showToast('Konfigurasi Supabase berhasil disimpan dan terhubung!');
+      setShowConfigForm(false);
+      handleCheckSupabase();
+      dataStorage.getSupabaseConfig().then(setSupabaseConfig);
+    } else {
+      showToast(`Gagal menghubungkan: ${res.error || 'Periksa kembali URL & Key'}`);
+    }
+  };
 
   // Lock background body scrolling when any modal is open, and restore when closed
   const isAnyAdminModalOpen =
@@ -1875,15 +1910,93 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                 ) : (
                   <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                 )}
-                <div>
-                  <p className="font-bold">
-                    {supabaseStatus?.connected ? 'Status Database: Terhubung & Sinkron' : 'Status Database: Perhatian Konfigurasi'}
-                  </p>
+                <div className="flex-1">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="font-bold">
+                      {supabaseStatus?.connected ? 'Status Database: Terhubung & Sinkron' : 'Status Database: Perlu Konfigurasi / Host Belum Aktif'}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setShowConfigForm(!showConfigForm)}
+                      className="px-2.5 py-1 bg-white hover:bg-neutral-100 border border-neutral-300 rounded-lg text-[11px] font-bold text-neutral-800 transition-colors cursor-pointer"
+                    >
+                      {showConfigForm ? 'Tutup Pengaturan' : '⚙️ Atur URL & API Key Supabase'}
+                    </button>
+                  </div>
                   <p className="mt-0.5 text-[11px] leading-relaxed opacity-90">
                     {supabaseStatus?.message || 'Memeriksa status koneksi ke Supabase...'}
                   </p>
                 </div>
               </div>
+
+              {/* Supabase URL & Key Configuration Form */}
+              {(!supabaseStatus?.connected || showConfigForm) && (
+                <div className="p-5 rounded-2xl bg-white border border-[#E9E9E6] shadow-xs mb-6 space-y-4">
+                  <div className="flex items-center justify-between border-b border-[#E9E9E6] pb-3">
+                    <div className="flex items-center gap-2">
+                      <Database className="w-4 h-4 text-[#FF6B00]" />
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-neutral-800">
+                        Konfigurasi Proyek Supabase
+                      </h4>
+                    </div>
+                    {supabaseConfig.url && (
+                      <span className="text-[10px] font-mono text-neutral-500 truncate max-w-[250px]">
+                        URL: {supabaseConfig.url}
+                      </span>
+                    )}
+                  </div>
+
+                  <form onSubmit={handleSaveSupabaseConfig} className="space-y-3.5">
+                    <div>
+                      <label className="block text-[11px] font-bold text-neutral-700 mb-1">
+                        Supabase Project URL
+                      </label>
+                      <input
+                        type="url"
+                        placeholder="https://your-project-id.supabase.co"
+                        value={inputSupabaseUrl}
+                        onChange={(e) => setInputSupabaseUrl(e.target.value)}
+                        required
+                        className="w-full px-3 py-2 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl text-xs font-mono text-neutral-800 focus:outline-none focus:border-[#FF6B00]"
+                      />
+                      <p className="text-[10px] text-neutral-400 mt-1">
+                        Ditemukan di Supabase Dashboard &gt; Project Settings &gt; Configuration &gt; API &gt; Project URL.
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-neutral-700 mb-1">
+                        Supabase API Key (anon public key atau service_role key)
+                      </label>
+                      <input
+                        type="password"
+                        placeholder="eyJh..."
+                        value={inputSupabaseKey}
+                        onChange={(e) => setInputSupabaseKey(e.target.value)}
+                        required
+                        className="w-full px-3 py-2 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl text-xs font-mono text-neutral-800 focus:outline-none focus:border-[#FF6B00]"
+                      />
+                      <p className="text-[10px] text-neutral-400 mt-1">
+                        Ditemukan di Supabase Dashboard &gt; Project Settings &gt; Configuration &gt; API &gt; Project API Keys.
+                      </p>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2">
+                      <p className="text-[11px] text-neutral-500">
+                        {supabaseConfig.hasKey ? 'Status Kunci: Tersimpan di server' : 'Kunci belum dikonfigurasi'}
+                      </p>
+                      <button
+                        type="submit"
+                        disabled={isSavingSupabaseConfig}
+                        className="px-4 py-2 bg-[#111111] hover:bg-black text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-xs disabled:opacity-50 flex items-center gap-1.5"
+                      >
+                        <RefreshCw className={`w-3.5 h-3.5 ${isSavingSupabaseConfig ? 'animate-spin' : ''}`} />
+                        <span>{isSavingSupabaseConfig ? 'Menyimpan & Menghubungkan...' : 'Simpan & Hubungkan Database'}</span>
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              )}
 
               {/* 4 Table Verification Grid */}
               <div className="mb-5">
@@ -3172,6 +3285,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                                       value={step.image || ''}
                                       onChange={async (newUrl) => {
                                         handleUpdateGuideStep(idx, { image: newUrl, image_url: newUrl });
+                                        setGuideFormData((prev) => ({ ...prev, showContentImages: true }));
                                         // Targeted save to public.article_blocks without rewriting whole article
                                         const gId = editingGuide?.id || guideFormData.id;
                                         if (gId) {

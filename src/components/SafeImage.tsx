@@ -19,16 +19,27 @@ export const SafeImage: React.FC<SafeImageProps> = ({
   loading = 'lazy',
   ...props
 }) => {
+  const [currentSrc, setCurrentSrc] = useState(src);
   const [hasError, setHasError] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
 
   // Reset error when src changes
   React.useEffect(() => {
+    setCurrentSrc(src);
     setHasError(false);
     setIsLoaded(false);
   }, [src]);
 
-  if (!src || hasError) {
+  const handleError = () => {
+    if (currentSrc && currentSrc.startsWith('/uploads/')) {
+      const filename = currentSrc.replace('/uploads/', '');
+      setCurrentSrc(`/api/images/${filename}`);
+      return;
+    }
+    setHasError(true);
+  };
+
+  if (!currentSrc || hasError) {
     if (hideOnFallback) return null;
     return (
       <div
@@ -51,11 +62,11 @@ export const SafeImage: React.FC<SafeImageProps> = ({
 
   return (
     <img
-      src={src}
+      src={currentSrc}
       alt={alt}
       loading={loading}
       onLoad={() => setIsLoaded(true)}
-      onError={() => setHasError(true)}
+      onError={handleError}
       className={`${className} ${!isLoaded ? 'opacity-80 blur-2xs' : 'opacity-100'} transition-opacity duration-300`}
       {...props}
     />
