@@ -1100,7 +1100,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
       )}
 
       {/* Admin Subheader Bar */}
-      <div className="bg-white dark:bg-[#16171D] border-b border-[#E9E9E6] dark:border-[#272932] sticky top-20 z-30 shadow-xs transition-colors">
+      <div className="bg-white dark:bg-[#16171D] border-b border-[#E9E9E6] dark:border-[#272932] sticky top-0 z-30 shadow-xs transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
