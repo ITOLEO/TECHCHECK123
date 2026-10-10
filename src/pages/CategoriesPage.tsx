@@ -6,6 +6,8 @@ import { SafeImage } from '../components/SafeImage';
 import { analytics } from '../services/analytics';
 import { updateSEO, buildBreadcrumbSchema } from '../services/seo';
 
+import { categoryToSlug } from '../utils/slug';
+
 interface CategoriesPageProps {
   categories: CategoryInfo[];
   products?: Product[];
@@ -30,9 +32,10 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ categories, prod
     };
   }, []);
 
-  const handleSelectCategory = (name: ProductCategory) => {
-    analytics.track('category_view', { category: name });
-    onNavigate({ page: 'recommendations', categoryFilter: name });
+  const handleSelectCategory = (cat: CategoryInfo) => {
+    const slug = categoryToSlug(cat.slug || cat.name);
+    analytics.track('category_view', { category: cat.name, slug });
+    onNavigate({ page: 'category-detail', slug });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -69,11 +72,11 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ categories, prod
                 key={cat.id}
                 whileHover={{ y: -5 }}
                 transition={{ duration: 0.2 }}
-                onClick={() => handleSelectCategory(cat.name)}
+                onClick={() => handleSelectCategory(cat)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
-                    handleSelectCategory(cat.name);
+                    handleSelectCategory(cat);
                   }
                 }}
                 tabIndex={0}

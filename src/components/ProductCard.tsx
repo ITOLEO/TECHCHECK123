@@ -4,6 +4,7 @@ import { motion } from 'motion/react';
 import { Product, ViewRoute } from '../types';
 import { SafeImage } from './SafeImage';
 import { analytics } from '../services/analytics';
+import { categoryToSlug } from '../utils/slug';
 
 interface ProductCardProps {
   product: Product;
@@ -90,7 +91,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 if (onSelectCategory) {
                   onSelectCategory(product.category);
                 } else if (onNavigate) {
-                  onNavigate({ page: 'recommendations', categoryFilter: product.category });
+                  onNavigate({ page: 'category-detail', slug: categoryToSlug(product.category) });
                 }
               }}
               className="text-[11px] font-bold uppercase tracking-wider text-[#FF6B00] hover:underline cursor-pointer focus-visible:outline-none"

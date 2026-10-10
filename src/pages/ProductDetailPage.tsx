@@ -5,6 +5,7 @@ import { Product, ViewRoute } from '../types';
 import { SafeImage } from '../components/SafeImage';
 import { analytics } from '../services/analytics';
 import { updateSEO, buildProductSchema, buildBreadcrumbSchema } from '../services/seo';
+import { categoryToSlug } from '../utils/slug';
 
 interface ProductDetailPageProps {
   product?: Product | null;
@@ -100,7 +101,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
         </button>
         <ChevronRight className="w-3.5 h-3.5 text-neutral-400" />
         <button
-          onClick={() => onNavigate({ page: 'recommendations', categoryFilter: product.category })}
+          onClick={() => onNavigate({ page: 'category-detail', slug: categoryToSlug(product.category) })}
           className="hover:text-[#FF6B00] transition-colors cursor-pointer"
         >
           {product.category}

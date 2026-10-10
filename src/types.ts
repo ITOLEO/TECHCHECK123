@@ -141,6 +141,7 @@ export type ViewRoute =
   | { page: 'recommendations'; categoryFilter?: ProductCategory | 'All'; searchQuery?: string }
   | { page: 'product-detail'; slug: string }
   | { page: 'categories' }
+  | { page: 'category-detail'; slug: string }
   | { page: 'guides' }
   | { page: 'guide-detail'; slug: string }
   | { page: 'superadmin'; tab?: 'products' | 'categories' | 'guides' | 'settings' };

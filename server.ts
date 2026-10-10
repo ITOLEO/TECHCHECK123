@@ -116,17 +116,20 @@ async function buildDynamicSitemapXML(): Promise<string> {
 
   let products: any[] = [];
   let guides: any[] = [];
+  let categories: any[] = [];
 
   // 1. Try Supabase
   const supabase = getSupabase();
   if (supabase) {
     try {
-      const [pRes, gRes] = await Promise.all([
+      const [pRes, gRes, cRes] = await Promise.all([
         supabase.from('products').select('slug'),
         supabase.from('guides').select('slug'),
+        supabase.from('categories').select('slug, name'),
       ]);
       if (!pRes.error && Array.isArray(pRes.data)) products = pRes.data;
       if (!gRes.error && Array.isArray(gRes.data)) guides = gRes.data;
+      if (!cRes.error && Array.isArray(cRes.data)) categories = cRes.data;
     } catch (e) {}
   }
 
@@ -137,6 +140,28 @@ async function buildDynamicSitemapXML(): Promise<string> {
   }
   if (guides.length === 0 && Array.isArray(localDb.guides)) {
     guides = localDb.guides;
+  }
+  if (categories.length === 0 && Array.isArray(localDb.categories)) {
+    categories = localDb.categories;
+  }
+
+  // Fallback default categories if empty
+  const defaultCategoryNames = [
+    'Desk Setup',
+    'Cable Management',
+    'Audio',
+    'Monitors',
+    'Lighting',
+    'Storage',
+    'Ergonomics',
+    'Gadgets',
+    'Adapter',
+    'Mouse',
+    'Network',
+    'Accessories',
+  ];
+  if (categories.length === 0) {
+    categories = defaultCategoryNames.map((n) => ({ name: n, slug: n.toLowerCase().replace(/[\s_]+/g, '-') }));
   }
 
   let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
@@ -154,6 +179,24 @@ async function buildDynamicSitemapXML(): Promise<string> {
   corePages.forEach((p) => {
     seenUrls.add(p.loc);
     xml += `  <url>\n    <loc>${p.loc}</loc>\n    <changefreq>${p.changefreq}</changefreq>\n    <priority>${p.priority}</priority>\n  </url>\n`;
+  });
+
+  const catSlugHelper = (str: string) => str.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/[\s_]+/g, '-').replace(/--+/g, '-');
+
+  // Categories
+  xml += `\n  <!-- Category Pages -->\n`;
+  categories.forEach((cat) => {
+    const raw = cat?.slug || cat?.name || '';
+    if (raw && typeof raw === 'string') {
+      const cleanSlug = catSlugHelper(raw);
+      if (cleanSlug) {
+        const url = `${BASE_URL}/categories/${cleanSlug}`;
+        if (!seenUrls.has(url)) {
+          seenUrls.add(url);
+          xml += `  <url>\n    <loc>${url}</loc>\n    <changefreq>weekly</changefreq>\n    <priority>0.85</priority>\n  </url>\n`;
+        }
+      }
+    }
   });
 
   const catSlugs = new Set(['audio', 'gadgets', 'monitors', 'network', 'adapter', 'mouse', 'lighting', 'accessories', 'desk-setup', 'cable-management', 'storage', 'ergonomics']);
@@ -297,24 +340,41 @@ function getSupabase(): SupabaseClient | null {
 }
 
 // Convert any oversized base64 data URLs to clean persistent image URLs (Supabase CDN or Server Image Route)
+function sanitizeImageUrl(url: string | undefined | null): string {
+  if (!url || typeof url !== 'string') return url || '';
+  let clean = url.trim();
+  if (clean.includes('/api/images/')) {
+    clean = clean.replace(/\/api\/images\//g, '/uploads/');
+  }
+  return clean;
+}
+
+// Convert any oversized base64 data URLs to clean persistent image URLs (Supabase CDN or Server Image Route)
 // This prevents multi-megabyte payloads that cause network crashes (net::ERR_HTTP2_PING_FAILED, net::ERR_CONNECTION_CLOSED)
 async function normalizeAndUploadImageIfBase64(imageUrl: string | undefined | null, prefix = 'img'): Promise<string> {
-  if (!imageUrl || typeof imageUrl !== 'string') return imageUrl || '';
-  if (!imageUrl.startsWith('data:image/')) return imageUrl;
+  if (!imageUrl || typeof imageUrl !== 'string') return sanitizeImageUrl(imageUrl);
+  if (!imageUrl.startsWith('data:image/')) return sanitizeImageUrl(imageUrl);
 
   try {
     const mimeMatch = imageUrl.match(/^data:(image\/[a-zA-Z0-9+.-]+);base64,/);
     const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
-    const ext = mimeType === 'image/png' ? '.png' : mimeType === 'image/webp' ? '.webp' : mimeType === 'image/svg+xml' ? '.svg' : '.jpg';
+    const isSvg = mimeType === 'image/svg+xml' || imageUrl.includes('image/svg+xml');
+    const ext = isSvg ? '.svg' : '.jpeg';
+    const finalMime = isSvg ? 'image/svg+xml' : 'image/jpeg';
+
     const base64Data = imageUrl.includes('base64,') ? imageUrl.split('base64,')[1] : imageUrl;
     const fileBuffer = Buffer.from(base64Data, 'base64');
     const uniqueFilename = `${prefix}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}${ext}`;
 
-    // 1. Cache in memory and disk so /api/images/:filename is instantly available and never 404s
-    saveImageToCache(uniqueFilename, mimeType, base64Data);
+    // 1. Cache in memory and disk (both public/uploads and dist/uploads if dist exists)
+    saveImageToCache(uniqueFilename, finalMime, base64Data);
     try {
       const targetPath = path.join(uploadsDir, uniqueFilename);
       fs.writeFileSync(targetPath, fileBuffer);
+      const distUploadsDir = path.join(process.cwd(), 'dist', 'uploads');
+      if (fs.existsSync(distUploadsDir)) {
+        fs.writeFileSync(path.join(distUploadsDir, uniqueFilename), fileBuffer);
+      }
     } catch (e) {}
 
     // 2. Primary: Upload to Supabase Storage if configured
@@ -332,7 +392,7 @@ async function normalizeAndUploadImageIfBase64(imageUrl: string | undefined | nu
         const { error: storageErr } = await supabase.storage
           .from(BUCKET_NAME)
           .upload(uniqueFilename, fileBuffer, {
-            contentType: mimeType,
+            contentType: finalMime,
             upsert: true,
           });
 
@@ -350,11 +410,11 @@ async function normalizeAndUploadImageIfBase64(imageUrl: string | undefined | nu
       }
     }
 
-    // 3. Reliable server route fallback
-    return `/api/images/${uniqueFilename}`;
+    // 3. Reliable static uploads route fallback
+    return `/uploads/${uniqueFilename}`;
   } catch (err: any) {
     console.warn('normalizeAndUploadImageIfBase64 failed:', err.message);
-    return imageUrl;
+    return sanitizeImageUrl(imageUrl);
   }
 }
 
@@ -412,8 +472,8 @@ function toProductRow(p: any) {
     category: p.category,
     rating: Number(p.rating ?? 0),
     review_count: Number(p.reviewCount ?? 0),
-    image: p.image ?? '',
-    gallery: p.gallery ?? [],
+    image: sanitizeImageUrl(p.image),
+    gallery: Array.isArray(p.gallery) ? p.gallery.map(sanitizeImageUrl) : [],
     badge: p.badge ?? '',
     short_benefit: p.shortBenefit ?? '',
     description: p.description ?? '',
@@ -439,8 +499,8 @@ function fromProductRow(row: any) {
     category: row.category,
     rating: Number(row.rating ?? 0),
     reviewCount: Number(row.review_count ?? 0),
-    image: row.image,
-    gallery: Array.isArray(row.gallery) ? row.gallery : [],
+    image: sanitizeImageUrl(row.image),
+    gallery: Array.isArray(row.gallery) ? row.gallery.map(sanitizeImageUrl) : [],
     badge: row.badge ?? '',
     shortBenefit: row.short_benefit ?? '',
     description: row.description ?? '',
@@ -465,7 +525,7 @@ function toCategoryRow(c: any, index: number = 0) {
     slug: c.slug,
     description: c.description ?? '',
     product_count: Number(c.productCount ?? 0),
-    image: c.image ?? '',
+    image: sanitizeImageUrl(c.image),
     sort_order: index,
   };
 }
@@ -477,7 +537,7 @@ function fromCategoryRow(row: any) {
     slug: row.slug,
     description: row.description ?? '',
     productCount: Number(row.product_count ?? 0),
-    image: row.image ?? '',
+    image: sanitizeImageUrl(row.image),
   };
 }
 
@@ -486,7 +546,7 @@ function toGuideRow(g: any) {
   const cleanSteps = rawSteps.map((s: any, idx: number) => {
     const stepNumber = s.number || String(idx + 1).padStart(2, '0');
     const stableId = s.id || `${g.id}-step-${stepNumber}`;
-    const img = s.image?.trim() || s.image_url?.trim() || '';
+    const img = sanitizeImageUrl(s.image?.trim() || s.image_url?.trim() || '');
     return {
       ...s,
       id: stableId,
@@ -517,11 +577,11 @@ function toGuideRow(g: any) {
     read_time: g.readTime ?? '5 min',
     publish_date: g.publishDate ?? '',
     excerpt: g.excerpt ?? '',
-    image: g.image ?? '',
+    image: sanitizeImageUrl(g.image),
     featured: Boolean(g.featured),
     author_name: g.author?.name ?? '',
     author_role: g.author?.role ?? '',
-    author_avatar: g.author?.avatar ?? '',
+    author_avatar: sanitizeImageUrl(g.author?.avatar),
     intro: g.intro ?? '',
     steps: stepsWithMeta,
     callout: g.callout ?? '',
@@ -542,7 +602,7 @@ function fromGuideRow(row: any) {
     .map((s: any, idx: number) => {
       const stepNumber = s.number || String(idx + 1).padStart(2, '0');
       const stableId = s.id || `${row.id}-step-${stepNumber}`;
-      const img = s.image?.trim() || s.image_url?.trim() || '';
+      const img = sanitizeImageUrl(s.image?.trim() || s.image_url?.trim() || '');
       return {
         ...s,
         id: stableId,
@@ -569,12 +629,12 @@ function fromGuideRow(row: any) {
     readTime: row.read_time ?? '5 min',
     publishDate: row.publish_date ?? '',
     excerpt: row.excerpt ?? '',
-    image: row.image ?? '',
+    image: sanitizeImageUrl(row.image),
     featured: Boolean(row.featured),
     author: {
       name: row.author_name ?? '',
       role: row.author_role ?? '',
-      avatar: row.author_avatar ?? '',
+      avatar: sanitizeImageUrl(row.author_avatar),
     },
     intro: row.intro ?? '',
     steps: cleanSteps,
@@ -597,7 +657,7 @@ function toSettingsRow(s: any) {
     hero_headline1: s.heroHeadline1 ?? '',
     hero_headline2: s.heroHeadline2 ?? '',
     hero_subtext: s.heroSubtext ?? '',
-    hero_image: s.heroImage || '/hero-setup.jpg',
+    hero_image: sanitizeImageUrl(s.heroImage) || '/hero-setup.jpg',
     hero_image_alt: s.heroImageAlt || 'Build Better, Every Day. Compact Gaming Setup',
     hero_badge_eyebrow: s.heroBadgeEyebrow || 'SETUP ARCHITECTURE 2026',
     hero_badge_title: s.heroBadgeTitle || '100cm Compact Studio Desk',
@@ -606,8 +666,8 @@ function toSettingsRow(s: any) {
     hero_cta_primary_url: s.heroCtaPrimaryUrl || 'recommendations',
     hero_cta_secondary_text: s.heroCtaSecondaryText || 'Read Our Guides',
     hero_cta_secondary_url: s.heroCtaSecondaryUrl || 'guides',
-    og_image: s.ogImage || '/og-image.jpg',
-    favicon: s.favicon || '/favicon.png',
+    og_image: sanitizeImageUrl(s.ogImage) || '/og-image.jpg',
+    favicon: sanitizeImageUrl(s.favicon) || '/favicon.png',
     support_email: s.supportEmail ?? '',
     default_affiliate_sub_id: s.defaultAffiliateSubId ?? '',
     admin_passcode: s.adminPasscode ?? '654321',
@@ -623,7 +683,7 @@ function fromSettingsRow(row: any) {
     heroHeadline1: row.hero_headline1 ?? '',
     heroHeadline2: row.hero_headline2 ?? '',
     heroSubtext: row.hero_subtext ?? '',
-    heroImage: row.hero_image || '/hero-setup.jpg',
+    heroImage: sanitizeImageUrl(row.hero_image) || '/hero-setup.jpg',
     heroImageAlt: row.hero_image_alt || 'Build Better, Every Day. Compact Gaming Setup',
     heroBadgeEyebrow: row.hero_badge_eyebrow || 'SETUP ARCHITECTURE 2026',
     heroBadgeTitle: row.hero_badge_title || '100cm Compact Studio Desk',
@@ -681,19 +741,26 @@ app.post('/api/upload', async (req: Request, res: Response) => {
       }
     }
 
-    const safeExt = ext || (mimeType === 'image/jpeg' ? '.jpg' : '.png');
+    const isSvg = mimeType === 'image/svg+xml' || ext === '.svg';
+    const safeExt = isSvg ? '.svg' : '.jpeg';
+    const finalMime = isSvg ? 'image/svg+xml' : 'image/jpeg';
+
     const baseName = path.basename(filename, ext).replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 50);
     const uniqueFilename = `${baseName}-${Date.now()}${safeExt}`;
     const base64Data = fileData.includes('base64,') ? fileData.split('base64,')[1] : fileData;
     const fileBuffer = Buffer.from(base64Data, 'base64');
 
-    // Always cache image data so /api/images/:filename NEVER returns 404
-    saveImageToCache(uniqueFilename, mimeType || (safeExt === '.png' ? 'image/png' : 'image/jpeg'), base64Data);
+    // Always cache image data so /uploads/:filename is instantly available
+    saveImageToCache(uniqueFilename, finalMime, base64Data);
 
-    // Save to disk if writable
+    // Save to disk (both public/uploads and dist/uploads if dist exists)
     try {
       const targetPath = path.join(uploadsDir, uniqueFilename);
       fs.writeFileSync(targetPath, fileBuffer);
+      const distUploadsDir = path.join(process.cwd(), 'dist', 'uploads');
+      if (fs.existsSync(distUploadsDir)) {
+        fs.writeFileSync(path.join(distUploadsDir, uniqueFilename), fileBuffer);
+      }
     } catch (e) {}
 
     // 1. Primary: Upload directly to Supabase Storage (Generates persistent public CDN URL)
@@ -713,7 +780,7 @@ app.post('/api/upload', async (req: Request, res: Response) => {
         const { error: storageErr } = await supabase.storage
           .from(BUCKET_NAME)
           .upload(uniqueFilename, fileBuffer, {
-            contentType: mimeType || (safeExt === '.png' ? 'image/png' : 'image/jpeg'),
+            contentType: finalMime,
             upsert: true,
           });
 
@@ -727,7 +794,7 @@ app.post('/api/upload', async (req: Request, res: Response) => {
               success: true,
               url: publicUrlData.publicUrl,
               filename: uniqueFilename,
-              mimeType,
+              mimeType: finalMime,
               storage: 'supabase',
             });
             return;
@@ -740,12 +807,12 @@ app.post('/api/upload', async (req: Request, res: Response) => {
       }
     }
 
-    // 2. Reliable Server Endpoint Fallback (Never 404s, works across serverless and browsers)
+    // 2. Reliable Static Upload Route Fallback
     res.json({
       success: true,
-      url: `/api/images/${uniqueFilename}`,
+      url: `/uploads/${uniqueFilename}`,
       filename: uniqueFilename,
-      mimeType,
+      mimeType: finalMime,
       storage: 'server',
     });
   } catch (err: any) {
@@ -1826,10 +1893,131 @@ app.post('/api/sync-seed', async (req: Request, res: Response) => {
   }
 });
 
+// Auto Image Migration Helper: Sanitizes any legacy /api/images/ URLs in localDb and Supabase
+async function runAutoImageMigration() {
+  try {
+    const db = getLocalDb();
+    let dbChanged = false;
+    if (Array.isArray(db.products)) {
+      db.products.forEach((p: any) => {
+        if (p.image && p.image.includes('/api/images/')) {
+          p.image = sanitizeImageUrl(p.image);
+          dbChanged = true;
+        }
+      });
+    }
+    if (Array.isArray(db.guides)) {
+      db.guides.forEach((g: any) => {
+        if (g.image && g.image.includes('/api/images/')) {
+          g.image = sanitizeImageUrl(g.image);
+          dbChanged = true;
+        }
+        if (Array.isArray(g.steps)) {
+          g.steps.forEach((st: any) => {
+            if (st.image && st.image.includes('/api/images/')) {
+              st.image = sanitizeImageUrl(st.image);
+              st.image_url = st.image;
+              dbChanged = true;
+            }
+          });
+        }
+      });
+    }
+    if (db.settings) {
+      if (db.settings.heroImage && db.settings.heroImage.includes('/api/images/')) {
+        db.settings.heroImage = sanitizeImageUrl(db.settings.heroImage);
+        dbChanged = true;
+      }
+      if (db.settings.ogImage && db.settings.ogImage.includes('/api/images/')) {
+        db.settings.ogImage = sanitizeImageUrl(db.settings.ogImage);
+        dbChanged = true;
+      }
+    }
+    if (dbChanged) {
+      saveLocalDb(db);
+    }
+
+    const supabase = getSupabase();
+    if (supabase) {
+      const [prods, gds, blks, stg] = await Promise.all([
+        supabase.from('products').select('*'),
+        supabase.from('guides').select('*'),
+        supabase.from('article_blocks').select('*'),
+        supabase.from('site_settings').select('*').eq('id', 1).maybeSingle(),
+      ]);
+
+      if (Array.isArray(prods.data)) {
+        for (const p of prods.data) {
+          if (p.image && typeof p.image === 'string' && p.image.includes('/api/images/')) {
+            const clean = sanitizeImageUrl(p.image);
+            await supabase.from('products').update({ image: clean }).eq('id', p.id);
+          }
+        }
+      }
+
+      if (Array.isArray(gds.data)) {
+        for (const g of gds.data) {
+          let modified = false;
+          let cleanImg = g.image;
+          if (cleanImg && typeof cleanImg === 'string' && cleanImg.includes('/api/images/')) {
+            cleanImg = sanitizeImageUrl(cleanImg);
+            modified = true;
+          }
+          let cleanSteps = g.steps;
+          if (Array.isArray(cleanSteps)) {
+            cleanSteps = cleanSteps.map((st: any) => {
+              if (st && st.image && typeof st.image === 'string' && st.image.includes('/api/images/')) {
+                modified = true;
+                const c = sanitizeImageUrl(st.image);
+                return { ...st, image: c, image_url: c };
+              }
+              return st;
+            });
+          }
+          if (modified) {
+            await supabase.from('guides').update({ image: cleanImg, steps: cleanSteps }).eq('id', g.id);
+          }
+        }
+      }
+
+      if (Array.isArray(blks.data)) {
+        for (const b of blks.data) {
+          if ((b.image && b.image.includes('/api/images/')) || (b.image_url && b.image_url.includes('/api/images/'))) {
+            const cImg = sanitizeImageUrl(b.image || b.image_url);
+            await supabase.from('article_blocks').update({ image: cImg, image_url: cImg }).eq('id', b.id);
+          }
+        }
+      }
+
+      if (stg.data) {
+        let modified = false;
+        let hImg = stg.data.hero_image;
+        let oImg = stg.data.og_image;
+        if (hImg && typeof hImg === 'string' && hImg.includes('/api/images/')) {
+          hImg = sanitizeImageUrl(hImg);
+          modified = true;
+        }
+        if (oImg && typeof oImg === 'string' && oImg.includes('/api/images/')) {
+          oImg = sanitizeImageUrl(oImg);
+          modified = true;
+        }
+        if (modified) {
+          await supabase.from('site_settings').update({ hero_image: hImg, og_image: oImg }).eq('id', 1);
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('Auto image migration warning:', e);
+  }
+}
+
 // ==========================================
 // VITE MIDDLEWARE & STATIC SERVING
 // ==========================================
 async function startServer() {
+  // Execute image URL sanitization
+  runAutoImageMigration().catch(() => {});
+
   if (process.env.NODE_ENV !== 'production') {
     const { createServer: createViteServer } = await import('vi' + 'te'); // Hidden from static analyzer
     const vite = await createViteServer({

@@ -16,6 +16,7 @@ import { SafeImage } from '../components/SafeImage';
 import { analytics } from '../services/analytics';
 import { updateSEO, buildBreadcrumbSchema } from '../services/seo';
 import { heroImage } from '../heroImage';
+import { categoryToSlug } from '../utils/slug';
 
 interface HomePageProps {
   products: Product[];
@@ -501,15 +502,15 @@ export const HomePage: React.FC<HomePageProps> = ({
                 transition={{ duration: 0.2 }}
                 onClick={() =>
                   onNavigate({
-                    page: 'recommendations',
-                    categoryFilter: entry.category,
+                    page: 'category-detail',
+                    slug: categoryToSlug(entry.category),
                   })
                 }
                 onKeyDown={(e) => {
                   if (e.key === 'Enter')
                     onNavigate({
-                      page: 'recommendations',
-                      categoryFilter: entry.category,
+                      page: 'category-detail',
+                      slug: categoryToSlug(entry.category),
                     });
                 }}
                 role="button"

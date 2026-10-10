@@ -5,6 +5,7 @@ import { PRODUCTS, CATEGORIES } from '../data/products';
 import { GUIDES } from '../data/guides';
 import { SafeImage } from './SafeImage';
 import { analytics } from '../services/analytics';
+import { categoryToSlug } from '../utils/slug';
 
 interface SearchModalProps {
   isOpen: boolean;
@@ -115,7 +116,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({
 
   const handleSelectCategory = (name: string) => {
     onClose();
-    onNavigate({ page: 'recommendations', categoryFilter: name as any });
+    onNavigate({ page: 'category-detail', slug: categoryToSlug(name) });
   };
 
   const handleSelectGuide = (slug: string) => {

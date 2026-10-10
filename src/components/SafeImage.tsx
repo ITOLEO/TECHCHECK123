@@ -23,9 +23,13 @@ export const SafeImage: React.FC<SafeImageProps> = ({
   const [hasError, setHasError] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Reset error when src changes
+  // Sanitize and reset error when src changes
   React.useEffect(() => {
-    setCurrentSrc(src);
+    let cleanSrc = src;
+    if (cleanSrc && cleanSrc.includes('/api/images/')) {
+      cleanSrc = cleanSrc.replace(/\/api\/images\//g, '/uploads/');
+    }
+    setCurrentSrc(cleanSrc);
     setHasError(false);
     setIsLoaded(false);
   }, [src]);
@@ -33,19 +37,20 @@ export const SafeImage: React.FC<SafeImageProps> = ({
   const handleError = () => {
     if (currentSrc) {
       const cleanPath = currentSrc.split('?')[0];
+      if (cleanPath.includes('/api/images/')) {
+        setCurrentSrc(cleanPath.replace(/\/api\/images\//g, '/uploads/'));
+        return;
+      }
       if (cleanPath.startsWith('/uploads/')) {
         const filename = cleanPath.replace('/uploads/', '');
-        if (!currentSrc.includes('/api/images/')) {
-          setCurrentSrc(`/api/images/${filename}`);
+        // Fall back to root asset or images directory
+        if (!currentSrc.includes('/images/') && !currentSrc.includes('/assets/')) {
+          setCurrentSrc(`/images/${filename}`);
           return;
         }
       }
       if (cleanPath === '/hero-setup.jpg' || cleanPath === '/hero-setup.png') {
         setCurrentSrc('/hero-setup.webp');
-        return;
-      }
-      if (cleanPath === '/hero-setup.webp') {
-        setCurrentSrc('/uploads/hero-setup.jpg');
         return;
       }
     }

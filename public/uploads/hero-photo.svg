@@ -1,0 +1,407 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <defs>
+    <!-- Background & Wall Palette -->
+    <linearGradient id="wallGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1f1a16" />
+      <stop offset="35%" stop-color="#2a221b" />
+      <stop offset="70%" stop-color="#362920" />
+      <stop offset="100%" stop-color="#1c1713" />
+    </linearGradient>
+
+    <!-- Warm Golden Lightbar Ambient Wall Glow (Organic Splash) -->
+    <radialGradient id="lightbarWallGlow" cx="45%" cy="28%" r="48%">
+      <stop offset="0%" stop-color="#f5af58" stop-opacity="0.85" />
+      <stop offset="25%" stop-color="#e28c38" stop-opacity="0.60" />
+      <stop offset="55%" stop-color="#ad561e" stop-opacity="0.25" />
+      <stop offset="85%" stop-color="#4d2208" stop-opacity="0.08" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Warm Ambient Glow Behind Desk Rim -->
+    <linearGradient id="backlightStrip" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#e08834" stop-opacity="0.3" />
+      <stop offset="20%" stop-color="#ffb259" stop-opacity="0.8" />
+      <stop offset="60%" stop-color="#ffa84d" stop-opacity="0.9" />
+      <stop offset="90%" stop-color="#d9782b" stop-opacity="0.4" />
+      <stop offset="100%" stop-color="#552409" stop-opacity="0" />
+    </linearGradient>
+
+    <!-- Shelf Ambient Glow -->
+    <radialGradient id="shelfBackGlow" cx="82%" cy="32%" r="35%">
+      <stop offset="0%" stop-color="#f5a64a" stop-opacity="0.55" />
+      <stop offset="50%" stop-color="#b85f22" stop-opacity="0.20" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Warm Wood Desktop -->
+    <linearGradient id="woodSurface" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#80532e" />
+      <stop offset="20%" stop-color="#996639" />
+      <stop offset="50%" stop-color="#b37a47" />
+      <stop offset="75%" stop-color="#8c582f" />
+      <stop offset="100%" stop-color="#5a3418" />
+    </linearGradient>
+
+    <linearGradient id="woodBevel" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#4a2811" />
+      <stop offset="100%" stop-color="#1f0f05" />
+    </linearGradient>
+
+    <!-- Screenbar Downward Light Cone -->
+    <linearGradient id="screenbarDown" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fff5cf" stop-opacity="0.9" />
+      <stop offset="20%" stop-color="#ffd57a" stop-opacity="0.6" />
+      <stop offset="60%" stop-color="#e6963c" stop-opacity="0.2" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0" />
+    </linearGradient>
+
+    <!-- Monitor Screen Gradient -->
+    <linearGradient id="monitorBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a121a" />
+      <stop offset="50%" stop-color="#101d2a" />
+      <stop offset="100%" stop-color="#0b131c" />
+    </linearGradient>
+
+    <linearGradient id="waveCyan" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#14344d" stop-opacity="0.3" />
+      <stop offset="40%" stop-color="#245d8b" stop-opacity="0.8" />
+      <stop offset="70%" stop-color="#4fa1db" stop-opacity="0.95" />
+      <stop offset="100%" stop-color="#93cbf5" stop-opacity="0.9" />
+    </linearGradient>
+
+    <linearGradient id="waveDeepBlue" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#091d30" stop-opacity="0" />
+      <stop offset="50%" stop-color="#1a466e" stop-opacity="0.75" />
+      <stop offset="100%" stop-color="#3780ba" stop-opacity="0.85" />
+    </linearGradient>
+
+    <!-- Drop Shadows & Glow Filters -->
+    <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#000000" flood-opacity="0.8" />
+    </filter>
+
+    <filter id="strongGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="24" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+
+    <filter id="wallStuccoLight" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="3" result="noise" />
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="12" xChannelSelector="R" yChannelSelector="G" />
+    </filter>
+  </defs>
+
+  <!-- ================= 1. WALL & AMBIENT COVE LIGHTING ================= -->
+  <!-- Base Dark Warm Wall -->
+  <rect width="1920" height="1080" fill="url(#wallGrad)" />
+
+  <!-- Painterly Ambient Warm Wall Glow Splash above & behind Monitor -->
+  <g filter="url(#strongGlow)">
+    <ellipse cx="880" cy="330" rx="460" ry="260" fill="url(#lightbarWallGlow)" />
+    <!-- Textured feathering layers mimicking organic light diffusion on wall -->
+    <path d="M480 320 C540 180 720 120 940 130 C1160 140 1280 220 1320 340 C1260 420 1020 460 840 440 C620 420 450 380 480 320 Z" fill="#e89843" opacity="0.45" />
+    <path d="M620 280 C680 190 820 150 960 160 C1120 170 1200 240 1240 310 C1180 380 980 410 820 390 C680 370 580 330 620 280 Z" fill="#ffbd6b" opacity="0.5" />
+    <path d="M720 250 C780 200 890 180 1010 190 C1110 200 1160 250 1170 300 C1120 340 960 360 850 350 C760 340 690 300 720 250 Z" fill="#ffe299" opacity="0.4" />
+  </g>
+
+  <!-- Warm LED Ambient Backlight Strip across Back of Desk -->
+  <rect x="0" y="556" width="1920" height="28" fill="url(#backlightStrip)" filter="url(#strongGlow)" />
+  <rect x="180" y="562" width="1540" height="6" fill="#fff0b8" opacity="0.9" filter="url(#strongGlow)" />
+
+  <!-- Ambient Glow behind Right Wall Shelf Unit -->
+  <circle cx="1580" cy="350" r="380" fill="url(#shelfBackGlow)" />
+
+  <!-- ================= 2. RIGHT WALL SHELVING & PEGBOARD UNIT ================= -->
+  <g transform="translate(1380, 0)">
+    <!-- Dark Matte Steel / Wood Backboard Panel -->
+    <rect x="0" y="0" width="460" height="1080" fill="#181513" stroke="#28221d" stroke-width="2" />
+    <!-- Vertical warm accent line on left rail -->
+    <line x1="0" y1="0" x2="0" y2="1080" stroke="#f5af58" stroke-width="4" opacity="0.75" filter="url(#strongGlow)" />
+
+    <!-- Top Floating Shelf (y=160) -->
+    <g transform="translate(30, 150)">
+      <rect x="0" y="0" width="370" height="22" rx="3" fill="#8f5c35" stroke="#4a2d18" stroke-width="1.5" filter="url(#softShadow)" />
+      <!-- Under-shelf warm LED glow strip -->
+      <rect x="0" y="22" width="370" height="5" fill="#ffc875" opacity="0.85" filter="url(#strongGlow)" />
+
+      <!-- Potted Plant with Cascading Ivy Vines -->
+      <g transform="translate(45, -62)">
+        <polygon points="12,62 58,62 53,16 17,16" fill="#deddd6" stroke="#b8b7ae" stroke-width="1.5" />
+        <ellipse cx="35" cy="16" rx="18" ry="6" fill="#3a2414" />
+        <!-- Bushy Foliage at Pot Top -->
+        <circle cx="35" cy="4" r="22" fill="#204922" />
+        <circle cx="24" cy="-2" r="18" fill="#2d6930" />
+        <circle cx="46" cy="-2" r="19" fill="#3c873f" />
+        <circle cx="35" cy="-14" r="17" fill="#4ea652" />
+
+        <!-- Cascading Ivy Vine Branches Overhanging Shelf -->
+        <!-- Main Vine 1 -->
+        <path d="M22 55 Q8 120 20 190 Q10 250 16 320" fill="none" stroke="#245727" stroke-width="3.5" />
+        <ellipse cx="14" cy="85" rx="10" ry="15" fill="#3c873f" transform="rotate(-15 14 85)" />
+        <ellipse cx="26" cy="125" rx="11" ry="16" fill="#4ea652" transform="rotate(25 26 125)" />
+        <ellipse cx="12" cy="170" rx="10" ry="15" fill="#327335" transform="rotate(-20 12 170)" />
+        <ellipse cx="22" cy="220" rx="10" ry="14" fill="#4ea652" transform="rotate(18 22 220)" />
+        <ellipse cx="13" cy="275" rx="9" ry="13" fill="#2d6930" transform="rotate(-12 13 275)" />
+        <ellipse cx="17" cy="315" rx="7" ry="10" fill="#3c873f" />
+
+        <!-- Second Shorter Vine Branch -->
+        <path d="M48 55 Q60 115 50 175" fill="none" stroke="#245727" stroke-width="3" />
+        <ellipse cx="56" cy="80" rx="9" ry="13" fill="#4ea652" transform="rotate(30 56 80)" />
+        <ellipse cx="50" cy="120" rx="10" ry="14" fill="#327335" transform="rotate(-18 50 120)" />
+        <ellipse cx="54" cy="160" rx="8" ry="12" fill="#4ea652" transform="rotate(15 54 160)" />
+      </g>
+
+      <!-- Second Plant on Top Shelf (Small ceramic pot) -->
+      <g transform="translate(180, -52)">
+        <polygon points="10,52 48,52 44,14 14,14" fill="#ecebe4" stroke="#c9c8be" stroke-width="1.5" />
+        <ellipse cx="29" cy="14" rx="15" ry="5" fill="#3a2414" />
+        <ellipse cx="29" cy="4" rx="15" ry="9" fill="#3c873f" />
+        <ellipse cx="22" cy="-4" rx="12" ry="7" fill="#4ea652" transform="rotate(-20 22 -4)" />
+        <ellipse cx="36" cy="-4" rx="12" ry="7" fill="#5cb862" transform="rotate(20 36 -4)" />
+      </g>
+    </g>
+
+    <!-- Lower Shelf (y=345) -->
+    <g transform="translate(30, 345)">
+      <rect x="0" y="0" width="370" height="22" rx="3" fill="#8f5c35" stroke="#4a2d18" stroke-width="1.5" filter="url(#softShadow)" />
+      <rect x="0" y="22" width="370" height="5" fill="#ffc875" opacity="0.85" filter="url(#strongGlow)" />
+
+      <!-- Small Lush Green Potted Plant in White Cup Pot -->
+      <g transform="translate(100, -56)">
+        <polygon points="10,56 50,56 46,14 14,14" fill="#f4f3ec" stroke="#d5d4cb" stroke-width="1.5" />
+        <ellipse cx="30" cy="14" rx="16" ry="6" fill="#3a2414" />
+        <!-- Upright pointed leaves -->
+        <path d="M16 14 Q8 -16 14 -32 Q20 -14 22 14" fill="#2d6930" />
+        <path d="M28 14 Q28 -24 30 -42 Q34 -20 32 14" fill="#4ea652" />
+        <path d="M38 14 Q46 -16 44 -34 Q38 -12 36 14" fill="#3c873f" />
+      </g>
+    </g>
+  </g>
+
+  <!-- ================= 3. WARM WOODEN DESK & STEEL LEGS ================= -->
+  <g filter="url(#softShadow)">
+    <!-- Desk Tabletop Surface (Perspective Trapezoid) -->
+    <polygon points="60,560 1740,560 1780,820 0,820" fill="url(#woodSurface)" />
+    <!-- Desk Front Beveled Thickness Edge -->
+    <polygon points="0,820 1780,820 1780,865 0,865" fill="url(#woodBevel)" />
+
+    <!-- Tabletop subtle wood grain & warm light sheen reflection -->
+    <path d="M80 575 L1720 575" stroke="#ffba66" stroke-width="2" opacity="0.45" />
+    <path d="M40 680 L1750 680" stroke="#d4924c" stroke-width="1.5" opacity="0.25" />
+    <path d="M20 780 L1760 780" stroke="#ffba66" stroke-width="1.5" opacity="0.3" />
+
+    <!-- Desk Heavy Matte Black Steel Legs -->
+    <!-- Left Leg Silhouette -->
+    <rect x="150" y="865" width="40" height="215" fill="#141416" stroke="#25262a" stroke-width="1.5" />
+    <!-- Right Leg -->
+    <rect x="1420" y="865" width="42" height="215" fill="#141416" stroke="#25262a" stroke-width="1.5" />
+  </g>
+
+  <!-- ================= 4. POTTED DESK PLANT (LEFT CORNER) ================= -->
+  <g transform="translate(100, 310)">
+    <!-- Round Wooden Saucer / Stand -->
+    <ellipse cx="115" cy="290" rx="65" ry="16" fill="#1c1611" stroke="#3d2c1e" stroke-width="2" filter="url(#softShadow)" />
+    <!-- White Tapered Ceramic Pot -->
+    <g filter="url(#softShadow)">
+      <polygon points="65,225 165,225 152,286 78,286" fill="#f4f4ee" stroke="#d8d7cd" stroke-width="2" />
+      <ellipse cx="115" cy="225" rx="50" ry="14" fill="#3a2517" />
+    </g>
+    <!-- Lush Pointed Green Leaves Spanning Outward -->
+    <g>
+      <ellipse cx="115" cy="165" rx="26" ry="58" fill="#1f4b23" transform="rotate(10 115 165)" />
+      <ellipse cx="85" cy="180" rx="24" ry="54" fill="#2d6930" transform="rotate(-38 85 180)" />
+      <ellipse cx="145" cy="175" rx="24" ry="54" fill="#3c873f" transform="rotate(38 145 175)" />
+      <ellipse cx="60" cy="215" rx="20" ry="46" fill="#4ea652" transform="rotate(-65 60 215)" />
+      <ellipse cx="170" cy="210" rx="20" ry="46" fill="#5cb862" transform="rotate(65 170 210)" />
+      <ellipse cx="110" cy="140" rx="22" ry="50" fill="#4ea652" transform="rotate(-5 110 140)" />
+      <ellipse cx="128" cy="145" rx="20" ry="46" fill="#6bc972" transform="rotate(20 128 145)" />
+    </g>
+  </g>
+
+  <!-- ================= 5. CURVED ULTRAWIDE MONITOR & SCREEN LIGHTBAR ================= -->
+  <g transform="translate(420, 195)">
+    <!-- Heavy Matte Black Metal Monitor Stand Base -->
+    <polygon points="280,360 480,360 520,385 240,385" fill="#17181c" stroke="#2c2e36" stroke-width="2" filter="url(#softShadow)" />
+    <!-- Sturdy Vertical Mounting Neck -->
+    <rect x="360" y="240" width="40" height="125" rx="4" fill="#111215" stroke="#22242b" stroke-width="1.5" />
+
+    <!-- Ultrawide Curved Monitor Outer Chassis (Sleek Arc) -->
+    <path d="M-60 20 Q380 5 820 20 L815 315 Q380 330 -55 315 Z" fill="#131417" stroke="#282a30" stroke-width="3" filter="url(#softShadow)" />
+    <!-- Slim Outer Screen Bezel -->
+    <path d="M-50 28 Q380 14 810 28 L805 307 Q380 321 -45 307 Z" fill="#000000" />
+    <!-- Active IPS Display Glass -->
+    <path d="M-44 34 Q380 20 804 34 L799 301 Q380 315 -39 301 Z" fill="url(#monitorBg)" />
+
+    <!-- Ambient Blue Wave Desktop Wallpaper Graphic -->
+    <g>
+      <!-- Deep Blue Flowing Ambient Ribbon -->
+      <path d="M120 180 Q320 200 480 150 Q640 100 804 175 L804 301 L-39 301 L-39 230 Q30 190 120 180 Z" fill="url(#waveDeepBlue)" opacity="0.65" />
+      <!-- Glowing Cyan/Cobalt Wave Crest Ribbon -->
+      <path d="M140 160 Q360 190 540 120 Q700 65 799 155 L775 180 Q660 95 520 145 Q360 210 140 185 Z" fill="url(#waveCyan)" opacity="0.9" />
+      <!-- Screen Glass Soft Corner Reflection -->
+      <path d="M-44 34 L400 20 L220 307 L-39 301 Z" fill="#ffffff" opacity="0.03" />
+    </g>
+
+    <!-- Monitor Screen Lightbar Mounted on Top -->
+    <!-- Screenbar Aluminum Housing -->
+    <rect x="120" y="-14" width="520" height="18" rx="5" fill="#1c1d22" stroke="#333742" stroke-width="2" filter="url(#softShadow)" />
+    <!-- Central Counterweight Mounting Clamp -->
+    <rect x="360" y="4" width="40" height="22" rx="4" fill="#121316" stroke="#262830" stroke-width="1.5" />
+    <!-- Glowing Luminous LED Strip emitting golden light -->
+    <rect x="135" y="-3" width="490" height="6" fill="#fff4cf" filter="url(#strongGlow)" />
+
+    <!-- Downward Screenbar Ambient Light Cone casting onto keyboard & desk -->
+    <polygon points="120,4 640,4 820,440 -60,440" fill="url(#screenbarDown)" opacity="0.55" />
+  </g>
+
+  <!-- ================= 6. DESK PERIPHERALS & ACCESSORIES ================= -->
+  <!-- Extra-Wide Black Wool Felt Desk Pad -->
+  <g transform="translate(380, 565)">
+    <polygon points="60,0 840,0 890,150 10,150" fill="#191b1e" stroke="#282a30" stroke-width="2" filter="url(#softShadow)" />
+    <!-- Felt Stitching Accent Rim -->
+    <path d="M15 145 L885 145" stroke="#33363f" stroke-width="1.5" opacity="0.6" />
+  </g>
+
+  <!-- Compact Mechanical Keyboard (White Keycaps with Orange Accents) -->
+  <g transform="translate(480, 560)">
+    <!-- Keyboard Chassis Base (Black Aluminum with perspective tilt) -->
+    <polygon points="20,0 420,0 438,76 2,76" fill="#111215" stroke="#25272e" stroke-width="2" filter="url(#softShadow)" />
+    <polygon points="24,4 416,4 432,71 8,71" fill="#1a1b20" />
+
+    <!-- Keycaps Row 1: Function/Num Row -->
+    <g fill="#e4e4e7" stroke="#18191d" stroke-width="0.8">
+      <!-- ESC Key (Vibrant Orange Accent) -->
+      <polygon points="28,6 52,6 50,17 26,17" fill="#ea580c" stroke="#c2410c" />
+      <polygon points="55,6 78,6 76,17 53,17" />
+      <polygon points="81,6 104,6 102,17 79,17" />
+      <polygon points="107,6 130,6 128,17 105,17" />
+      <polygon points="133,6 156,6 154,17 131,17" />
+      <polygon points="159,6 182,6 180,17 157,17" />
+      <polygon points="185,6 208,6 206,17 183,17" />
+      <polygon points="211,6 234,6 232,17 209,17" />
+      <polygon points="237,6 260,6 258,17 235,17" />
+      <polygon points="263,6 286,6 284,17 261,17" />
+      <polygon points="289,6 312,6 310,17 287,17" />
+      <polygon points="315,6 338,6 336,17 313,17" />
+      <polygon points="341,6 364,6 362,17 339,17" />
+      <polygon points="367,6 412,6 410,17 365,17" fill="#52525b" />
+    </g>
+
+    <!-- Keycaps Row 2: QWERTY Row -->
+    <g fill="#fafafa" stroke="#18191d" stroke-width="0.8">
+      <polygon points="26,19 55,19 53,31 24,31" fill="#52525b" />
+      <polygon points="58,19 82,19 80,31 56,31" />
+      <polygon points="85,19 109,19 107,31 83,31" />
+      <polygon points="112,19 136,19 134,31 110,31" />
+      <polygon points="139,19 163,19 161,31 137,31" />
+      <polygon points="166,19 190,19 188,31 164,31" />
+      <polygon points="193,19 217,19 215,31 191,31" />
+      <polygon points="220,19 244,19 242,31 218,31" />
+      <polygon points="247,19 271,19 269,31 245,31" />
+      <polygon points="274,19 298,19 296,31 272,31" />
+      <polygon points="301,19 325,19 323,31 299,31" />
+      <polygon points="328,19 352,19 350,31 326,31" />
+      <polygon points="355,19 412,19 410,31 353,31" fill="#52525b" />
+    </g>
+
+    <!-- Keycaps Row 3: ASDF Row -->
+    <g fill="#fafafa" stroke="#18191d" stroke-width="0.8">
+      <polygon points="23,33 58,33 56,47 21,47" fill="#52525b" />
+      <polygon points="61,33 87,33 85,47 59,47" />
+      <polygon points="90,33 116,33 114,47 88,47" />
+      <polygon points="119,33 145,33 143,47 117,47" />
+      <polygon points="148,33 174,33 172,47 146,47" />
+      <polygon points="177,33 203,33 201,47 175,47" />
+      <polygon points="206,33 232,33 230,47 204,47" />
+      <polygon points="235,33 261,33 259,47 233,47" />
+      <polygon points="264,33 290,33 288,47 262,47" />
+      <polygon points="293,33 319,33 317,47 291,47" />
+      <polygon points="322,33 348,33 346,47 320,47" />
+      <!-- Enter Key (Orange Accent) -->
+      <polygon points="351,33 412,33 410,47 349,47" fill="#ea580c" stroke="#c2410c" />
+    </g>
+
+    <!-- Keycaps Row 4: Spacebar & Modifiers -->
+    <g fill="#52525b" stroke="#18191d" stroke-width="0.8">
+      <polygon points="19,49 52,49 50,65 17,65" />
+      <polygon points="55,49 88,49 85,65 53,65" />
+      <polygon points="91,49 122,49 119,65 88,65" />
+      <!-- Long Spacebar Key (Off White) -->
+      <polygon points="126,49 295,49 290,65 122,65" fill="#f4f4f5" />
+      <polygon points="299,49 330,49 326,65 295,65" />
+      <polygon points="333,49 364,49 360,65 329,65" />
+      <!-- Arrow Keys (Orange Accent) -->
+      <polygon points="367,49 390,49 386,65 363,65" fill="#3f3f46" />
+      <polygon points="393,49 416,49 412,65 389,65" fill="#ea580c" stroke="#c2410c" />
+    </g>
+  </g>
+
+  <!-- Wireless Ergonomic Mouse on Desk Mat -->
+  <g transform="translate(1000, 605)">
+    <path d="M22,0 C42,0 56,20 56,54 C56,86 42,106 22,106 C2,106 -12,86 -12,54 C-12,20 2,0 22,0 Z" fill="#18191c" stroke="#2d2f36" stroke-width="1.8" filter="url(#softShadow)" />
+    <!-- Clicker Seam & Scroll Wheel -->
+    <rect x="19" y="18" width="8" height="22" rx="3" fill="#0d0e10" stroke="#f59e0b" stroke-width="1.2" />
+    <line x1="23" y1="40" x2="23" y2="65" stroke="#26282e" stroke-width="1.5" />
+  </g>
+
+  <!-- Cylindrical Desktop Rotary Dial / Volume Knob (Right of Mouse) -->
+  <g transform="translate(1180, 545)">
+    <ellipse cx="32" cy="72" rx="32" ry="14" fill="#000000" opacity="0.6" />
+    <!-- Cylinder Body -->
+    <rect x="6" y="24" width="52" height="48" rx="6" fill="#17191d" stroke="#292c33" stroke-width="1.5" />
+    <!-- Beveled Top Face -->
+    <ellipse cx="32" cy="24" rx="26" ry="11" fill="#24272e" stroke="#ff9838" stroke-width="1.5" />
+    <circle cx="32" cy="24" r="3" fill="#ff9838" filter="url(#strongGlow)" />
+  </g>
+
+  <!-- Premium Audiophile Headphones on Dedicated Headphone Stand -->
+  <g transform="translate(1280, 420)">
+    <!-- Circular Heavy Metal Base on Desk -->
+    <ellipse cx="50" cy="220" rx="42" ry="14" fill="#121316" stroke="#262830" stroke-width="2" filter="url(#softShadow)" />
+    <!-- Vertical Support Stem -->
+    <rect x="46" y="32" width="8" height="190" rx="3" fill="#1c1d22" stroke="#2e313a" stroke-width="1.2" />
+    <!-- Top Curved Hanger Hook -->
+    <path d="M24 32 C36 16 64 16 76 32" fill="none" stroke="#1c1d22" stroke-width="9" stroke-linecap="round" />
+
+    <!-- Over-Ear Studio Headphones -->
+    <!-- Contoured Padded Headband -->
+    <path d="M12 60 C12 12 88 12 88 60" fill="none" stroke="#212328" stroke-width="10" stroke-linecap="round" filter="url(#softShadow)" />
+    <path d="M16 60 C16 18 84 18 84 60" fill="none" stroke="#353942" stroke-width="4" stroke-linecap="round" />
+
+    <!-- Left Plush Earcup -->
+    <g transform="translate(4, 75)">
+      <ellipse cx="14" cy="30" rx="16" ry="28" fill="#17181c" stroke="#2e3138" stroke-width="2.5" />
+      <ellipse cx="14" cy="30" rx="10" ry="20" fill="#0c0d0f" />
+    </g>
+
+    <!-- Right Plush Earcup -->
+    <g transform="translate(72, 75)">
+      <ellipse cx="14" cy="30" rx="16" ry="28" fill="#17181c" stroke="#2e3138" stroke-width="2.5" />
+      <ellipse cx="14" cy="30" rx="10" ry="20" fill="#0c0d0f" />
+    </g>
+  </g>
+
+  <!-- ================= 7. ERGONOMIC CHAIR (FOREGROUND BOTTOM-LEFT) ================= -->
+  <!-- Contoured Ergonomic Chair Armrest & Frame Silhouette as seen in photo -->
+  <g transform="translate(-10, 520)">
+    <!-- Chair Contoured Armrest Cushion -->
+    <g filter="url(#softShadow)">
+      <!-- Armrest Pad -->
+      <path d="M40 260 C60 250 140 250 210 265 C230 270 235 295 220 305 C190 325 80 325 40 310 C25 305 25 270 40 260 Z" fill="#202227" stroke="#3a3d46" stroke-width="2.5" />
+      <!-- Top Soft Cushion Contour Highlight -->
+      <path d="M60 266 C90 258 160 258 200 272" stroke="#4a4f5b" stroke-width="3" stroke-linecap="round" opacity="0.6" />
+    </g>
+    <!-- Heavy-Duty Matte Steel Armrest Support Pillar -->
+    <path d="M125 315 L140 460" stroke="#131417" stroke-width="24" stroke-linecap="round" filter="url(#softShadow)" />
+    <!-- Lower Seat Cushion Pan Silhouette Curve -->
+    <path d="M0 380 C40 375 140 380 200 420 C220 440 220 480 160 520 L0 520 Z" fill="#141518" stroke="#25272e" stroke-width="3" filter="url(#softShadow)" />
+  </g>
+
+  <!-- ================= 8. OVERALL AMBIENT SHADOWS & FLOOR ================= -->
+  <rect x="0" y="865" width="1920" height="215" fill="#0f0e0c" opacity="0.95" />
+  <!-- Warm glow bounce reflection on floor -->
+  <ellipse cx="960" cy="950" rx="600" ry="90" fill="#d47d33" opacity="0.08" />
+
+  <!-- Subtle Outer Edge Vignette -->
+  <rect x="0" y="0" width="1920" height="1080" fill="none" stroke="#000000" stroke-width="4" opacity="0.4" />
+</svg>

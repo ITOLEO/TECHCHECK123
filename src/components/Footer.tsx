@@ -1,6 +1,7 @@
 import React from 'react';
 import { ShieldCheck, Sparkles, CheckCircle2, Lock } from 'lucide-react';
 import { ViewRoute, ProductCategory } from '../types';
+import { categoryToSlug } from '../utils/slug';
 
 interface FooterProps {
   onNavigate: (route: ViewRoute) => void;
@@ -10,7 +11,7 @@ interface FooterProps {
 
 export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenInfoModal, onReplaySplash }) => {
   const handleCategoryClick = (category: ProductCategory) => {
-    onNavigate({ page: 'recommendations', categoryFilter: category });
+    onNavigate({ page: 'category-detail', slug: categoryToSlug(category) });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 

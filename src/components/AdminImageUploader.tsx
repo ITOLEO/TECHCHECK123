@@ -230,41 +230,64 @@ export const AdminImageUploader: React.FC<AdminImageUploaderProps> = ({
       const { dataUrl, mimeType } = await compressImage(file);
       if (!dataUrl) {
         setErrorMessage('Failed to read file from computer.');
-        setIsUploading(false);
         return;
       }
 
-      // Attempt server-side upload to Supabase Storage or /uploads
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          filename: file.name,
-          fileData: dataUrl,
-          mimeType: mimeType || file.type || 'image/jpeg',
-        }),
-      });
+      const isSvg = mimeType === 'image/svg+xml' || file.type === 'image/svg+xml';
+      const cleanFileName = isSvg
+        ? file.name
+        : file.name.replace(/\.[^/.]+$/, '') + '.jpeg';
 
-      if (res.ok) {
-        const json = await res.json();
-        if (json.url) {
-          // Set the clean CDN or persistent URL returned by storage
-          onChange(json.url);
+      // Attempt server-side upload to Supabase Storage or /uploads
+      try {
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            filename: cleanFileName,
+            fileData: dataUrl,
+            mimeType: isSvg ? 'image/svg+xml' : 'image/jpeg',
+          }),
+        });
+
+        if (res.ok) {
+          const json = await res.json();
+          if (json.url) {
+            onChange(json.url);
+            setMetaInfo((prev) => ({
+              ...prev,
+              filename: json.filename || cleanFileName,
+              format: isSvg ? 'SVG' : 'JPEG',
+            }));
+            setErrorMessage(null);
+          } else {
+            onChange(dataUrl);
+            setMetaInfo((prev) => ({
+              ...prev,
+              filename: cleanFileName,
+              format: isSvg ? 'SVG' : 'JPEG',
+            }));
+          }
+        } else {
+          // If server returns error, use compressed JPEG dataUrl so data is never lost
+          onChange(dataUrl);
           setMetaInfo((prev) => ({
             ...prev,
-            filename: json.filename || file.name,
+            filename: cleanFileName,
+            format: isSvg ? 'SVG' : 'JPEG',
           }));
-          setErrorMessage(null);
-        } else {
-          setErrorMessage('Server did not return a valid storage URL.');
         }
-      } else {
-        const errJson = await res.json().catch(() => ({}));
-        setErrorMessage(errJson.error || `Upload failed (HTTP ${res.status}). Previous image preserved.`);
+      } catch (uploadErr) {
+        // Fallback to compressed JPEG dataUrl
+        onChange(dataUrl);
+        setMetaInfo((prev) => ({
+          ...prev,
+          filename: cleanFileName,
+          format: isSvg ? 'SVG' : 'JPEG',
+        }));
       }
-    } catch (uploadErr: any) {
-      console.warn('Backend upload failed:', uploadErr);
-      setErrorMessage(`Failed to reach upload server: ${uploadErr.message || uploadErr}. Previous image preserved.`);
+    } catch (err: any) {
+      setErrorMessage(`Error processing file: ${err.message || err}`);
     } finally {
       setIsUploading(false);
     }

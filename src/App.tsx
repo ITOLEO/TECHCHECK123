@@ -13,9 +13,11 @@ import { HomePage } from './pages/HomePage';
 import { RecommendationsPage } from './pages/RecommendationsPage';
 import { ProductDetailPage } from './pages/ProductDetailPage';
 import { CategoriesPage } from './pages/CategoriesPage';
+import { CategoryDetailPage } from './pages/CategoryDetailPage';
 import { GuidesPage } from './pages/GuidesPage';
 import { GuideDetailPage } from './pages/GuideDetailPage';
 import { SuperAdminPage } from './pages/SuperAdminPage';
+import { categoryToSlug } from './utils/slug';
 
 
 
@@ -142,6 +144,16 @@ const AppContent: React.FC<AppContentProps> = ({
               categories={categories}
               products={products}
               onNavigate={navigate}
+            />
+          )}
+
+          {currentRoute.page === 'category-detail' && (
+            <CategoryDetailPage
+              slug={currentRoute.slug}
+              categories={categories}
+              products={products}
+              onNavigate={navigate}
+              onSelectProduct={handleSelectProduct}
             />
           )}
 
@@ -432,16 +444,16 @@ export default function App() {
         routeSegment === 'kategori'
       ) {
         if (parts[1]) {
-          const matchedName = findCategoryMatch(parts[1]);
           setCurrentRoute({
-            page: 'recommendations',
-            categoryFilter: matchedName || parts[1],
+            page: 'category-detail',
+            slug: parts[1],
           });
         } else if (rawCategoryParam) {
           const matchedName = findCategoryMatch(rawCategoryParam);
+          const slugVal = matchedName ? categoryToSlug(matchedName) : categoryToSlug(decodeURIComponent(rawCategoryParam));
           setCurrentRoute({
-            page: 'recommendations',
-            categoryFilter: matchedName || decodeURIComponent(rawCategoryParam),
+            page: 'category-detail',
+            slug: slugVal,
           });
         } else {
           setCurrentRoute({ page: 'categories' });
@@ -462,7 +474,7 @@ export default function App() {
         } else {
           const directCatMatch = findCategoryMatch(parts[0]);
           if (directCatMatch) {
-            setCurrentRoute({ page: 'recommendations', categoryFilter: directCatMatch });
+            setCurrentRoute({ page: 'category-detail', slug: categoryToSlug(directCatMatch) });
           } else {
             setCurrentRoute({ page: 'home' });
           }
@@ -540,6 +552,8 @@ export default function App() {
       cleanPath = `/recommendations/${route.slug}`;
     } else if (route.page === 'categories') {
       cleanPath = '/categories';
+    } else if (route.page === 'category-detail') {
+      cleanPath = `/categories/${route.slug}`;
     } else if (route.page === 'guides') {
       cleanPath = '/guides';
     } else if (route.page === 'guide-detail') {

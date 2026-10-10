@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ViewRoute, CategoryInfo } from '../types';
 import { useTheme } from '../services/theme';
 import { CATEGORIES as DEFAULT_CATEGORIES } from '../data/products';
+import { categoryToSlug } from '../utils/slug';
 
 interface NavbarProps {
   currentRoute: ViewRoute;
@@ -71,6 +72,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       if (currentRoute.page === 'recommendations' && currentRoute.categoryFilter === category) return true;
     }
     if (page === 'categories' && currentRoute.page === 'categories') return true;
+    if (page === 'category-detail' && currentRoute.page === 'category-detail' && category && currentRoute.slug === categoryToSlug(category)) return true;
     if (page === 'guides' && (currentRoute.page === 'guides' || currentRoute.page === 'guide-detail')) return true;
     if (page === 'superadmin' && currentRoute.page === 'superadmin') return true;
     return false;
@@ -84,7 +86,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   const handleCategorySelect = (categoryName: string) => {
-    onNavigate({ page: 'recommendations', categoryFilter: categoryName });
+    onNavigate({ page: 'category-detail', slug: categoryToSlug(categoryName) });
     setMobileMenuOpen(false);
     setCategoriesDropdownOpen(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });

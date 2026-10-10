@@ -7,6 +7,7 @@ interface SEOConfig {
   ogType?: 'website' | 'article' | 'product';
   ogImage?: string;
   favicon?: string;
+  robots?: string;
   jsonLd?: Record<string, any> | Array<Record<string, any>>;
 }
 
@@ -73,8 +74,9 @@ export function updateSEO(config: SEOConfig): void {
     setLinkTag('apple-touch-icon', currentFavicon);
   }
 
-  // 3. Meta description
+  // 3. Meta description & robots
   setMetaTag('name', 'description', description);
+  setMetaTag('name', 'robots', config.robots || 'index, follow, max-image-preview:large');
 
   // 4. Canonical link
   const canonicalUrl = canonicalPath

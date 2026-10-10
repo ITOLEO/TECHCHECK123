@@ -521,7 +521,7 @@
       "readTime": "4 min read",
       "publishDate": "January 2026",
       "excerpt": "Why optical screenbars mounted directly onto your monitor frame are the single most effective lighting upgrade for compact desks.",
-      "image": "/api/images/74a0112e-4287-478f-a004-c9ad75e22590-1791653482688.jpeg",
+      "image": "/uploads/74a0112e-4287-478f-a004-c9ad75e22590-1791665236838.jpeg",
       "featured": false,
       "author": {
         "name": "TechCheck Editorial Team",
@@ -536,6 +536,7 @@
           "image": "/og-image.jpg",
           "title": "Zero-Footprint Mounting",
           "number": "01",
+          "caption": "Zero-Footprint Mounting",
           "image_url": "/og-image.jpg",
           "recommendedProductSlug": "asymmetric-screenbar-light"
         },
@@ -575,7 +576,7 @@
       "readTime": "5 min read",
       "publishDate": "February 2026",
       "excerpt": "Learn how to route power bricks, monitor cables, and USB peripherals using hidden under-desk channels for a distraction-free workspace.",
-      "image": "/api/images/acc97468-e7ea-45c1-a635-f8462e9394d1-1791653536672.jpeg",
+      "image": "/uploads/acc97468-e7ea-45c1-a635-f8462e9394d1-1791665271206.jpeg",
       "featured": true,
       "author": {
         "name": "TechCheck Editorial Team",
@@ -628,7 +629,7 @@
       "readTime": "5 min read",
       "publishDate": "Oct 1, 2026",
       "excerpt": "",
-      "image": "/api/images/guide-tiny-room-big-setup-how-to-fit-a-full-gaming-station-in-an-hdb-bedroom-1791535294701-xynes.jpg",
+      "image": "/uploads/guide-tiny-room-big-setup-how-to-fit-a-full-gaming-station-in-an-hdb-bedroom-1791535294701-xynes.jpg",
       "featured": false,
       "author": {
         "name": "TechCheck Editorial",
@@ -652,7 +653,7 @@
       "readTime": "6 min read",
       "publishDate": "March 2026",
       "excerpt": "A step-by-step spatial blueprint for fitting a 27-inch display, PC, and peripherals on a compact 100cm tabletop without feeling cramped.",
-      "image": "/api/images/57e276bc-28c2-47a2-9527-d4623af02f4f-1791653598851.png",
+      "image": "/uploads/57e276bc-28c2-47a2-9527-d4623af02f4f-1791653598851.png",
       "featured": true,
       "author": {
         "name": "TechCheck Editorial Team",
