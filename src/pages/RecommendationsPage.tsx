@@ -17,23 +17,39 @@ export const RecommendationsPage: React.FC<RecommendationsPageProps> = ({
   initialCategory = 'All',
   onSelectProduct,
 }) => {
-  const [selectedCategory, setSelectedCategory] = useState<ProductCategory | 'All'>(initialCategory);
+  const getValidCategory = (cat?: string): ProductCategory | 'All' => {
+    if (!cat) return 'All';
+    const clean = cat.trim();
+    if (
+      !clean ||
+      clean.toLowerCase() === 'all' ||
+      clean.toLowerCase() === 'recommendation' ||
+      clean.toLowerCase() === 'recommendations'
+    ) {
+      return 'All';
+    }
+    return clean as ProductCategory;
+  };
+
+  const [selectedCategory, setSelectedCategory] = useState<ProductCategory | 'All'>(() => getValidCategory(initialCategory));
   const [minRating, setMinRating] = useState<number>(0);
   const [selectedBadge, setSelectedBadge] = useState<string>('All');
   const [sortBy, setSortBy] = useState<'recommended' | 'rating' | 'reviews'>('recommended');
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    if (initialCategory) {
-      setSelectedCategory(initialCategory);
-      setMinRating(0);
-      setSelectedBadge('All');
-      setSearchQuery('');
-    }
+    setSelectedCategory(getValidCategory(initialCategory));
+    setMinRating(0);
+    setSelectedBadge('All');
+    setSearchQuery('');
   }, [initialCategory]);
 
   useEffect(() => {
-    const isCategoryFiltered = selectedCategory !== 'All';
+    const isCategoryFiltered =
+      selectedCategory !== 'All' &&
+      selectedCategory.toLowerCase() !== 'recommendation' &&
+      selectedCategory.toLowerCase() !== 'recommendations';
+
     const title = isCategoryFiltered
       ? `${selectedCategory} Recommendations | TechCheck Space-Saving Hardware`
       : 'Hardware Recommendations | Curated Compact Setup Catalog';
@@ -44,7 +60,7 @@ export const RecommendationsPage: React.FC<RecommendationsPageProps> = ({
     updateSEO({
       title,
       description,
-      canonicalPath: isCategoryFiltered ? `recommendations?category=${encodeURIComponent(selectedCategory)}` : 'recommendations',
+      canonicalPath: 'recommendations',
       ogType: 'website',
       jsonLd: buildBreadcrumbSchema([
         { name: 'Home', path: '' },

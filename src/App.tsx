@@ -366,6 +366,14 @@ export default function App() {
       const findCategoryMatch = (paramVal: string | null) => {
         if (!paramVal) return null;
         const decoded = decodeURIComponent(paramVal).trim();
+        if (
+          !decoded ||
+          decoded.toLowerCase() === 'all' ||
+          decoded.toLowerCase() === 'recommendation' ||
+          decoded.toLowerCase() === 'recommendations'
+        ) {
+          return null;
+        }
         const cats = categoriesRef.current || [];
         const match = cats.find(
           (c) =>
@@ -373,7 +381,7 @@ export default function App() {
             c.slug.toLowerCase() === decoded.toLowerCase() ||
             c.name.toLowerCase().replace(/[\s_]+/g, '-') === decoded.toLowerCase().replace(/[\s_]+/g, '-')
         );
-        return match ? match.name : decoded;
+        return match ? match.name : null;
       };
 
       const routeSegment = (parts[0] || '').toLowerCase();
@@ -382,6 +390,7 @@ export default function App() {
         setCurrentRoute({ page: 'home' });
       } else if (
         routeSegment === 'recommendations' ||
+        routeSegment === 'recommendation' ||
         routeSegment === 'products' ||
         routeSegment === 'catalog'
       ) {
@@ -395,17 +404,25 @@ export default function App() {
           } else {
             // Treat as category filter!
             const catMatch = findCategoryMatch(parts[1]);
-            setCurrentRoute({
-              page: 'recommendations',
-              categoryFilter: catMatch || parts[1],
-            });
+            if (catMatch) {
+              setCurrentRoute({
+                page: 'recommendations',
+                categoryFilter: catMatch,
+              });
+            } else {
+              setCurrentRoute({ page: 'recommendations' });
+            }
           }
         } else if (rawCategoryParam) {
           const matchedName = findCategoryMatch(rawCategoryParam);
-          setCurrentRoute({
-            page: 'recommendations',
-            categoryFilter: matchedName || decodeURIComponent(rawCategoryParam),
-          });
+          if (matchedName) {
+            setCurrentRoute({
+              page: 'recommendations',
+              categoryFilter: matchedName,
+            });
+          } else {
+            setCurrentRoute({ page: 'recommendations' });
+          }
         } else {
           setCurrentRoute({ page: 'recommendations' });
         }
