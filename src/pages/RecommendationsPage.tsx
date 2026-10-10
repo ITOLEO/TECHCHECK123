@@ -169,9 +169,9 @@ export const RecommendationsPage: React.FC<RecommendationsPageProps> = ({
                 id={`filter-cat-${cat.toLowerCase().replace(/\s+/g, '-')}`}
                 onClick={() => {
                   setSelectedCategory(cat as any);
-                  const hash = cat !== 'All' ? `#/recommendations?category=${encodeURIComponent(cat)}` : '#/recommendations';
+                  const cleanUrl = cat !== 'All' ? `/recommendations?category=${encodeURIComponent(cat)}` : '/recommendations';
                   try {
-                    window.history.replaceState(null, '', hash);
+                    window.history.replaceState(null, '', cleanUrl);
                   } catch {
                     // ignore
                   }

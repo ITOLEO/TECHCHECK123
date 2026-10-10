@@ -15,6 +15,7 @@ import { ProductCard } from '../components/ProductCard';
 import { SafeImage } from '../components/SafeImage';
 import { analytics } from '../services/analytics';
 import { updateSEO, buildBreadcrumbSchema } from '../services/seo';
+import { heroImage } from '../heroImage';
 
 interface HomePageProps {
   products: Product[];
@@ -66,6 +67,7 @@ export const HomePage: React.FC<HomePageProps> = ({
   const heroImageSrc = (siteSettings.heroImage && siteSettings.heroImage.trim() !== '')
     ? siteSettings.heroImage
     : '/hero-setup.jpg';
+  const finalHeroImage = heroImageSrc.includes('?') ? heroImageSrc : `${heroImageSrc}?v=hero_setup_2026_v3`;
   const heroImageAlt = siteSettings.heroImageAlt || 'Compact Gaming Setup';
   const heroBadgeEyebrow = siteSettings.heroBadgeEyebrow || 'SETUP ARCHITECTURE 2026';
   const heroBadgeTitle = siteSettings.heroBadgeTitle || '100cm Compact Studio Desk';
@@ -231,15 +233,13 @@ export const HomePage: React.FC<HomePageProps> = ({
               transition={{ duration: 0.5, delay: 0.1 }}
               className="lg:col-span-6"
             >
-              <div className="relative rounded-2xl overflow-hidden shadow-xl border border-[#E9E9E6] dark:border-[#272932] bg-neutral-900 group">
-                <SafeImage
-                  src={heroImageSrc}
-                  alt={heroImageAlt}
-                  fallbackText="Compact Gaming Setup"
-                  className="w-full h-80 sm:h-[480px] object-cover object-center group-hover:scale-102 transition-transform duration-500 ease-out"
-                  loading="eager"
+              <div className="relative aspect-[6/5] rounded-2xl overflow-hidden shadow-xl border border-[#E9E9E6] dark:border-[#272932] bg-neutral-900 group">
+                <img
+                  src={heroImage}
+                  alt="Compact studio desk setup"
+                  className="absolute inset-0 h-full w-full object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent pointer-events-none" />
+                <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/90 to-transparent pointer-events-none" />
 
                 {/* Visual Label Tag */}
                 <div className="absolute bottom-5 left-5 right-5 p-4 rounded-xl bg-black/60 backdrop-blur-md border border-white/10 text-white flex items-center justify-between">

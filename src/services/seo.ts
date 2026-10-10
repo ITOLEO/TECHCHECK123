@@ -78,7 +78,7 @@ export function updateSEO(config: SEOConfig): void {
 
   // 4. Canonical link
   const canonicalUrl = canonicalPath
-    ? `${BASE_URL}/#${canonicalPath.startsWith('/') ? canonicalPath : `/${canonicalPath}`}`
+    ? `${BASE_URL}${canonicalPath.startsWith('/') ? canonicalPath : `/${canonicalPath}`}`
     : BASE_URL;
   setLinkTag('canonical', canonicalUrl);
 
@@ -227,7 +227,9 @@ export function buildBreadcrumbSchema(items: { name: string; path: string }[]): 
       '@type': 'ListItem',
       position: idx + 1,
       name: item.name,
-      item: `${BASE_URL}/#${item.path.startsWith('/') ? item.path : `/${item.path}`}`,
+      item: item.path
+        ? `${BASE_URL}${item.path.startsWith('/') ? item.path : `/${item.path}`}`
+        : BASE_URL,
     })),
   };
 }

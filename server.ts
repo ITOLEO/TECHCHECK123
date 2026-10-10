@@ -97,23 +97,116 @@ app.get('/googlebf09fd737c25f2c1.html', (req: Request, res: Response) => {
 });
 
 // Robots.txt
+// Robots.txt
 app.get('/robots.txt', (req: Request, res: Response) => {
   const robotsPath = path.join(process.cwd(), 'public', 'robots.txt');
   if (fs.existsSync(robotsPath)) {
-    res.type('text/plain').sendFile(robotsPath);
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.sendFile(robotsPath);
     return;
   }
-  res.type('text/plain').send('User-agent: *\nAllow: /\nSitemap: https://techcheck.media/sitemap.xml\n');
+  res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+  res.send('User-agent: *\nAllow: /\nDisallow: /admintechcheck\nDisallow: /superadmin\nDisallow: /api/\n\nSitemap: https://techcheck.homes/sitemap.xml\n');
 });
 
-// Sitemap.xml
-app.get('/sitemap.xml', (req: Request, res: Response) => {
-  const sitemapPath = path.join(process.cwd(), 'public', 'sitemap.xml');
-  if (fs.existsSync(sitemapPath)) {
-    res.type('application/xml').sendFile(sitemapPath);
-    return;
+// Dynamic Sitemap Generator Helper
+async function buildDynamicSitemapXML(): Promise<string> {
+  const BASE_URL = 'https://techcheck.homes';
+  const seenUrls = new Set<string>();
+
+  let products: any[] = [];
+  let guides: any[] = [];
+
+  // 1. Try Supabase
+  const supabase = getSupabase();
+  if (supabase) {
+    try {
+      const [pRes, gRes] = await Promise.all([
+        supabase.from('products').select('slug'),
+        supabase.from('guides').select('slug'),
+      ]);
+      if (!pRes.error && Array.isArray(pRes.data)) products = pRes.data;
+      if (!gRes.error && Array.isArray(gRes.data)) guides = gRes.data;
+    } catch (e) {}
   }
-  res.status(404).send('Not found');
+
+  // 2. Fall back to local DB if Supabase returns nothing
+  const localDb = getLocalDb();
+  if (products.length === 0 && Array.isArray(localDb.products)) {
+    products = localDb.products;
+  }
+  if (guides.length === 0 && Array.isArray(localDb.guides)) {
+    guides = localDb.guides;
+  }
+
+  let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+  xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
+
+  // Core Pages
+  const corePages = [
+    { loc: `${BASE_URL}/`, changefreq: 'daily', priority: '1.0' },
+    { loc: `${BASE_URL}/recommendations`, changefreq: 'daily', priority: '0.9' },
+    { loc: `${BASE_URL}/categories`, changefreq: 'weekly', priority: '0.8' },
+    { loc: `${BASE_URL}/guides`, changefreq: 'weekly', priority: '0.8' },
+  ];
+
+  xml += `  <!-- Core Pages -->\n`;
+  corePages.forEach((p) => {
+    seenUrls.add(p.loc);
+    xml += `  <url>\n    <loc>${p.loc}</loc>\n    <changefreq>${p.changefreq}</changefreq>\n    <priority>${p.priority}</priority>\n  </url>\n`;
+  });
+
+  const catSlugs = new Set(['audio', 'gadgets', 'monitors', 'network', 'adapter', 'mouse', 'lighting', 'accessories', 'desk-setup', 'cable-management', 'storage', 'ergonomics']);
+
+  // Products
+  xml += `\n  <!-- Products -->\n`;
+  products.forEach((prod) => {
+    if (prod?.slug && typeof prod.slug === 'string') {
+      const cleanSlug = prod.slug.trim();
+      if (cleanSlug && !catSlugs.has(cleanSlug.toLowerCase())) {
+        const url = `${BASE_URL}/recommendations/${cleanSlug}`;
+        if (!seenUrls.has(url)) {
+          seenUrls.add(url);
+          xml += `  <url>\n    <loc>${url}</loc>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>\n`;
+        }
+      }
+    }
+  });
+
+  // Guides
+  xml += `\n  <!-- Guides -->\n`;
+  guides.forEach((guide) => {
+    if (guide?.slug && typeof guide.slug === 'string') {
+      const cleanSlug = guide.slug.trim();
+      if (cleanSlug) {
+        const url = `${BASE_URL}/guides/${cleanSlug}`;
+        if (!seenUrls.has(url)) {
+          seenUrls.add(url);
+          xml += `  <url>\n    <loc>${url}</loc>\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n  </url>\n`;
+        }
+      }
+    }
+  });
+
+  xml += `</urlset>\n`;
+  return xml;
+}
+
+// Sitemap.xml
+app.get('/sitemap.xml', async (req: Request, res: Response) => {
+  try {
+    const xml = await buildDynamicSitemapXML();
+    res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+    res.send(xml);
+  } catch (err) {
+    const sitemapPath = path.join(process.cwd(), 'public', 'sitemap.xml');
+    if (fs.existsSync(sitemapPath)) {
+      res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+      res.sendFile(sitemapPath);
+      return;
+    }
+    res.status(500).send('Error generating sitemap');
+  }
 });
 
 // Dedicated Reliable Image Serving Route: Serves images from disk or in-memory cache

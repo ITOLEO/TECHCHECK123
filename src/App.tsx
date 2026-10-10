@@ -93,12 +93,14 @@ const AppContent: React.FC<AppContentProps> = ({
         )}
 
         {/* Top Navigation */}
-        <Navbar
-          currentRoute={currentRoute}
-          categories={categories}
-          onNavigate={navigate}
-          onOpenSearch={() => setIsSearchOpen(true)}
-        />
+        {!isSuperadminView && (
+          <Navbar
+            currentRoute={currentRoute}
+            categories={categories}
+            onNavigate={navigate}
+            onOpenSearch={() => setIsSearchOpen(true)}
+          />
+        )}
 
         {/* Main Content Area */}
         <main className="flex-1">
@@ -507,49 +509,40 @@ export default function App() {
   const navigate = (route: ViewRoute) => {
     setCurrentRoute(route);
 
+    let cleanPath = '/';
     if (route.page === 'superadmin') {
-      try {
-        window.history.pushState(null, '', '/admintechcheck');
-      } catch {
-        // Fallback for sandboxed iframe environments
-      }
-      window.location.hash = '#/admintechcheck';
-    } else {
-      // If currently on admin URLs, reset path to root
-      const currentPath = window.location.pathname.toLowerCase();
-      if (
-        currentPath.includes('admintechcheck') ||
-        currentPath.includes('techcheckadmin') ||
-        currentPath.includes('admindtechcheck') ||
-        currentPath.includes('superadmind') ||
-        currentPath.includes('superadmin') ||
-        currentPath.includes('admin')
-      ) {
-        try {
-          window.history.pushState(null, '', '/');
-        } catch {
-          // ignore
-        }
-      }
+      cleanPath = '/admintechcheck';
+    } else if (route.page === 'home') {
+      cleanPath = '/';
+    } else if (route.page === 'recommendations') {
+      cleanPath =
+        route.categoryFilter && route.categoryFilter !== 'All'
+          ? `/recommendations?category=${encodeURIComponent(route.categoryFilter)}`
+          : '/recommendations';
+    } else if (route.page === 'product-detail') {
+      cleanPath = `/recommendations/${route.slug}`;
+    } else if (route.page === 'categories') {
+      cleanPath = '/categories';
+    } else if (route.page === 'guides') {
+      cleanPath = '/guides';
+    } else if (route.page === 'guide-detail') {
+      cleanPath = `/guides/${route.slug}`;
+    }
 
-      let hash = '';
-      if (route.page === 'home') {
-        hash = '';
-      } else if (route.page === 'recommendations') {
-        hash =
-          route.categoryFilter && route.categoryFilter !== 'All'
-            ? `recommendations?category=${encodeURIComponent(route.categoryFilter)}`
-            : 'recommendations';
-      } else if (route.page === 'product-detail') {
-        hash = `recommendations/${route.slug}`;
-      } else if (route.page === 'categories') {
-        hash = 'categories';
-      } else if (route.page === 'guides') {
-        hash = 'guides';
-      } else if (route.page === 'guide-detail') {
-        hash = `guides/${route.slug}`;
+    try {
+      if (window.location.hash) {
+        // Clear any lingering hash fragment when navigating cleanly
+        window.history.pushState(null, '', cleanPath);
+      } else if (window.location.pathname + window.location.search !== cleanPath) {
+        window.history.pushState(null, '', cleanPath);
       }
-      window.location.hash = hash ? `#/${hash}` : '';
+    } catch {
+      // Fallback for sandboxed iframe environments where pushState is restricted
+      if (route.page === 'superadmin') {
+        window.location.hash = '#/admintechcheck';
+      } else {
+        window.location.hash = cleanPath === '/' ? '' : `#${cleanPath}`;
+      }
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };

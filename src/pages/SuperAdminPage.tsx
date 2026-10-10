@@ -1695,14 +1695,14 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
               <div className="max-w-2xl space-y-4">
                 <AdminImageUploader
                   label="Main Hero Banner Image"
-                  value={siteSettings.heroImage || '/acer-nitro.png'}
+                  value={siteSettings.heroImage || '/hero-setup.jpg'}
                   onChange={(newUrl) => {
                     const updated = { ...siteSettings, heroImage: newUrl };
                     onUpdateSettings(updated);
                     handleSaveSettings(updated);
                   }}
-                  presets={['/acer-nitro.png', '/acer-creator.png', '/powerpac.png', '/acer-portable.png']}
-                  placeholder="/acer-nitro.png or upload new file"
+                  presets={['/hero-setup.jpg', '/acer-nitro.png', '/acer-creator.png', '/powerpac.png', '/acer-portable.png']}
+                  placeholder="/hero-setup.jpg or upload new file"
                   helperText="Image is automatically scaled proportionally in the hero container."
                 />
 

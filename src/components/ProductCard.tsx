@@ -108,7 +108,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           {/* Product Name */}
           <h3 className="text-base sm:text-lg font-bold text-[#111111] dark:text-neutral-100 leading-snug group-hover:text-[#FF6B00] transition-colors mb-2 line-clamp-2 min-h-[2.8rem] flex items-center">
             <a
-              href={`#/recommendations/${product.slug}`}
+              href={`/recommendations/${product.slug}`}
               onClick={(e) => {
                 e.preventDefault();
                 handleCardClick();

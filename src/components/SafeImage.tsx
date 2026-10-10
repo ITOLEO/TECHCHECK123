@@ -31,10 +31,23 @@ export const SafeImage: React.FC<SafeImageProps> = ({
   }, [src]);
 
   const handleError = () => {
-    if (currentSrc && currentSrc.startsWith('/uploads/')) {
-      const filename = currentSrc.replace('/uploads/', '');
-      setCurrentSrc(`/api/images/${filename}`);
-      return;
+    if (currentSrc) {
+      const cleanPath = currentSrc.split('?')[0];
+      if (cleanPath.startsWith('/uploads/')) {
+        const filename = cleanPath.replace('/uploads/', '');
+        if (!currentSrc.includes('/api/images/')) {
+          setCurrentSrc(`/api/images/${filename}`);
+          return;
+        }
+      }
+      if (cleanPath === '/hero-setup.jpg' || cleanPath === '/hero-setup.png') {
+        setCurrentSrc('/hero-setup.webp');
+        return;
+      }
+      if (cleanPath === '/hero-setup.webp') {
+        setCurrentSrc('/uploads/hero-setup.jpg');
+        return;
+      }
     }
     setHasError(true);
   };

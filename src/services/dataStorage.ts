@@ -43,7 +43,7 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   heroCtaPrimaryUrl: 'recommendations',
   heroCtaSecondaryText: 'Read Our Guides',
   heroCtaSecondaryUrl: 'guides',
-  heroImage: '/hero-setup.jpg',
+  heroImage: '/images/hero-setup.webp',
   heroImageAlt: 'Build Better, Every Day. Curated compact gaming setup with elevated ultrawide monitor and clean cable management',
   heroBadgeEyebrow: 'Setup Architecture #04',
   heroBadgeTitle: '100cm Compact Studio Desk',
@@ -548,7 +548,14 @@ export const dataStorage = {
   getSiteSettings(): SiteSettings {
     const settings = safeParse<SiteSettings>(STORAGE_KEYS.SETTINGS, DEFAULT_SITE_SETTINGS);
     const merged = { ...DEFAULT_SITE_SETTINGS, ...settings };
-    if (!merged.heroImage || typeof merged.heroImage !== 'string' || merged.heroImage.trim() === '') {
+    if (
+      !merged.heroImage ||
+      typeof merged.heroImage !== 'string' ||
+      merged.heroImage.trim() === '' ||
+      merged.heroImage.includes('acer-nitro.png') ||
+      merged.heroImage.includes('gaming-setup.svg') ||
+      merged.heroImage.includes('hero-banner')
+    ) {
       merged.heroImage = DEFAULT_SITE_SETTINGS.heroImage;
     }
     if (merged.adminPasscode === 'admin123') {
