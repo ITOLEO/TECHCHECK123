@@ -1,0 +1,492 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <defs>
+    <!-- Background & Wall -->
+    <linearGradient id="wallGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#181a1d" />
+      <stop offset="40%" stop-color="#222123" />
+      <stop offset="70%" stop-color="#2b2520" />
+      <stop offset="100%" stop-color="#1a1715" />
+    </linearGradient>
+
+    <!-- Warm Ambient Wall Glow behind monitor and shelf -->
+    <radialGradient id="warmWallGlow" cx="55%" cy="35%" r="45%">
+      <stop offset="0%" stop-color="#d98236" stop-opacity="0.65" />
+      <stop offset="30%" stop-color="#c26d2b" stop-opacity="0.40" />
+      <stop offset="60%" stop-color="#8c4516" stop-opacity="0.15" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0" />
+    </radialGradient>
+
+    <radialGradient id="shelfGlow" cx="85%" cy="45%" r="35%">
+      <stop offset="0%" stop-color="#e08c3e" stop-opacity="0.55" />
+      <stop offset="50%" stop-color="#9e5318" stop-opacity="0.2" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0" />
+    </radialGradient>
+
+    <linearGradient id="windowNightSky" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0c131a" />
+      <stop offset="60%" stop-color="#162433" />
+      <stop offset="100%" stop-color="#1f3347" />
+    </linearGradient>
+
+    <!-- Wood Desk Surface -->
+    <linearGradient id="deskTop" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#8f623b" />
+      <stop offset="25%" stop-color="#aa784a" />
+      <stop offset="65%" stop-color="#7a502e" />
+      <stop offset="100%" stop-color="#55351c" />
+    </linearGradient>
+
+    <linearGradient id="deskEdge" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#422915" />
+      <stop offset="100%" stop-color="#221408" />
+    </linearGradient>
+
+    <!-- Monitor Lightbar Downlight -->
+    <linearGradient id="lightbarDown" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fff1c2" stop-opacity="0.85" />
+      <stop offset="25%" stop-color="#ffcf75" stop-opacity="0.55" />
+      <stop offset="70%" stop-color="#ea8c35" stop-opacity="0.25" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0" />
+    </linearGradient>
+
+    <!-- Monitor Screen Content -->
+    <linearGradient id="screenBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#07111a" />
+      <stop offset="50%" stop-color="#0d1d2c" />
+      <stop offset="100%" stop-color="#09131d" />
+    </linearGradient>
+
+    <linearGradient id="blueWave1" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#1e4063" stop-opacity="0.8" />
+      <stop offset="50%" stop-color="#3b729f" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#63a0cf" stop-opacity="0.95" />
+    </linearGradient>
+
+    <linearGradient id="blueWave2" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#11253a" stop-opacity="0" />
+      <stop offset="40%" stop-color="#2b5782" stop-opacity="0.75" />
+      <stop offset="100%" stop-color="#7abef5" stop-opacity="0.9" />
+    </linearGradient>
+
+    <!-- Chair Gradients -->
+    <linearGradient id="chairLeather" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#23262a" />
+      <stop offset="40%" stop-color="#181a1d" />
+      <stop offset="100%" stop-color="#0d0e10" />
+    </linearGradient>
+
+    <linearGradient id="chairCushion" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#2e3237" />
+      <stop offset="60%" stop-color="#1a1c1e" />
+      <stop offset="100%" stop-color="#111214" />
+    </linearGradient>
+
+    <!-- Drop Shadows -->
+    <filter id="deepShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#000000" flood-opacity="0.85" />
+    </filter>
+
+    <filter id="warmGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="18" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Base Wall -->
+  <rect width="1920" height="1080" fill="url(#wallGrad)" />
+
+  <!-- Window on Far Left with Venetian Blinds -->
+  <g>
+    <!-- Window Frame -->
+    <rect x="0" y="0" width="210" height="560" fill="url(#windowNightSky)" />
+    <!-- City lights bokeh outside window -->
+    <circle cx="40" cy="420" r="8" fill="#f59e0b" opacity="0.6" filter="url(#warmGlow)" />
+    <circle cx="80" cy="390" r="5" fill="#38bdf8" opacity="0.5" />
+    <circle cx="140" cy="440" r="9" fill="#fde047" opacity="0.4" filter="url(#warmGlow)" />
+    <circle cx="60" cy="460" r="6" fill="#f97316" opacity="0.5" />
+    <circle cx="170" cy="410" r="4" fill="#e0f2fe" opacity="0.7" />
+    
+    <!-- Venetian Blind Slats -->
+    <g fill="#12161b" stroke="#1c222a" stroke-width="1">
+      <!-- Repeating 28 blinds -->
+      <rect x="-10" y="15" width="225" height="12" rx="2" />
+      <rect x="-10" y="33" width="225" height="12" rx="2" />
+      <rect x="-10" y="51" width="225" height="12" rx="2" />
+      <rect x="-10" y="69" width="225" height="12" rx="2" />
+      <rect x="-10" y="87" width="225" height="12" rx="2" />
+      <rect x="-10" y="105" width="225" height="12" rx="2" />
+      <rect x="-10" y="123" width="225" height="12" rx="2" />
+      <rect x="-10" y="141" width="225" height="12" rx="2" />
+      <rect x="-10" y="159" width="225" height="12" rx="2" />
+      <rect x="-10" y="177" width="225" height="12" rx="2" />
+      <rect x="-10" y="195" width="225" height="12" rx="2" />
+      <rect x="-10" y="213" width="225" height="12" rx="2" />
+      <rect x="-10" y="231" width="225" height="12" rx="2" />
+      <rect x="-10" y="249" width="225" height="12" rx="2" />
+      <rect x="-10" y="267" width="225" height="12" rx="2" />
+      <rect x="-10" y="285" width="225" height="12" rx="2" />
+      <rect x="-10" y="303" width="225" height="12" rx="2" />
+      <rect x="-10" y="321" width="225" height="12" rx="2" />
+      <rect x="-10" y="339" width="225" height="12" rx="2" />
+      <rect x="-10" y="357" width="225" height="12" rx="2" />
+      <rect x="-10" y="375" width="225" height="12" rx="2" />
+      <rect x="-10" y="393" width="225" height="12" rx="2" />
+      <rect x="-10" y="411" width="225" height="12" rx="2" />
+      <rect x="-10" y="429" width="225" height="12" rx="2" />
+      <rect x="-10" y="447" width="225" height="12" rx="2" />
+      <rect x="-10" y="465" width="225" height="12" rx="2" />
+      <rect x="-10" y="483" width="225" height="12" rx="2" />
+      <rect x="-10" y="501" width="225" height="12" rx="2" />
+      <rect x="-10" y="519" width="225" height="12" rx="2" />
+    </g>
+    <!-- Window sill -->
+    <rect x="0" y="540" width="220" height="20" fill="#1e1916" stroke="#33271f" stroke-width="1" />
+  </g>
+
+  <!-- Framed Minimalist Art on wall -->
+  <g transform="translate(255, 65)">
+    <rect x="0" y="0" width="115" height="230" rx="3" fill="#111214" stroke="#2e2924" stroke-width="4" filter="url(#deepShadow)" />
+    <rect x="12" y="14" width="91" height="202" fill="#e5dfd5" />
+    <!-- Artwork graphic inside frame -->
+    <circle cx="57" cy="100" r="26" fill="#222326" />
+    <path d="M28 175 C45 130 70 130 87 175 Z" fill="#d97706" opacity="0.85" />
+    <line x1="25" y1="182" x2="90" y2="182" stroke="#222326" stroke-width="2" />
+  </g>
+
+  <!-- Big Warm Ambient Glow Behind Monitor and Shelving -->
+  <circle cx="1100" cy="340" r="580" fill="url(#warmWallGlow)" />
+  <circle cx="1680" cy="420" r="420" fill="url(#shelfGlow)" />
+
+  <!-- Shelving Unit on the Right Side -->
+  <g transform="translate(1460, 0)">
+    <!-- Main Backboard / Frame -->
+    <rect x="0" y="0" width="320" height="1080" fill="#171412" />
+    <!-- Warm LED Strip on Left Edge of Shelf -->
+    <rect x="-4" y="0" width="6" height="1080" fill="#ffc97a" opacity="0.85" filter="url(#warmGlow)" />
+
+    <!-- Top Shelf (y=150) -->
+    <g transform="translate(20, 145)">
+      <rect x="0" y="0" width="260" height="18" rx="2" fill="#99673d" stroke="#5e3c20" stroke-width="1" />
+      <!-- Warm Under-shelf LED glow -->
+      <rect x="0" y="18" width="260" height="4" fill="#ffe1a0" opacity="0.9" filter="url(#warmGlow)" />
+
+      <!-- Potted Plants on Top Shelf -->
+      <!-- Potted Plant 1 with Trailing Ivy Vines -->
+      <g transform="translate(25, -50)">
+        <rect x="5" y="12" width="38" height="38" rx="3" fill="#2a2b2e" stroke="#3f4044" stroke-width="1" />
+        <!-- Bushy leaves at top -->
+        <circle cx="24" cy="8" r="18" fill="#1e4620" />
+        <circle cx="15" cy="4" r="14" fill="#2e6b32" />
+        <circle cx="32" cy="5" r="15" fill="#3d8b42" />
+        <circle cx="24" cy="-5" r="13" fill="#4ea454" />
+        <!-- Cascading / Trailing Ivy Leaves hanging over the shelf -->
+        <path d="M12 40 Q5 90 14 140 Q8 190 12 240" fill="none" stroke="#2a5e2e" stroke-width="3" />
+        <ellipse cx="10" cy="65" rx="8" ry="12" fill="#3d8b42" transform="rotate(-15 10 65)" />
+        <ellipse cx="18" cy="95" rx="9" ry="13" fill="#4ea454" transform="rotate(20 18 95)" />
+        <ellipse cx="8" cy="130" rx="8" ry="12" fill="#337537" transform="rotate(-10 8 130)" />
+        <ellipse cx="16" cy="170" rx="8" ry="11" fill="#4ea454" transform="rotate(15 16 170)" />
+        <ellipse cx="10" cy="210" rx="7" ry="10" fill="#2a5e2e" transform="rotate(-8 10 210)" />
+        <ellipse cx="13" cy="238" rx="5" ry="8" fill="#3d8b42" />
+
+        <!-- Second vine branch -->
+        <path d="M32 40 Q40 85 34 130" fill="none" stroke="#2a5e2e" stroke-width="2.5" />
+        <ellipse cx="36" cy="60" rx="7" ry="10" fill="#4ea454" transform="rotate(25 36 60)" />
+        <ellipse cx="32" cy="90" rx="8" ry="11" fill="#337537" transform="rotate(-15 32 90)" />
+        <ellipse cx="38" cy="120" rx="7" ry="9" fill="#4ea454" transform="rotate(15 38 120)" />
+      </g>
+
+      <!-- Potted Plant 2 (Small white pot succulent) -->
+      <g transform="translate(125, -45)">
+        <polygon points="5,45 35,45 31,10 9,10" fill="#f1f0ea" stroke="#d3d1c7" stroke-width="1" />
+        <ellipse cx="20" cy="4" rx="14" ry="8" fill="#3d8b42" />
+        <ellipse cx="16" cy="-2" rx="11" ry="6" fill="#4ea454" transform="rotate(-20 16 -2)" />
+        <ellipse cx="24" cy="-2" rx="11" ry="6" fill="#5cb862" transform="rotate(20 24 -2)" />
+      </g>
+    </g>
+
+    <!-- Middle Shelf (y=350) -->
+    <g transform="translate(20, 350)">
+      <rect x="0" y="0" width="260" height="18" rx="2" fill="#99673d" stroke="#5e3c20" stroke-width="1" />
+      <rect x="0" y="18" width="260" height="4" fill="#ffe1a0" opacity="0.9" filter="url(#warmGlow)" />
+
+      <!-- Potted Plant on Middle Shelf -->
+      <g transform="translate(65, -45)">
+        <polygon points="5,45 42,45 38,10 9,10" fill="#f5f5f0" stroke="#e0e0d8" stroke-width="1" />
+        <!-- Lush upright foliage -->
+        <path d="M12 10 Q6 -15 10 -30 Q16 -12 18 10" fill="#337537" />
+        <path d="M22 10 Q22 -22 24 -40 Q28 -18 26 10" fill="#4ea454" />
+        <path d="M30 10 Q38 -15 36 -32 Q30 -10 28 10" fill="#3d8b42" />
+      </g>
+    </g>
+
+    <!-- Bottom Shelf with Ambient Lamp and Books (y=570) -->
+    <g transform="translate(20, 565)">
+      <rect x="0" y="0" width="260" height="18" rx="2" fill="#99673d" stroke="#5e3c20" stroke-width="1" />
+      <rect x="0" y="18" width="260" height="4" fill="#ffe1a0" opacity="0.9" filter="url(#warmGlow)" />
+
+      <!-- Warm Glowing Cylindrical Ambient Lamp -->
+      <g transform="translate(90, -85)">
+        <rect x="0" y="0" width="36" height="85" rx="6" fill="#ffe8b3" stroke="#d99b43" stroke-width="2" filter="url(#warmGlow)" />
+        <rect x="4" y="8" width="28" height="68" rx="4" fill="#ffffff" opacity="0.8" />
+      </g>
+      <!-- Books stacked on shelf -->
+      <g transform="translate(160, -70)">
+        <rect x="0" y="0" width="14" height="70" rx="2" fill="#1e293b" stroke="#334155" stroke-width="1" />
+        <rect x="17" y="6" width="16" height="64" rx="2" fill="#78350f" stroke="#92400e" stroke-width="1" />
+        <rect x="36" y="0" width="18" height="70" rx="2" fill="#064e3b" stroke="#047857" stroke-width="1" />
+      </g>
+    </g>
+
+    <!-- Lower Cabinet Section -->
+    <rect x="20" y="770" width="280" height="310" fill="#141210" stroke="#261f18" stroke-width="2" />
+    <rect x="35" y="790" width="250" height="120" rx="4" fill="#1c1814" stroke="#33271d" stroke-width="1" />
+    <line x1="220" y1="850" x2="260" y2="850" stroke="#8a715a" stroke-width="3" stroke-linecap="round" />
+  </g>
+
+  <!-- Large Honey Walnut Wood Desk Surface -->
+  <g filter="url(#deepShadow)">
+    <!-- Desk Tabletop Surface with realistic perspective trapezoid -->
+    <polygon points="180,560 1660,560 1680,820 120,820" fill="url(#deskTop)" />
+    <!-- Desk Front Bevel / Edge Thickness -->
+    <polygon points="120,820 1680,820 1680,865 120,865" fill="url(#deskEdge)" />
+    <!-- Desk Tabletop wood grain highlights -->
+    <path d="M220 575 L1600 575" stroke="#bf8956" stroke-width="1.5" opacity="0.35" />
+    <path d="M160 690 L1640 690" stroke="#bf8956" stroke-width="1.5" opacity="0.2" />
+    <!-- Desk Left Front Leg -->
+    <rect x="220" y="865" width="34" height="215" fill="#131316" stroke="#27272a" stroke-width="1" />
+    <!-- Desk Right Front Leg -->
+    <rect x="1280" y="865" width="36" height="215" fill="#131316" stroke="#27272a" stroke-width="1" />
+  </g>
+
+  <!-- Potted Plant on Left of Desk Surface -->
+  <g transform="translate(555, 330)">
+    <!-- Smooth White Ceramic Pot with drop shadow -->
+    <g filter="url(#deepShadow)">
+      <polygon points="60,230 140,230 130,285 70,285" fill="#f5f5f0" stroke="#deded4" stroke-width="1.5" />
+      <ellipse cx="100" cy="230" rx="40" ry="10" fill="#3d2716" />
+    </g>
+    <!-- Lush Plant Foliage in Emerald & Forest Greens -->
+    <g>
+      <ellipse cx="100" cy="180" rx="22" ry="48" fill="#225426" transform="rotate(10 100 180)" />
+      <ellipse cx="75" cy="195" rx="20" ry="44" fill="#2e6b32" transform="rotate(-35 75 195)" />
+      <ellipse cx="125" cy="190" rx="20" ry="44" fill="#3d8b42" transform="rotate(35 125 190)" />
+      <ellipse cx="55" cy="225" rx="16" ry="38" fill="#4ea454" transform="rotate(-60 55 225)" />
+      <ellipse cx="145" cy="220" rx="17" ry="38" fill="#5cb862" transform="rotate(60 145 220)" />
+      <ellipse cx="95" cy="160" rx="18" ry="42" fill="#4ea454" transform="rotate(-5 95 160)" />
+      <ellipse cx="110" cy="165" rx="16" ry="38" fill="#6bc972" transform="rotate(18 110 165)" />
+    </g>
+    <!-- Stand for pot -->
+    <rect x="55" y="285" width="90" height="12" rx="4" fill="#1c1a17" stroke="#33271d" stroke-width="1" />
+  </g>
+
+  <!-- Large Ultrawide Curved Gaming Monitor -->
+  <g transform="translate(780, 210)">
+    <!-- Monitor Stand Base & Pole -->
+    <!-- Base Plate on Desk -->
+    <rect x="170" y="335" width="140" height="18" rx="4" fill="#181a1d" stroke="#2a2d33" stroke-width="1.5" filter="url(#deepShadow)" />
+    <!-- Upright Neck/Pole -->
+    <rect x="225" y="230" width="30" height="115" rx="3" fill="#111215" stroke="#22242a" stroke-width="1" />
+
+    <!-- Outer Monitor Frame (Slight Curvature Arc) -->
+    <path d="M-200 20 Q240 5 680 20 L675 285 Q240 298 -195 285 Z" fill="#141619" stroke="#2e3238" stroke-width="3" filter="url(#deepShadow)" />
+
+    <!-- Screen Bezel -->
+    <path d="M-190 28 Q240 14 670 28 L665 278 Q240 290 -185 278 Z" fill="#000000" />
+
+    <!-- Screen Active Display Glass -->
+    <path d="M-184 34 Q240 20 664 34 L659 272 Q240 284 -179 272 Z" fill="url(#screenBg)" />
+
+    <!-- Fluid Midnight Blue Wave Wallpaper on Screen -->
+    <g>
+      <!-- Fluid Wave Ribbon 1 -->
+      <path d="M-60 165 Q120 180 260 140 Q400 100 580 160 Q630 175 660 160 L660 272 L-179 272 L-179 210 Q-120 180 -60 165 Z" fill="url(#blueWave1)" opacity="0.55" />
+
+      <!-- Fluid Wave Ribbon 2 (Brighter Turquoise/Cyan Crest) -->
+      <path d="M-40 150 Q160 175 320 115 Q480 65 640 145 L620 165 Q460 90 320 135 Q160 190 -40 170 Z" fill="url(#blueWave2)" opacity="0.85" />
+
+      <!-- Soft Curved Screen Reflection Glare -->
+      <path d="M-184 34 L320 20 L160 278 L-179 272 Z" fill="#ffffff" opacity="0.04" />
+    </g>
+
+    <!-- Screen Lightbar Mounted on Top of Monitor -->
+    <!-- Lightbar Housing -->
+    <rect x="-10" y="-12" width="500" height="16" rx="4" fill="#1e2024" stroke="#33373e" stroke-width="1.5" />
+    <rect x="225" y="4" width="30" height="18" rx="3" fill="#111215" />
+    <!-- Luminous LED Strip emitting warm light -->
+    <rect x="0" y="-2" width="480" height="5" fill="#fff3cc" filter="url(#warmGlow)" />
+
+    <!-- Downward Projected Light Cone from Lightbar onto Desk -->
+    <polygon points="-10,4 490,4 620,380 -140,380" fill="url(#lightbarDown)" opacity="0.45" />
+  </g>
+
+  <!-- Large Charcoal Desk Pad / Mat -->
+  <g transform="translate(570, 565)">
+    <polygon points="60,0 720,0 770,140 10,140" rx="16" fill="#181a1d" stroke="#26282d" stroke-width="2" filter="url(#deepShadow)" />
+    <path d="M15 135 L765 135" stroke="#2f3238" stroke-width="1.5" />
+  </g>
+
+  <!-- Custom Mechanical Keyboard on Desk Mat -->
+  <g transform="translate(690, 560)">
+    <!-- Keyboard Chassis (Black aluminum) with perspective angle -->
+    <polygon points="20,0 350,0 365,65 5,65" fill="#111215" stroke="#272930" stroke-width="1.5" filter="url(#deepShadow)" />
+    <polygon points="24,4 346,4 360,60 10,60" fill="#1c1d22" />
+
+    <!-- Keycaps Grid -->
+    <!-- Row 1: Function/Num Row -->
+    <g fill="#30343a" stroke="#1c1d22" stroke-width="0.8">
+      <!-- ESC Key (Orange accent) -->
+      <polygon points="28,6 48,6 47,15 27,15" fill="#ea580c" stroke="#c2410c" />
+      <polygon points="51,6 70,6 69,15 50,15" fill="#e2e8f0" />
+      <polygon points="73,6 92,6 91,15 72,15" fill="#e2e8f0" />
+      <polygon points="95,6 114,6 113,15 94,15" fill="#e2e8f0" />
+      <polygon points="117,6 136,6 135,15 116,15" fill="#e2e8f0" />
+      <polygon points="139,6 158,6 157,15 138,15" fill="#e2e8f0" />
+      <polygon points="161,6 180,6 179,15 160,15" fill="#e2e8f0" />
+      <polygon points="183,6 202,6 201,15 182,15" fill="#e2e8f0" />
+      <polygon points="205,6 224,6 223,15 204,15" fill="#e2e8f0" />
+      <polygon points="227,6 246,6 245,15 226,15" fill="#e2e8f0" />
+      <polygon points="249,6 268,6 267,15 248,15" fill="#e2e8f0" />
+      <polygon points="271,6 290,6 289,15 270,15" fill="#e2e8f0" />
+      <polygon points="293,6 312,6 311,15 292,15" fill="#e2e8f0" />
+      <polygon points="315,6 342,6 341,15 314,15" fill="#475569" />
+    </g>
+
+    <!-- Row 2: QWERTY Row -->
+    <g fill="#e2e8f0" stroke="#1c1d22" stroke-width="0.8">
+      <polygon points="27,17 50,17 48,27 25,27" fill="#475569" />
+      <polygon points="53,17 73,17 72,27 51,27" />
+      <polygon points="76,17 96,17 95,27 75,27" />
+      <polygon points="99,17 119,17 118,27 98,27" />
+      <polygon points="122,17 142,17 141,27 121,27" />
+      <polygon points="145,17 165,17 164,27 144,27" />
+      <polygon points="168,17 188,17 187,27 167,27" />
+      <polygon points="191,17 211,17 210,27 190,27" />
+      <polygon points="214,17 234,17 233,27 213,27" />
+      <polygon points="237,17 257,17 256,27 236,27" />
+      <polygon points="260,17 280,17 279,27 259,27" />
+      <polygon points="283,17 303,17 302,27 282,27" />
+      <polygon points="306,17 342,17 341,27 305,27" fill="#475569" />
+    </g>
+
+    <!-- Row 3: ASDF Row -->
+    <g fill="#e2e8f0" stroke="#1c1d22" stroke-width="0.8">
+      <polygon points="24,29 52,29 50,39 22,39" fill="#475569" />
+      <polygon points="55,29 76,29 74,39 53,39" />
+      <polygon points="79,29 100,29 98,39 77,39" />
+      <polygon points="103,29 124,29 122,39 101,39" />
+      <polygon points="127,29 148,29 146,39 125,39" />
+      <polygon points="151,29 172,29 170,39 149,39" />
+      <polygon points="175,29 196,29 194,39 173,39" />
+      <polygon points="199,29 220,29 218,39 197,39" />
+      <polygon points="223,29 244,29 242,39 221,39" />
+      <polygon points="247,29 268,29 266,39 245,39" />
+      <polygon points="271,29 292,29 290,39 269,39" />
+      <!-- Enter Key (Orange Accent) -->
+      <polygon points="295,29 342,29 340,39 293,39" fill="#ea580c" stroke="#c2410c" />
+    </g>
+
+    <!-- Row 4: Spacebar & Modifiers -->
+    <g fill="#475569" stroke="#1c1d22" stroke-width="0.8">
+      <polygon points="21,41 45,41 43,54 18,54" />
+      <polygon points="48,41 72,41 69,54 46,54" />
+      <polygon points="75,41 98,41 95,54 72,54" />
+      <!-- Spacebar (Light Grey / Off White) -->
+      <polygon points="102,41 240,41 235,54 99,54" fill="#cbd5e1" />
+      <polygon points="243,41 268,41 264,54 240,54" />
+      <polygon points="271,41 294,41 290,54 267,54" />
+      <!-- Arrow Keys -->
+      <polygon points="297,41 316,41 313,54 294,54" fill="#334155" />
+      <polygon points="319,41 338,41 335,54 316,54" fill="#ea580c" stroke="#c2410c" />
+    </g>
+  </g>
+
+  <!-- Wireless Ergonomic Mouse on Desk Mat -->
+  <g transform="translate(1120, 600)">
+    <path d="M20,0 C38,0 52,18 52,50 C52,80 38,100 20,100 C2,100 -12,80 -12,50 C-12,18 2,0 20,0 Z" fill="#16171a" stroke="#2d3036" stroke-width="1.5" filter="url(#deepShadow)" />
+    <!-- Scroll Wheel -->
+    <rect x="17" y="16" width="7" height="20" rx="3" fill="#0d0e10" stroke="#ff9d3b" stroke-width="1" />
+    <line x1="20" y1="36" x2="20" y2="60" stroke="#26282e" stroke-width="1.5" />
+  </g>
+
+  <!-- Cylindrical Audio Controller Dial on Desk (Right of Mouse) -->
+  <g transform="translate(1285, 545)">
+    <!-- Base shadow -->
+    <ellipse cx="28" cy="65" rx="28" ry="12" fill="#000000" opacity="0.6" />
+    <!-- Cylinder Body -->
+    <rect x="4" y="20" width="48" height="44" rx="6" fill="#17191c" stroke="#2a2d33" stroke-width="1.5" />
+    <!-- Top Dial Beveled Face -->
+    <ellipse cx="28" cy="20" rx="24" ry="10" fill="#22252a" stroke="#ff9838" stroke-width="1.5" />
+    <circle cx="28" cy="20" r="3" fill="#ff9838" filter="url(#warmGlow)" />
+  </g>
+
+  <!-- Headphone Stand with Audiophile Headphones -->
+  <g transform="translate(1370, 430)">
+    <!-- Stand Base on Desk -->
+    <ellipse cx="45" cy="205" rx="36" ry="12" fill="#111214" stroke="#25272c" stroke-width="1.5" filter="url(#deepShadow)" />
+    <!-- Vertical Stand Stem -->
+    <rect x="42" y="30" width="6" height="175" rx="2" fill="#1c1d22" stroke="#2e3036" stroke-width="1" />
+    <!-- Top Curved Rest Pad -->
+    <path d="M22 30 C32 15 58 15 68 30" fill="none" stroke="#1c1d22" stroke-width="8" stroke-linecap="round" />
+
+    <!-- Over-Ear Headphones -->
+    <!-- Headband -->
+    <path d="M12 55 C12 10 78 10 78 55" fill="none" stroke="#222428" stroke-width="8" stroke-linecap="round" filter="url(#deepShadow)" />
+    <path d="M16 55 C16 16 74 16 74 55" fill="none" stroke="#353840" stroke-width="4" stroke-linecap="round" />
+    
+    <!-- Left Earcup -->
+    <ellipse cx="12" cy="95" rx="14" ry="26" fill="#181a1d" stroke="#2e3238" stroke-width="2" />
+    <ellipse cx="12" cy="95" rx="9" ry="18" fill="#0c0d0e" />
+    
+    <!-- Right Earcup -->
+    <ellipse cx="78" cy="95" rx="14" ry="26" fill="#181a1d" stroke="#2e3238" stroke-width="2" />
+    <ellipse cx="78" cy="95" rx="9" ry="18" fill="#0c0d0e" />
+  </g>
+
+  <!-- High-End Ergonomic Office/Gaming Chair in Foreground Left -->
+  <g transform="translate(140, 300)">
+    <!-- Headrest -->
+    <rect x="65" y="35" width="145" height="65" rx="22" fill="url(#chairLeather)" stroke="#383c44" stroke-width="2.5" filter="url(#deepShadow)" />
+    <rect x="82" y="46" width="110" height="44" rx="14" fill="#30343a" opacity="0.5" />
+
+    <!-- Headrest Neck Support Stem -->
+    <rect x="125" y="98" width="26" height="35" rx="4" fill="#111215" stroke="#25272c" stroke-width="1.5" />
+
+    <!-- Contoured Backrest Outer Frame -->
+    <path d="M40 130 C20 220 20 380 45 470 C60 520 215 520 230 470 C255 380 255 220 235 130 Z" fill="url(#chairLeather)" stroke="#383c44" stroke-width="3" filter="url(#deepShadow)" />
+
+    <!-- Backrest Breathable Contoured Inner Cushion -->
+    <path d="M60 150 C45 225 45 365 65 445 C80 485 195 485 210 445 C230 365 230 225 215 150 Z" fill="url(#chairCushion)" stroke="#23262a" stroke-width="1.5" />
+    <!-- Vertical Spine Stitching Lines -->
+    <line x1="137" y1="160" x2="137" y2="460" stroke="#111214" stroke-width="2.5" />
+
+    <!-- Adjustable Left Armrest -->
+    <g transform="translate(0, 390)">
+      <rect x="-25" y="0" width="85" height="28" rx="12" fill="#1e2024" stroke="#3a3e47" stroke-width="2" filter="url(#deepShadow)" />
+      <path d="M15 28 L25 90" stroke="#111215" stroke-width="14" stroke-linecap="round" />
+    </g>
+
+    <!-- Adjustable Right Armrest -->
+    <g transform="translate(215, 390)">
+      <rect x="15" y="0" width="85" height="28" rx="12" fill="#1e2024" stroke="#3a3e47" stroke-width="2" filter="url(#deepShadow)" />
+      <path d="M55 28 L45 90" stroke="#111215" stroke-width="14" stroke-linecap="round" />
+    </g>
+
+    <!-- Lower Seat Cushion Pan -->
+    <path d="M20 490 C15 580 40 680 137 680 C235 680 260 580 255 490 Z" fill="url(#chairCushion)" stroke="#2b2e34" stroke-width="2.5" filter="url(#deepShadow)" />
+  </g>
+
+  <!-- Potted Floor Plant on far bottom left corner -->
+  <g transform="translate(0, 680)">
+    <ellipse cx="35" cy="75" rx="25" ry="65" fill="#17381b" transform="rotate(35 35 75)" />
+    <ellipse cx="65" cy="60" rx="22" ry="60" fill="#25542a" transform="rotate(15 65 60)" />
+    <ellipse cx="15" cy="110" rx="22" ry="55" fill="#1f4723" transform="rotate(55 15 110)" />
+    <ellipse cx="85" cy="100" rx="20" ry="50" fill="#2e6b32" transform="rotate(40 85 100)" />
+  </g>
+
+  <!-- Ambient Light Reflection on Front Floor -->
+  <rect x="0" y="860" width="1920" height="220" fill="#0d0c0b" opacity="0.9" />
+  <ellipse cx="960" cy="940" rx="550" ry="80" fill="#d98236" opacity="0.06" />
+
+  <!-- Subtle Vignette Frame Overlay -->
+  <rect x="0" y="0" width="1920" height="1080" fill="none" stroke="#000000" stroke-width="6" opacity="0.4" />
+</svg>

@@ -31,7 +31,8 @@ import {
   Table,
   Eye,
   FileText,
-  ListOrdered
+  ListOrdered,
+  Globe
 } from 'lucide-react';
 import { Product, CategoryInfo, Guide, GuideStep, SiteSettings, ViewRoute } from '../types';
 import { dataStorage, DEFAULT_SITE_SETTINGS } from '../services/dataStorage';
@@ -201,6 +202,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
   const [showSchemaModal, setShowSchemaModal] = useState(false);
   const [schemaSql, setSchemaSql] = useState<string>('');
   const [copiedSchema, setCopiedSchema] = useState(false);
+  const [copiedDns, setCopiedDns] = useState<string | null>(null);
 
   // Supabase Configuration Management
   const [supabaseConfig, setSupabaseConfig] = useState<{ url: string; keyMasked: string; hasKey: boolean; isConfigured: boolean }>({
@@ -2178,6 +2180,142 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                   <li>Enter your <code className="bg-white px-1.5 py-0.5 rounded border border-neutral-300 font-mono font-bold text-neutral-800">SUPABASE_URL</code> and <code className="bg-white px-1.5 py-0.5 rounded border border-neutral-300 font-mono font-bold text-neutral-800">SUPABASE_KEY</code> in the form above or project environment variables.</li>
                   <li>Click <strong>"Push to Supabase"</strong> above to synchronize all web products, categories, guides, and settings automatically!</li>
                 </ol>
+              </div>
+            </div>
+
+            {/* Google Search Console & DNS Configuration */}
+            <div className="bg-white p-6 rounded-2xl border border-[#E9E9E6] shadow-xs space-y-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[#E9E9E6]">
+                <div className="flex items-start sm:items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center shrink-0">
+                    <Globe className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-base font-bold text-[#111111]">
+                        Google Search Console & DNS Configuration
+                      </h2>
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                        <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                        META TAG ACTIVE
+                      </span>
+                    </div>
+                    <p className="text-xs text-neutral-500 mt-0.5">
+                      DNS TXT record verification & instant HTML meta tag verification for Google Search Console.
+                    </p>
+                  </div>
+                </div>
+
+                <a
+                  href="https://search.google.com/search-console"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 shrink-0 self-start sm:self-auto cursor-pointer shadow-xs"
+                >
+                  <Search className="w-3.5 h-3.5" />
+                  <span>Open Search Console</span>
+                  <ExternalLink className="w-3 h-3 opacity-70" />
+                </a>
+              </div>
+
+              {/* DNS TXT Record Details Card */}
+              <div className="p-4 bg-[#F7F6F2] rounded-xl border border-[#E9E9E6] space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase tracking-wider text-neutral-800 flex items-center gap-1.5">
+                    <Sliders className="w-3.5 h-3.5 text-[#FF6B00]" />
+                    DNS TXT Record Configuration (Domain Registrar)
+                  </span>
+                  <span className="text-[10px] font-mono text-neutral-500 bg-white px-2 py-0.5 rounded border border-[#E9E9E6]">
+                    Domain: techcheck.homes
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+                  {/* Record Type */}
+                  <div className="bg-white p-3 rounded-lg border border-[#E9E9E6]">
+                    <span className="text-[10px] uppercase font-bold text-neutral-400 block mb-1">Record Type</span>
+                    <span className="font-mono text-xs font-bold text-neutral-900 bg-neutral-100 px-2 py-0.5 rounded">TXT</span>
+                  </div>
+
+                  {/* Host / Name */}
+                  <div className="bg-white p-3 rounded-lg border border-[#E9E9E6] flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-neutral-400 block mb-1">Host / Name</span>
+                      <span className="font-mono text-xs font-bold text-neutral-900">@</span>
+                      <span className="text-[10px] text-neutral-400 ml-1.5">(or techcheck.homes)</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText('@');
+                        setCopiedDns('host');
+                        setTimeout(() => setCopiedDns(null), 2000);
+                      }}
+                      className="px-2 py-1 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 rounded text-[11px] font-bold flex items-center gap-1 cursor-pointer"
+                      title="Copy Host"
+                    >
+                      {copiedDns === 'host' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                      <span>{copiedDns === 'host' ? 'Copied' : 'Copy'}</span>
+                    </button>
+                  </div>
+
+                  {/* TTL */}
+                  <div className="bg-white p-3 rounded-lg border border-[#E9E9E6]">
+                    <span className="text-[10px] uppercase font-bold text-neutral-400 block mb-1">TTL</span>
+                    <span className="font-mono text-xs font-bold text-neutral-900">3600 <span className="text-neutral-400 font-normal">(1 Hour / Auto)</span></span>
+                  </div>
+                </div>
+
+                {/* TXT Record Value */}
+                <div className="bg-white p-3.5 rounded-lg border border-[#E9E9E6] space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] uppercase font-bold text-neutral-400">Record Value / Content</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard.writeText('google-site-verification=ak33i50nUtWjsrn9dKkM81hhDeHGK5EN-sA37d');
+                        setCopiedDns('value');
+                        setTimeout(() => setCopiedDns(null), 2000);
+                      }}
+                      className="px-2.5 py-1 bg-[#111111] hover:bg-black text-white rounded-md text-[11px] font-bold flex items-center gap-1.5 cursor-pointer shadow-xs transition-all"
+                    >
+                      {copiedDns === 'value' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                      <span>{copiedDns === 'value' ? 'Copied to Clipboard!' : 'Copy TXT Value'}</span>
+                    </button>
+                  </div>
+                  <div className="p-2 bg-neutral-900 text-emerald-400 font-mono text-xs rounded select-all break-all">
+                    google-site-verification=ak33i50nUtWjsrn9dKkM81hhDeHGK5EN-sA37d
+                  </div>
+                </div>
+              </div>
+
+              {/* Instant Verification Status */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="p-3 bg-emerald-50/70 border border-emerald-200 rounded-xl flex items-start gap-2.5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="text-xs font-bold text-emerald-950">HTML Meta Tag (Live in &lt;head&gt;)</h4>
+                    <p className="text-[11px] text-emerald-800 mt-0.5 font-mono break-all">
+                      &lt;meta name="google-site-verification" content="ak33i50nUtWjsrn9dKkM81hhDeHGK5EN-sA37d" /&gt;
+                    </p>
+                    <span className="text-[10px] text-emerald-700 font-medium mt-1 block">
+                      ⚡ Instant verification on Search Console without DNS delay.
+                    </span>
+                  </div>
+                </div>
+
+                <div className="p-3 bg-blue-50/70 border border-blue-200 rounded-xl flex items-start gap-2.5">
+                  <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="text-xs font-bold text-blue-950">HTML Verification Endpoint (Live)</h4>
+                    <p className="text-[11px] text-blue-800 mt-0.5 font-mono break-all">
+                      /googleak33i50nUtWjsrn9dKkM81hhDeHGK5EN-sA37d.html
+                    </p>
+                    <span className="text-[10px] text-blue-700 font-medium mt-1 block">
+                      📄 Serves official verification response to Google crawler.
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
 

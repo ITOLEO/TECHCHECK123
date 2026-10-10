@@ -79,7 +79,13 @@ function saveImageToCache(filename: string, mimeType: string, base64: string) {
   } catch (e) {}
 }
 
-// Google Search Console Verification route
+// Google Search Console Verification routes
+app.get('/googleak33i50nUtWjsrn9dKkM81hhDeHGK5EN-sA37d.html', (req: Request, res: Response) => {
+  res.type('text/html').send('google-site-verification: googleak33i50nUtWjsrn9dKkM81hhDeHGK5EN-sA37d.html');
+});
+app.get('/ak33i50nUtWjsrn9dKkM81hhDeHGK5EN-sA37d.html', (req: Request, res: Response) => {
+  res.type('text/html').send('google-site-verification: ak33i50nUtWjsrn9dKkM81hhDeHGK5EN-sA37d.html');
+});
 app.get('/googlebf09fd737c25f2c1.html', (req: Request, res: Response) => {
   res.type('text/html').send('google-site-verification: googlebf09fd737c25f2c1.html');
 });
