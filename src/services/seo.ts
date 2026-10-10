@@ -6,6 +6,7 @@ interface SEOConfig {
   canonicalPath?: string;
   ogType?: 'website' | 'article' | 'product';
   ogImage?: string;
+  favicon?: string;
   jsonLd?: Record<string, any> | Array<Record<string, any>>;
 }
 
@@ -14,57 +15,97 @@ const DEFAULT_TITLE = 'TechCheck — Build Better, Every Day.';
 const DEFAULT_DESCRIPTION =
   'Curated space-saving gaming monitors, ergonomic arms, cable management, and audio gear for compact desks (80cm–140cm). Singapore setup reviews & blueprints.';
 const DEFAULT_OG_IMAGE = 'https://techcheck.homes/og-image.jpg';
+const DEFAULT_FAVICON = '/favicon.png';
+
+export function getSiteOgImage(): string {
+  try {
+    const raw = localStorage.getItem('techcheck_site_settings');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed?.ogImage && typeof parsed.ogImage === 'string') {
+        return parsed.ogImage;
+      }
+    }
+  } catch {}
+  return DEFAULT_OG_IMAGE;
+}
+
+export function getSiteFavicon(): string {
+  try {
+    const raw = localStorage.getItem('techcheck_site_settings');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed?.favicon && typeof parsed.favicon === 'string') {
+        return parsed.favicon;
+      }
+    }
+  } catch {}
+  return DEFAULT_FAVICON;
+}
 
 /**
  * Updates dynamic meta tags, title, OpenGraph tags, and JSON-LD structured data.
+ * OG Image is strictly isolated to social share preview tags (og:image, twitter:image)
+ * and is NEVER used for products, articles, or categories.
+ * Favicon is strictly isolated to browser tab icons (<link rel="icon">).
  */
 export function updateSEO(config: SEOConfig): void {
   if (typeof document === 'undefined') return;
+
+  const currentOgImage = config.ogImage || getSiteOgImage();
+  const currentFavicon = config.favicon || getSiteFavicon();
 
   const {
     title = DEFAULT_TITLE,
     description = DEFAULT_DESCRIPTION,
     canonicalPath = '',
     ogType = 'website',
-    ogImage = DEFAULT_OG_IMAGE,
     jsonLd,
   } = config;
 
   // 1. Title tag
   document.title = title;
 
-  // 2. Meta description
+  // 2. Favicon (strictly dedicated to browser tab icon, never used as product/article image)
+  if (currentFavicon) {
+    setLinkTag('icon', currentFavicon);
+    setLinkTag('shortcut icon', currentFavicon);
+    setLinkTag('apple-touch-icon', currentFavicon);
+  }
+
+  // 3. Meta description
   setMetaTag('name', 'description', description);
 
-  // 3. Canonical link
+  // 4. Canonical link
   const canonicalUrl = canonicalPath
     ? `${BASE_URL}/#${canonicalPath.startsWith('/') ? canonicalPath : `/${canonicalPath}`}`
     : BASE_URL;
   setLinkTag('canonical', canonicalUrl);
 
-  // 4. OpenGraph tags
+  // 5. OpenGraph tags
   setMetaTag('property', 'og:title', title);
   setMetaTag('property', 'og:description', description);
   setMetaTag('property', 'og:url', canonicalUrl);
   setMetaTag('property', 'og:type', ogType);
   setMetaTag('property', 'og:site_name', 'TechCheck');
   setMetaTag('property', 'og:locale', 'en_SG');
-  if (ogImage) {
-    const fullOgImage = ogImage.startsWith('http') ? ogImage : `${BASE_URL}${ogImage.startsWith('/') ? '' : '/'}${ogImage}`;
+
+  // Strictly dedicated to social share preview card (OG Image)
+  if (currentOgImage) {
+    const fullOgImage = currentOgImage.startsWith('http')
+      ? currentOgImage
+      : `${BASE_URL}${currentOgImage.startsWith('/') ? '' : '/'}${currentOgImage}`;
     setMetaTag('property', 'og:image', fullOgImage);
     setMetaTag('property', 'og:image:secure_url', fullOgImage);
     setMetaTag('property', 'og:image:type', fullOgImage.endsWith('.png') ? 'image/png' : 'image/jpeg');
     setMetaTag('property', 'og:image:width', '1200');
     setMetaTag('property', 'og:image:height', '630');
     setMetaTag('property', 'og:image:alt', title);
-  }
 
-  // 5. Twitter Card tags
-  setMetaTag('name', 'twitter:card', 'summary_large_image');
-  setMetaTag('name', 'twitter:title', title);
-  setMetaTag('name', 'twitter:description', description);
-  if (ogImage) {
-    const fullOgImage = ogImage.startsWith('http') ? ogImage : `${BASE_URL}${ogImage.startsWith('/') ? '' : '/'}${ogImage}`;
+    // Twitter Card image
+    setMetaTag('name', 'twitter:card', 'summary_large_image');
+    setMetaTag('name', 'twitter:title', title);
+    setMetaTag('name', 'twitter:description', description);
     setMetaTag('name', 'twitter:image', fullOgImage);
   }
 

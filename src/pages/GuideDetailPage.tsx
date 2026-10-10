@@ -179,7 +179,6 @@ export const GuideDetailPage: React.FC<GuideDetailPageProps> = ({
         title: `${guide.title} | TechCheck Workspace Guide`,
         description: guide.excerpt,
         canonicalPath: `guides/${guide.slug}`,
-        ogImage: guide.image,
         ogType: 'article',
         jsonLd: {
           '@context': 'https://schema.org',
@@ -298,12 +297,12 @@ export const GuideDetailPage: React.FC<GuideDetailPageProps> = ({
               {isDocumentFormat ? (
                 <>
                   <FileText className="w-3 h-3 text-[#FF6B00]" />
-                  <span>Format Dokumen</span>
+                  <span>Document Format</span>
                 </>
               ) : (
                 <>
                   <ListOrdered className="w-3 h-3 text-[#FF6B00]" />
-                  <span>Format Panduan Poin</span>
+                  <span>Step-by-Step Guide</span>
                 </>
               )}
             </span>

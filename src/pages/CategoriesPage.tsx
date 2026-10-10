@@ -5,8 +5,6 @@ import { CategoryInfo, ViewRoute, ProductCategory, Product } from '../types';
 import { SafeImage } from '../components/SafeImage';
 import { analytics } from '../services/analytics';
 import { updateSEO, buildBreadcrumbSchema } from '../services/seo';
-import { useVisualEditor } from '../contexts/VisualEditorContext';
-import { EditableElement } from '../components/visual-editor/EditableElement';
 
 interface CategoriesPageProps {
   categories: CategoryInfo[];
@@ -15,7 +13,6 @@ interface CategoriesPageProps {
 }
 
 export const CategoriesPage: React.FC<CategoriesPageProps> = ({ categories, products = [], onNavigate }) => {
-  const visualEditor = useVisualEditor();
   useEffect(() => {
     updateSEO({
       title: 'Hardware Categories | TechCheck Space-Saving Taxonomy',
@@ -68,67 +65,55 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ categories, prod
           {categories.map((cat) => {
             const count = getCategoryCount(cat);
             return (
-              <EditableElement
+              <motion.div
                 key={cat.id}
-                isEditMode={visualEditor.isVisualEditMode}
-                label={`Edit Kategori: ${cat.name}`}
-                onEdit={() =>
-                  visualEditor.openEditor({
-                    type: 'category',
-                    title: `Edit Kategori: ${cat.name}`,
-                    data: cat,
-                  })
-                }
+                whileHover={{ y: -5 }}
+                transition={{ duration: 0.2 }}
+                onClick={() => handleSelectCategory(cat.name)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleSelectCategory(cat.name);
+                  }
+                }}
+                tabIndex={0}
+                role="button"
+                aria-label={`Browse ${cat.name} category with ${count} accessories`}
+                className="group bg-white dark:bg-[#16171C] rounded-3xl border border-[#E9E9E6] dark:border-[#272932] hover:border-[#FF6B00] dark:hover:border-[#FF6B00] shadow-xs hover:shadow-xl transition-all overflow-hidden cursor-pointer flex flex-col justify-between focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] h-full"
               >
-                <motion.div
-                  whileHover={{ y: -5 }}
-                  transition={{ duration: 0.2 }}
-                  onClick={() => handleSelectCategory(cat.name)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      handleSelectCategory(cat.name);
-                    }
-                  }}
-                  tabIndex={0}
-                  role="button"
-                  aria-label={`Browse ${cat.name} category with ${count} accessories`}
-                  className="group bg-white dark:bg-[#16171C] rounded-3xl border border-[#E9E9E6] dark:border-[#272932] hover:border-[#FF6B00] dark:hover:border-[#FF6B00] shadow-xs hover:shadow-xl transition-all overflow-hidden cursor-pointer flex flex-col justify-between focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] h-full"
-                >
-                  <div className="relative aspect-16/10 overflow-hidden bg-neutral-100 dark:bg-[#1C1E25]">
-                    <SafeImage
-                      src={cat.image}
-                      alt={cat.name}
-                      fallbackText={cat.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
-                      loading="lazy"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent pointer-events-none" />
-                    <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-white">
-                      <span className="text-xs font-semibold bg-black/70 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10">
-                        {count} Curated {count === 1 ? 'Accessory' : 'Accessories'}
-                      </span>
-                      <span className="text-xs font-bold uppercase tracking-wider text-[#FF6B00]">
-                        Reclaims Space
-                      </span>
-                    </div>
+                <div className="relative aspect-16/10 overflow-hidden bg-neutral-100 dark:bg-[#1C1E25]">
+                  <SafeImage
+                    src={cat.image}
+                    alt={cat.name}
+                    fallbackText={cat.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent pointer-events-none" />
+                  <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-white">
+                    <span className="text-xs font-semibold bg-black/70 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10">
+                      {count} Curated {count === 1 ? 'Accessory' : 'Accessories'}
+                    </span>
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#FF6B00]">
+                      Reclaims Space
+                    </span>
                   </div>
+                </div>
 
-                  <div className="p-7">
-                    <div className="flex items-center justify-between mb-2.5">
-                      <h3 className="text-xl font-bold text-[#111111] dark:text-neutral-100 group-hover:text-[#FF6B00] transition-colors">
-                        {cat.name}
-                      </h3>
-                      <div className="w-9 h-9 rounded-2xl bg-neutral-100 dark:bg-[#22242D] flex items-center justify-center text-neutral-700 dark:text-neutral-300 group-hover:bg-[#FF6B00] group-hover:text-white transition-colors">
-                        <ArrowUpRight className="w-4 h-4" />
-                      </div>
+                <div className="p-7">
+                  <div className="flex items-center justify-between mb-2.5">
+                    <h3 className="text-xl font-bold text-[#111111] dark:text-neutral-100 group-hover:text-[#FF6B00] transition-colors">
+                      {cat.name}
+                    </h3>
+                    <div className="w-9 h-9 rounded-2xl bg-neutral-100 dark:bg-[#22242D] flex items-center justify-center text-neutral-700 dark:text-neutral-300 group-hover:bg-[#FF6B00] group-hover:text-white transition-colors">
+                      <ArrowUpRight className="w-4 h-4" />
                     </div>
-                    <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
-                      {cat.description}
-                    </p>
                   </div>
-                </motion.div>
-              </EditableElement>
+                  <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                    {cat.description}
+                  </p>
+                </div>
+              </motion.div>
             );
           })}
         </div>

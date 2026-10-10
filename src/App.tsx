@@ -17,11 +17,7 @@ import { GuidesPage } from './pages/GuidesPage';
 import { GuideDetailPage } from './pages/GuideDetailPage';
 import { SuperAdminPage } from './pages/SuperAdminPage';
 
-import { VisualEditorProvider, useVisualEditor } from './contexts/VisualEditorContext';
-import { VisualEditorToolbar } from './components/visual-editor/VisualEditorToolbar';
-import { ContextualEditorModal } from './components/visual-editor/ContextualEditorModal';
-import { PublishConfirmationModal } from './components/visual-editor/PublishConfirmationModal';
-import { UnsavedChangesModal } from './components/visual-editor/UnsavedChangesModal';
+
 
 interface AppContentProps {
   currentRoute: ViewRoute;
@@ -65,26 +61,7 @@ const AppContent: React.FC<AppContentProps> = ({
   infoModalType,
   setInfoModalType,
 }) => {
-  const visualEditor = useVisualEditor();
-
   const isSuperadminView = currentRoute.page === 'superadmin';
-  const isAdminAuthenticated = dataStorage.isAdminAuthenticated();
-  const isEditWebsiteActive = visualEditor.isVisualEditMode && isAdminAuthenticated && !isSuperadminView;
-  const isEditModeActive = visualEditor.isVisualEditMode && isAdminAuthenticated;
-
-  // Visual draft data is active inside Developer Mode (Page 1: Admin Dashboard or Page 2: Edit Website)
-  const effectiveProducts = isEditModeActive && visualEditor.activeProducts.length > 0
-    ? visualEditor.activeProducts
-    : products;
-  const effectiveCategories = isEditModeActive && visualEditor.activeCategories.length > 0
-    ? visualEditor.activeCategories
-    : categories;
-  const effectiveGuides = isEditModeActive && visualEditor.activeGuides.length > 0
-    ? visualEditor.activeGuides
-    : guides;
-  const effectiveSettings = isEditModeActive
-    ? visualEditor.activeSettings
-    : siteSettings;
 
   const handleSelectProduct = (slug: string) => {
     navigate({ page: 'product-detail', slug });
@@ -94,77 +71,22 @@ const AppContent: React.FC<AppContentProps> = ({
     navigate({ page: 'guide-detail', slug });
   };
 
-  const viewportContainerClass =
-    isEditWebsiteActive
-      ? visualEditor.deviceViewport === 'mobile'
-        ? 'max-w-[420px] mx-auto min-h-screen my-4 rounded-3xl shadow-2xl border border-neutral-300 dark:border-neutral-800 overflow-hidden bg-[#F7F6F2] dark:bg-[#0E0F12]'
-        : visualEditor.deviceViewport === 'tablet'
-        ? 'max-w-[768px] mx-auto min-h-screen my-4 rounded-3xl shadow-2xl border border-neutral-300 dark:border-neutral-800 overflow-hidden bg-[#F7F6F2] dark:bg-[#0E0F12]'
-        : 'w-full'
-      : 'w-full';
-
   return (
     <div className="min-h-screen flex flex-col bg-[#F7F6F2] dark:bg-[#0E0F12] text-[#111111] dark:text-[#EDEDED] antialiased transition-colors duration-150">
-      {/* Developer Navbar - Persistent inside Page 2: Edit Website */}
-      {isEditWebsiteActive && (
-        <VisualEditorToolbar
-          deviceViewport={visualEditor.deviceViewport}
-          onSelectViewport={visualEditor.setDeviceViewport}
-          hasUnsavedChanges={visualEditor.hasUnsavedChanges}
-          changesCount={visualEditor.changesCount}
-          canUndo={visualEditor.canUndo}
-          canRedo={visualEditor.canRedo}
-          onUndo={visualEditor.undo}
-          onRedo={visualEditor.redo}
-          onSaveDraft={visualEditor.saveDraftLocally}
-          onOpenPublishModal={() => visualEditor.setIsPublishModalOpen(true)}
-          onDiscardChanges={() => {
-            visualEditor.setPendingExitAction(null);
-            visualEditor.setIsUnsavedWarningOpen(true);
-          }}
-          onGoToDashboard={() => {
-            if (visualEditor.hasUnsavedChanges) {
-              visualEditor.setPendingExitAction(() => navigate({ page: 'superadmin' }));
-              visualEditor.setIsUnsavedWarningOpen(true);
-            } else {
-              navigate({ page: 'superadmin' });
-            }
-          }}
-          onExitEditor={() => {
-            const exitToPublicHome = () => {
-              dataStorage.setAdminAuthenticated(false);
-              sessionStorage.removeItem('techcheck_developer_mode');
-              sessionStorage.removeItem('techcheck_visual_mode');
-              localStorage.removeItem('techcheck_developer_mode');
-              localStorage.removeItem('techcheck_visual_mode');
-              visualEditor.exitVisualEditMode();
-              window.location.href = 'https://techcheck.homes/';
-            };
-
-            if (visualEditor.hasUnsavedChanges) {
-              visualEditor.setPendingExitAction(() => exitToPublicHome);
-              visualEditor.setIsUnsavedWarningOpen(true);
-            } else {
-              exitToPublicHome();
-            }
-          }}
-        />
-      )}
-
-      <div className={viewportContainerClass}>
+      <div className="w-full">
         {/* Optional Top Announcement Bar */}
-        {effectiveSettings.announcementEnabled && effectiveSettings.announcementText && !isSuperadminView && (
+        {siteSettings.announcementEnabled && siteSettings.announcementText && !isSuperadminView && (
           <div className="bg-[#111111] text-white text-xs font-semibold py-2.5 px-4 text-center flex items-center justify-center gap-2 border-b border-neutral-800">
             <span className="w-2 h-2 rounded-full bg-[#FF6B00] animate-pulse shrink-0" />
-            <span>{effectiveSettings.announcementText}</span>
-            {effectiveSettings.announcementLink && (
+            <span>{siteSettings.announcementText}</span>
+            {siteSettings.announcementLink && (
               <a
-                href={effectiveSettings.announcementLink}
+                href={siteSettings.announcementLink}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-[#FF6B00] hover:underline font-bold ml-1"
               >
-                Lihat →
+                View →
               </a>
             )}
           </div>
@@ -173,7 +95,7 @@ const AppContent: React.FC<AppContentProps> = ({
         {/* Top Navigation */}
         <Navbar
           currentRoute={currentRoute}
-          categories={effectiveCategories}
+          categories={categories}
           onNavigate={navigate}
           onOpenSearch={() => setIsSearchOpen(true)}
         />
@@ -182,10 +104,10 @@ const AppContent: React.FC<AppContentProps> = ({
         <main className="flex-1">
           {currentRoute.page === 'home' && (
             <HomePage
-              products={effectiveProducts}
-              categories={effectiveCategories}
-              guides={effectiveGuides}
-              siteSettings={effectiveSettings}
+              products={products}
+              categories={categories}
+              guides={guides}
+              siteSettings={siteSettings}
               onNavigate={navigate}
               onSelectProduct={handleSelectProduct}
               onSelectGuide={handleSelectGuide}
@@ -194,18 +116,18 @@ const AppContent: React.FC<AppContentProps> = ({
 
           {currentRoute.page === 'recommendations' && (
             <RecommendationsPage
-              products={effectiveProducts}
+              products={products}
               initialCategory={currentRoute.categoryFilter || 'All'}
               onSelectProduct={handleSelectProduct}
             />
           )}
 
           {currentRoute.page === 'product-detail' && (() => {
-            const product = effectiveProducts.find((p) => p.slug === currentRoute.slug);
+            const product = products.find((p) => p.slug === currentRoute.slug);
             return (
               <ProductDetailPage
                 product={product}
-                allProducts={effectiveProducts}
+                allProducts={products}
                 onNavigate={navigate}
                 onSelectProduct={handleSelectProduct}
                 onOpenAffiliateModal={(prod) => setAffiliateProduct(prod)}
@@ -215,39 +137,26 @@ const AppContent: React.FC<AppContentProps> = ({
 
           {currentRoute.page === 'categories' && (
             <CategoriesPage
-              categories={effectiveCategories}
-              products={effectiveProducts}
+              categories={categories}
+              products={products}
               onNavigate={navigate}
             />
           )}
 
           {currentRoute.page === 'guides' && (
             <GuidesPage
-              guides={effectiveGuides}
+              guides={guides}
               onSelectGuide={handleSelectGuide}
             />
           )}
 
           {currentRoute.page === 'guide-detail' && (() => {
-            const rawSlug = currentRoute.slug || '';
-            const cleanSlug = decodeURIComponent(rawSlug).trim().toLowerCase();
-            const guide = effectiveGuides.find((g) => {
-              const gSlug = (g.slug || '').toLowerCase();
-              const gId = (g.id || '').toLowerCase();
-              const gTitleSlug = (g.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-');
-              return (
-                gSlug === cleanSlug ||
-                gId === cleanSlug ||
-                gTitleSlug === cleanSlug ||
-                cleanSlug.includes(gSlug) ||
-                gSlug.includes(cleanSlug)
-              );
-            });
+            const guide = guides.find((g) => g.slug === currentRoute.slug);
             return (
               <GuideDetailPage
                 guide={guide}
-                allGuides={effectiveGuides}
-                allProducts={effectiveProducts}
+                allGuides={guides}
+                allProducts={products}
                 onNavigate={navigate}
                 onSelectProduct={handleSelectProduct}
                 onSelectGuide={handleSelectGuide}
@@ -283,9 +192,9 @@ const AppContent: React.FC<AppContentProps> = ({
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
         onNavigate={navigate}
-        products={effectiveProducts}
-        categories={effectiveCategories}
-        guides={effectiveGuides}
+        products={products}
+        categories={categories}
+        guides={guides}
       />
 
       <AffiliateModal
@@ -298,45 +207,6 @@ const AppContent: React.FC<AppContentProps> = ({
         type={infoModalType}
         onClose={() => setInfoModalType(null)}
       />
-
-      {/* Visual Editor Modals - Active in Developer Mode */}
-      {isEditModeActive && (
-        <>
-          <ContextualEditorModal
-            target={visualEditor.activeTarget}
-            isOpen={!!visualEditor.activeTarget}
-            categoriesList={effectiveCategories}
-            allProductsList={effectiveProducts}
-            onClose={visualEditor.closeEditor}
-            onApply={visualEditor.applyEdit}
-          />
-
-          <PublishConfirmationModal
-            isOpen={visualEditor.isPublishModalOpen}
-            changesSummary={visualEditor.changesSummary}
-            isPublishing={visualEditor.isPublishing}
-            onCancel={() => visualEditor.setIsPublishModalOpen(false)}
-            onConfirm={visualEditor.publishToLive}
-          />
-
-          <UnsavedChangesModal
-            isOpen={visualEditor.isUnsavedWarningOpen}
-            onContinueEditing={() => {
-              visualEditor.setIsUnsavedWarningOpen(false);
-              visualEditor.setPendingExitAction(null);
-            }}
-            onDiscardChanges={visualEditor.discardDraft}
-          />
-        </>
-      )}
-
-      {/* Visual Editor Toast */}
-      {visualEditor.toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[#111111] text-white px-4 py-2.5 rounded-xl shadow-2xl text-xs font-bold flex items-center gap-2 border border-neutral-700 animate-in slide-in-from-bottom-2">
-          <span className="w-2 h-2 rounded-full bg-[#FF6B00]" />
-          {visualEditor.toastMessage}
-        </div>
-      )}
 
       {/* Brand Splash Screen on Initial Load */}
       {showSplash && (
@@ -406,6 +276,31 @@ export default function App() {
       unsubscribe();
     };
   }, []);
+
+  // Synchronize dedicated Favicon & OG Image to document head whenever site settings change
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      const fav = siteSettings.favicon || '/favicon.png';
+      const link = document.querySelector("link[rel~='icon']") as HTMLLinkElement | null;
+      if (link) {
+        link.href = fav;
+      }
+      const appleLink = document.querySelector("link[rel='apple-touch-icon']") as HTMLLinkElement | null;
+      if (appleLink) {
+        appleLink.href = fav;
+      }
+
+      if (siteSettings.ogImage) {
+        const fullOg = siteSettings.ogImage.startsWith('http')
+          ? siteSettings.ogImage
+          : `https://techcheck.homes${siteSettings.ogImage.startsWith('/') ? '' : '/'}${siteSettings.ogImage}`;
+        const ogMeta = document.querySelector('meta[property="og:image"]');
+        if (ogMeta) ogMeta.setAttribute('content', fullOg);
+        const twitterMeta = document.querySelector('meta[name="twitter:image"]');
+        if (twitterMeta) twitterMeta.setAttribute('content', fullOg);
+      }
+    }
+  }, [siteSettings.favicon, siteSettings.ogImage]);
 
   // Parse URL pathname, hash, & query on mount and listen to navigation changes
   useEffect(() => {
@@ -660,37 +555,26 @@ export default function App() {
   };
 
   return (
-    <VisualEditorProvider
-      publishedSettings={siteSettings}
-      publishedProducts={products}
-      publishedCategories={categories}
-      publishedGuides={guides}
-      onCommitSettings={setSiteSettings}
-      onCommitProducts={setProducts}
-      onCommitCategories={setCategories}
-      onCommitGuides={setGuides}
-    >
-      <AppContent
-        currentRoute={currentRoute}
-        setCurrentRoute={setCurrentRoute}
-        navigate={navigate}
-        products={products}
-        setProducts={setProducts}
-        categories={categories}
-        setCategories={setCategories}
-        guides={guides}
-        setGuides={setGuides}
-        siteSettings={siteSettings}
-        setSiteSettings={setSiteSettings}
-        isSearchOpen={isSearchOpen}
-        setIsSearchOpen={setIsSearchOpen}
-        showSplash={showSplash}
-        setShowSplash={setShowSplash}
-        affiliateProduct={affiliateProduct}
-        setAffiliateProduct={setAffiliateProduct}
-        infoModalType={infoModalType}
-        setInfoModalType={setInfoModalType}
-      />
-    </VisualEditorProvider>
+    <AppContent
+      currentRoute={currentRoute}
+      setCurrentRoute={setCurrentRoute}
+      navigate={navigate}
+      products={products}
+      setProducts={setProducts}
+      categories={categories}
+      setCategories={setCategories}
+      guides={guides}
+      setGuides={setGuides}
+      siteSettings={siteSettings}
+      setSiteSettings={setSiteSettings}
+      isSearchOpen={isSearchOpen}
+      setIsSearchOpen={setIsSearchOpen}
+      showSplash={showSplash}
+      setShowSplash={setShowSplash}
+      affiliateProduct={affiliateProduct}
+      setAffiliateProduct={setAffiliateProduct}
+      infoModalType={infoModalType}
+      setInfoModalType={setInfoModalType}
+    />
   );
 }

@@ -156,7 +156,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
               transition={{ delay: 1.0, duration: 0.4 }}
               className="text-[11px] text-neutral-500 mt-4 tracking-wider uppercase font-medium"
             >
-              Klik untuk melewati
+              Click to skip
             </motion.span>
           </div>
         </motion.div>

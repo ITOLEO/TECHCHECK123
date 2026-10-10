@@ -158,7 +158,7 @@ CREATE INDEX IF NOT EXISTS idx_article_blocks_sort_order ON article_blocks(guide
 -- ==============================================================================
 CREATE TABLE IF NOT EXISTS site_settings (
     id INT PRIMARY KEY DEFAULT 1 CHECK (id = 1),
-    announcement_text TEXT DEFAULT '🔥 Update: Rekomendasi Monitor & Aksesoris Compact Setup Terbaru Sudah Tersedia!',
+    announcement_text TEXT DEFAULT '🔥 Update: New Space-Saving Monitor & Compact Desk Accessories Guide is Live!',
     announcement_enabled BOOLEAN DEFAULT FALSE,
     announcement_link TEXT DEFAULT '',
     hero_eyebrow VARCHAR(255) DEFAULT 'SMART TECH FOR BETTER SETUPS',
@@ -174,6 +174,8 @@ CREATE TABLE IF NOT EXISTS site_settings (
     hero_cta_primary_url VARCHAR(255) DEFAULT 'recommendations',
     hero_cta_secondary_text VARCHAR(255) DEFAULT 'Read Our Guides',
     hero_cta_secondary_url VARCHAR(255) DEFAULT 'guides',
+    og_image TEXT DEFAULT '/og-image.jpg',
+    favicon TEXT DEFAULT '/favicon.png',
     support_email VARCHAR(255) DEFAULT 'itleo4444@gmail.com',
     default_affiliate_sub_id VARCHAR(100) DEFAULT '14139310000',
     admin_passcode VARCHAR(255) DEFAULT '654321',
@@ -190,6 +192,8 @@ ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS hero_cta_primary_text VARCHAR
 ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS hero_cta_primary_url VARCHAR(255) DEFAULT 'recommendations';
 ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS hero_cta_secondary_text VARCHAR(255) DEFAULT 'Read Our Guides';
 ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS hero_cta_secondary_url VARCHAR(255) DEFAULT 'guides';
+ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS og_image TEXT DEFAULT '/og-image.jpg';
+ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS favicon TEXT DEFAULT '/favicon.png';
 
 -- Seed default site settings singleton
 INSERT INTO site_settings (id, admin_passcode)

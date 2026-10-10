@@ -5,8 +5,6 @@ import { Product, ProductCategory } from '../types';
 import { ProductCard } from '../components/ProductCard';
 import { analytics } from '../services/analytics';
 import { updateSEO, buildBreadcrumbSchema } from '../services/seo';
-import { useVisualEditor } from '../contexts/VisualEditorContext';
-import { EditableElement } from '../components/visual-editor/EditableElement';
 
 interface RecommendationsPageProps {
   products: Product[];
@@ -19,7 +17,6 @@ export const RecommendationsPage: React.FC<RecommendationsPageProps> = ({
   initialCategory = 'All',
   onSelectProduct,
 }) => {
-  const visualEditor = useVisualEditor();
   const [selectedCategory, setSelectedCategory] = useState<ProductCategory | 'All'>(initialCategory);
   const [minRating, setMinRating] = useState<number>(0);
   const [selectedBadge, setSelectedBadge] = useState<string>('All');
@@ -290,24 +287,12 @@ export const RecommendationsPage: React.FC<RecommendationsPageProps> = ({
       {filteredProducts.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredProducts.map((product) => (
-            <EditableElement
+            <ProductCard
               key={product.id}
-              isEditMode={visualEditor.isVisualEditMode}
-              label={`Edit: ${product.name}`}
-              onEdit={() =>
-                visualEditor.openEditor({
-                  type: 'product',
-                  title: `Edit: ${product.name}`,
-                  data: product,
-                })
-              }
-            >
-              <ProductCard
-                product={product}
-                onSelectProduct={onSelectProduct}
-                onSelectCategory={(cat) => setSelectedCategory(cat)}
-              />
-            </EditableElement>
+              product={product}
+              onSelectProduct={onSelectProduct}
+              onSelectCategory={(cat) => setSelectedCategory(cat)}
+            />
           ))}
         </div>
       ) : (

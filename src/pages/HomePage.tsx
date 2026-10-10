@@ -15,8 +15,6 @@ import { ProductCard } from '../components/ProductCard';
 import { SafeImage } from '../components/SafeImage';
 import { analytics } from '../services/analytics';
 import { updateSEO, buildBreadcrumbSchema } from '../services/seo';
-import { useVisualEditor } from '../contexts/VisualEditorContext';
-import { EditableElement } from '../components/visual-editor/EditableElement';
 
 interface HomePageProps {
   products: Product[];
@@ -37,8 +35,6 @@ export const HomePage: React.FC<HomePageProps> = ({
   onSelectProduct,
   onSelectGuide,
 }) => {
-  const { isVisualEditMode, openEditor } = useVisualEditor();
-
   useEffect(() => {
     updateSEO({
       title: 'TechCheck — Small Space. Serious Setup.',
@@ -69,7 +65,7 @@ export const HomePage: React.FC<HomePageProps> = ({
 
   const heroImageSrc = (siteSettings.heroImage && siteSettings.heroImage.trim() !== '')
     ? siteSettings.heroImage
-    : '/og-image.jpg';
+    : '/hero-setup.jpg';
   const heroImageAlt = siteSettings.heroImageAlt || 'Compact Gaming Setup';
   const heroBadgeEyebrow = siteSettings.heroBadgeEyebrow || 'SETUP ARCHITECTURE 2026';
   const heroBadgeTitle = siteSettings.heroBadgeTitle || '100cm Compact Studio Desk';
@@ -178,74 +174,45 @@ export const HomePage: React.FC<HomePageProps> = ({
               transition={{ duration: 0.4 }}
               className="lg:col-span-6 space-y-6"
             >
-              <EditableElement
-                isEditMode={isVisualEditMode}
-                label="Headline & Copy"
-                onEdit={() =>
-                  openEditor({
-                    type: 'hero-copy',
-                    title: 'Edit Hero Headline & Copy',
-                    data: { heroEyebrow, heroHeadline1: heroLine1, heroHeadline2: heroLine2, heroSubtext },
-                  })
-                }
-              >
-                <div className="space-y-6">
-                  <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF6B00]">
-                    {heroEyebrow}
-                  </div>
-
-                  <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#111111] dark:text-white leading-[1.08] transition-colors">
-                    {heroLine1}
-                    <br />
-                    <span className="text-[#FF6B00]">{heroLine2}</span>
-                  </h1>
-
-                  <p className="text-base sm:text-lg text-neutral-600 dark:text-neutral-300 leading-relaxed max-w-xl transition-colors">
-                    {heroSubtext}
-                  </p>
+              <div className="space-y-6">
+                <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF6B00]">
+                  {heroEyebrow}
                 </div>
-              </EditableElement>
+
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-[#111111] dark:text-white leading-[1.08] transition-colors">
+                  {heroLine1}
+                  <br />
+                  <span className="text-[#FF6B00]">{heroLine2}</span>
+                </h1>
+
+                <p className="text-base sm:text-lg text-neutral-600 dark:text-neutral-300 leading-relaxed max-w-xl transition-colors">
+                  {heroSubtext}
+                </p>
+              </div>
 
               {/* CTAs */}
-              <EditableElement
-                isEditMode={isVisualEditMode}
-                label="Action Buttons"
-                onEdit={() =>
-                  openEditor({
-                    type: 'hero-ctas',
-                    title: 'Edit Hero Action Buttons (CTAs)',
-                    data: {
-                      heroCtaPrimaryText,
-                      heroCtaPrimaryUrl,
-                      heroCtaSecondaryText,
-                      heroCtaSecondaryUrl,
-                    },
-                  })
-                }
-              >
-                <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5">
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    id="hero-explore-products-btn"
-                    onClick={() => handleHeroCtaClick(heroCtaPrimaryUrl, 'recommendations')}
-                    className="px-7 py-4 text-base font-bold text-white bg-[#FF6B00] hover:bg-[#e05e00] rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer group focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
-                  >
-                    <span>{heroCtaPrimaryText}</span>
-                    <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
-                  </motion.button>
+              <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  id="hero-explore-products-btn"
+                  onClick={() => handleHeroCtaClick(heroCtaPrimaryUrl, 'recommendations')}
+                  className="px-7 py-4 text-base font-bold text-white bg-[#FF6B00] hover:bg-[#e05e00] rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer group focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
+                >
+                  <span>{heroCtaPrimaryText}</span>
+                  <ArrowRight className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
+                </motion.button>
 
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    id="hero-read-guides-btn"
-                    onClick={() => handleHeroCtaClick(heroCtaSecondaryUrl, 'guides')}
-                    className="px-7 py-4 text-base font-semibold text-neutral-800 dark:text-neutral-200 hover:text-[#111111] dark:hover:text-white bg-white dark:bg-[#1A1C23] border border-[#E9E9E6] dark:border-[#2C2F3A] hover:border-neutral-300 dark:hover:border-neutral-500 rounded-xl transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
-                  >
-                    <span>{heroCtaSecondaryText}</span>
-                  </motion.button>
-                </div>
-              </EditableElement>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  id="hero-read-guides-btn"
+                  onClick={() => handleHeroCtaClick(heroCtaSecondaryUrl, 'guides')}
+                  className="px-7 py-4 text-base font-semibold text-neutral-800 dark:text-neutral-200 hover:text-[#111111] dark:hover:text-white bg-white dark:bg-[#1A1C23] border border-[#E9E9E6] dark:border-[#2C2F3A] hover:border-neutral-300 dark:hover:border-neutral-500 rounded-xl transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
+                >
+                  <span>{heroCtaSecondaryText}</span>
+                </motion.button>
+              </div>
 
               {/* Small Supporting Statement */}
               <div className="pt-2 flex items-center gap-2 text-xs font-medium text-neutral-500 dark:text-neutral-400">
@@ -264,47 +231,29 @@ export const HomePage: React.FC<HomePageProps> = ({
               transition={{ duration: 0.5, delay: 0.1 }}
               className="lg:col-span-6"
             >
-              <EditableElement
-                isEditMode={isVisualEditMode}
-                label="Hero Image & Badge"
-                onEdit={() =>
-                  openEditor({
-                    type: 'hero-image',
-                    title: 'Edit Hero Image & Architectural Badge',
-                    data: {
-                      heroImage: heroImageSrc,
-                      heroImageAlt,
-                      heroBadgeEyebrow,
-                      heroBadgeTitle,
-                      heroBadgeStat,
-                    },
-                  })
-                }
-              >
-                <div className="relative rounded-2xl overflow-hidden shadow-xl border border-[#E9E9E6] dark:border-[#272932] bg-neutral-900 group">
-                  <SafeImage
-                    src={heroImageSrc}
-                    alt={heroImageAlt}
-                    fallbackText="Compact Gaming Setup"
-                    className="w-full h-80 sm:h-[480px] object-cover object-center group-hover:scale-102 transition-transform duration-500 ease-out"
-                    loading="eager"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent pointer-events-none" />
+              <div className="relative rounded-2xl overflow-hidden shadow-xl border border-[#E9E9E6] dark:border-[#272932] bg-neutral-900 group">
+                <SafeImage
+                  src={heroImageSrc}
+                  alt={heroImageAlt}
+                  fallbackText="Compact Gaming Setup"
+                  className="w-full h-80 sm:h-[480px] object-cover object-center group-hover:scale-102 transition-transform duration-500 ease-out"
+                  loading="eager"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent pointer-events-none" />
 
-                  {/* Visual Label Tag */}
-                  <div className="absolute bottom-5 left-5 right-5 p-4 rounded-xl bg-black/60 backdrop-blur-md border border-white/10 text-white flex items-center justify-between">
-                    <div>
-                      <span className="text-[10px] uppercase font-bold tracking-wider text-[#FF6B00] block">
-                        {heroBadgeEyebrow}
-                      </span>
-                      <h3 className="text-sm font-semibold">{heroBadgeTitle}</h3>
-                    </div>
-                    <span className="text-xs px-2.5 py-1 rounded-md bg-white/20 text-white font-medium">
-                      {heroBadgeStat}
+                {/* Visual Label Tag */}
+                <div className="absolute bottom-5 left-5 right-5 p-4 rounded-xl bg-black/60 backdrop-blur-md border border-white/10 text-white flex items-center justify-between">
+                  <div>
+                    <span className="text-[10px] uppercase font-bold tracking-wider text-[#FF6B00] block">
+                      {heroBadgeEyebrow}
                     </span>
+                    <h3 className="text-sm font-semibold">{heroBadgeTitle}</h3>
                   </div>
+                  <span className="text-xs px-2.5 py-1 rounded-md bg-white/20 text-white font-medium">
+                    {heroBadgeStat}
+                  </span>
                 </div>
-              </EditableElement>
+              </div>
             </motion.div>
           </div>
         </div>
@@ -315,33 +264,17 @@ export const HomePage: React.FC<HomePageProps> = ({
           ======================================================== */}
       <section id="homepage-section-products" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 gap-4">
-          <EditableElement
-            isEditMode={isVisualEditMode}
-            label="Section Heading"
-            onEdit={() =>
-              openEditor({
-                type: 'section-heading',
-                title: 'Edit Featured Products Section Heading',
-                sectionKey: 'featured',
-                data: {
-                  heading: featuredHeading,
-                  subtext: featuredSubtext,
-                },
-              })
-            }
-          >
-            <div>
-              <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF6B00] mb-2">
-                FEATURED PRODUCTS
-              </div>
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-[#111111] dark:text-white tracking-tight">
-                {featuredHeading}
-              </h2>
-              <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400 max-w-xl">
-                {featuredSubtext}
-              </p>
+          <div>
+            <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF6B00] mb-2">
+              FEATURED PRODUCTS
             </div>
-          </EditableElement>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#111111] dark:text-white tracking-tight">
+              {featuredHeading}
+            </h2>
+            <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400 max-w-xl">
+              {featuredSubtext}
+            </p>
+          </div>
 
           <button
             onClick={() => onNavigate({ page: 'recommendations' })}
@@ -356,24 +289,12 @@ export const HomePage: React.FC<HomePageProps> = ({
         {displayProducts.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {displayProducts.map((product) => (
-              <EditableElement
+              <ProductCard
                 key={product.id}
-                isEditMode={isVisualEditMode}
-                label={`Product: ${product.name}`}
-                onEdit={() =>
-                  openEditor({
-                    type: 'product',
-                    title: `Edit Product: ${product.name}`,
-                    data: product,
-                  })
-                }
-              >
-                <ProductCard
-                  product={product}
-                  onSelectProduct={onSelectProduct}
-                  onNavigate={onNavigate}
-                />
-              </EditableElement>
+                product={product}
+                onSelectProduct={onSelectProduct}
+                onNavigate={onNavigate}
+              />
             ))}
           </div>
         ) : (
@@ -384,37 +305,21 @@ export const HomePage: React.FC<HomePageProps> = ({
       </section>
 
       {/* ========================================================
-          SECTION 2 — GUIDES & ARTICLES (MOVED DIRECTLY AFTER PRODUCTS)
+          SECTION 2 — GUIDES & ARTICLES
           ======================================================== */}
       <section id="homepage-section-guides" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 gap-4">
-          <EditableElement
-            isEditMode={isVisualEditMode}
-            label="Section Heading"
-            onEdit={() =>
-              openEditor({
-                type: 'section-heading',
-                title: 'Edit Guides Section Heading',
-                sectionKey: 'guides',
-                data: {
-                  heading: guidesHeading,
-                  subtext: guidesSubtext,
-                },
-              })
-            }
-          >
-            <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-[#FF6B00] block mb-2">
-                GUIDES & ARTICLES
-              </span>
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-[#111111] dark:text-white tracking-tight">
-                {guidesHeading}
-              </h2>
-              <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400 max-w-xl">
-                {guidesSubtext}
-              </p>
-            </div>
-          </EditableElement>
+          <div>
+            <span className="text-xs font-bold uppercase tracking-wider text-[#FF6B00] block mb-2">
+              GUIDES & ARTICLES
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#111111] dark:text-white tracking-tight">
+              {guidesHeading}
+            </h2>
+            <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400 max-w-xl">
+              {guidesSubtext}
+            </p>
+          </div>
 
           <button
             onClick={() => onNavigate({ page: 'guides' })}
@@ -427,86 +332,74 @@ export const HomePage: React.FC<HomePageProps> = ({
 
         {/* Featured Guide Card (Large) */}
         {featuredGuide ? (
-          <EditableElement
-            isEditMode={isVisualEditMode}
-            label={`Featured Guide: ${featuredGuide.title}`}
-            onEdit={() =>
-              openEditor({
-                type: 'guide',
-                title: `Edit Guide: ${featuredGuide.title}`,
-                data: featuredGuide,
-              })
-            }
+          <motion.div
+            whileHover={{ y: -4 }}
+            transition={{ duration: 0.2 }}
+            onClick={() => onSelectGuide(featuredGuide.slug)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') onSelectGuide(featuredGuide.slug);
+            }}
+            tabIndex={0}
+            role="button"
+            aria-label={`Read featured guide: ${featuredGuide.title}`}
+            className="group bg-white dark:bg-[#16171D] rounded-2xl border border-[#E9E9E6] dark:border-[#272932] hover:border-[#FF6B00] dark:hover:border-[#FF6B00] shadow-sm overflow-hidden cursor-pointer grid grid-cols-1 lg:grid-cols-12 mb-8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
           >
-            <motion.div
-              whileHover={{ y: -4 }}
-              transition={{ duration: 0.2 }}
-              onClick={() => onSelectGuide(featuredGuide.slug)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') onSelectGuide(featuredGuide.slug);
-              }}
-              tabIndex={0}
-              role="button"
-              aria-label={`Read featured guide: ${featuredGuide.title}`}
-              className="group bg-white dark:bg-[#16171D] rounded-2xl border border-[#E9E9E6] dark:border-[#272932] hover:border-[#FF6B00] dark:hover:border-[#FF6B00] shadow-sm overflow-hidden cursor-pointer grid grid-cols-1 lg:grid-cols-12 mb-8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
-            >
-              <div className="lg:col-span-7 relative min-h-[280px] lg:min-h-[380px] overflow-hidden bg-neutral-900">
-                <SafeImage
-                  src={featuredGuide.image}
-                  alt={featuredGuide.title}
-                  fallbackText={featuredGuide.title}
-                  className="w-full h-full object-cover object-center group-hover:scale-103 transition-transform duration-500"
-                  loading="eager"
-                />
-              </div>
-              <div className="lg:col-span-5 p-8 sm:p-10 flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center gap-3 text-xs text-neutral-500 dark:text-neutral-400 mb-3 font-semibold">
-                    <span className="font-bold uppercase tracking-wider text-[#FF6B00]">
-                      {featuredGuide.category}
-                    </span>
-                    <span>•</span>
-                    <span>{featuredGuide.readTime}</span>
-                    <span>•</span>
-                    <span>{featuredGuide.publishDate}</span>
-                  </div>
-
-                  <h3 className="text-2xl sm:text-3xl font-bold text-[#111111] dark:text-white group-hover:text-[#FF6B00] transition-colors leading-tight">
-                    {featuredGuide.title}
-                  </h3>
-
-                  <p className="mt-4 text-sm text-neutral-600 dark:text-neutral-300 leading-relaxed">
-                    {featuredGuide.excerpt}
-                  </p>
-                </div>
-
-                <div className="mt-8 pt-6 border-t border-neutral-100 dark:border-[#252832] flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 border border-neutral-200 dark:border-neutral-700">
-                      <SafeImage
-                        src={featuredGuide.author.avatar}
-                        alt={featuredGuide.author.name}
-                        fallbackText={featuredGuide.author.name}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div>
-                      <span className="text-xs font-bold text-neutral-800 dark:text-neutral-200 block">
-                        {featuredGuide.author.name}
-                      </span>
-                      <span className="text-[10px] text-neutral-500 dark:text-neutral-400 block">
-                        {featuredGuide.author.role}
-                      </span>
-                    </div>
-                  </div>
-
-                  <span className="text-sm font-bold text-[#111111] dark:text-white group-hover:text-[#FF6B00] transition-colors flex items-center gap-1">
-                    Read Guide →
+            <div className="lg:col-span-7 relative min-h-[280px] lg:min-h-[380px] overflow-hidden bg-neutral-900">
+              <SafeImage
+                src={featuredGuide.image}
+                alt={featuredGuide.title}
+                fallbackText={featuredGuide.title}
+                className="w-full h-full object-cover object-center group-hover:scale-103 transition-transform duration-500"
+                loading="eager"
+              />
+            </div>
+            <div className="lg:col-span-5 p-8 sm:p-10 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center gap-3 text-xs text-neutral-500 dark:text-neutral-400 mb-3 font-semibold">
+                  <span className="font-bold uppercase tracking-wider text-[#FF6B00]">
+                    {featuredGuide.category}
                   </span>
+                  <span>•</span>
+                  <span>{featuredGuide.readTime}</span>
+                  <span>•</span>
+                  <span>{featuredGuide.publishDate}</span>
                 </div>
+
+                <h3 className="text-2xl sm:text-3xl font-bold text-[#111111] dark:text-white group-hover:text-[#FF6B00] transition-colors leading-tight">
+                  {featuredGuide.title}
+                </h3>
+
+                <p className="mt-4 text-sm text-neutral-600 dark:text-neutral-300 leading-relaxed">
+                  {featuredGuide.excerpt}
+                </p>
               </div>
-            </motion.div>
-          </EditableElement>
+
+              <div className="mt-8 pt-6 border-t border-neutral-100 dark:border-[#252832] flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 border border-neutral-200 dark:border-neutral-700">
+                    <SafeImage
+                      src={featuredGuide.author.avatar}
+                      alt={featuredGuide.author.name}
+                      fallbackText={featuredGuide.author.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-neutral-800 dark:text-neutral-200 block">
+                      {featuredGuide.author.name}
+                    </span>
+                    <span className="text-[10px] text-neutral-500 dark:text-neutral-400 block">
+                      {featuredGuide.author.role}
+                    </span>
+                  </div>
+                </div>
+
+                <span className="text-sm font-bold text-[#111111] dark:text-white group-hover:text-[#FF6B00] transition-colors flex items-center gap-1">
+                  Read Guide →
+                </span>
+              </div>
+            </div>
+          </motion.div>
         ) : (
           <div className="bg-white dark:bg-[#16171D] rounded-2xl border border-[#E9E9E6] dark:border-[#272932] p-10 text-center text-neutral-500 text-xs mb-8">
             No guide articles published yet.
@@ -517,67 +410,55 @@ export const HomePage: React.FC<HomePageProps> = ({
         {secondaryGuides.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {secondaryGuides.map((guide) => (
-              <EditableElement
+              <motion.div
                 key={guide.id}
-                isEditMode={isVisualEditMode}
-                label={`Guide: ${guide.title}`}
-                onEdit={() =>
-                  openEditor({
-                    type: 'guide',
-                    title: `Edit Guide: ${guide.title}`,
-                    data: guide,
-                  })
-                }
+                whileHover={{ y: -4 }}
+                transition={{ duration: 0.2 }}
+                onClick={() => onSelectGuide(guide.slug)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') onSelectGuide(guide.slug);
+                }}
+                role="button"
+                tabIndex={0}
+                aria-label={`Read guide: ${guide.title}`}
+                className="group bg-white dark:bg-[#16171D] rounded-xl border border-[#E9E9E6] dark:border-[#272932] hover:border-[#FF6B00] dark:hover:border-[#FF6B00] shadow-xs hover:shadow-md transition-all overflow-hidden cursor-pointer flex flex-col justify-between focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] h-full"
               >
-                <motion.div
-                  whileHover={{ y: -4 }}
-                  transition={{ duration: 0.2 }}
-                  onClick={() => onSelectGuide(guide.slug)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') onSelectGuide(guide.slug);
-                  }}
-                  role="button"
-                  tabIndex={0}
-                  aria-label={`Read guide: ${guide.title}`}
-                  className="group bg-white dark:bg-[#16171D] rounded-xl border border-[#E9E9E6] dark:border-[#272932] hover:border-[#FF6B00] dark:hover:border-[#FF6B00] shadow-xs hover:shadow-md transition-all overflow-hidden cursor-pointer flex flex-col justify-between focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] h-full"
-                >
-                  <div className="aspect-16/10 overflow-hidden bg-neutral-100 dark:bg-[#1D1F27] relative">
-                    <SafeImage
-                      src={guide.image}
-                      alt={guide.title}
-                      fallbackText={guide.title}
-                      className="w-full h-full object-cover group-hover:scale-104 transition-transform duration-300"
-                      loading="lazy"
-                    />
-                    <div className="absolute top-3 left-3">
-                      <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-black/70 text-white">
-                        {guide.category}
-                      </span>
+                <div className="aspect-16/10 overflow-hidden bg-neutral-100 dark:bg-[#1D1F27] relative">
+                  <SafeImage
+                    src={guide.image}
+                    alt={guide.title}
+                    fallbackText={guide.title}
+                    className="w-full h-full object-cover group-hover:scale-104 transition-transform duration-300"
+                    loading="lazy"
+                  />
+                  <div className="absolute top-3 left-3">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-black/70 text-white">
+                      {guide.category}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="p-5 flex-1 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 text-[11px] text-neutral-400 dark:text-neutral-500 mb-2">
+                      <span>{guide.readTime}</span>
+                      <span>•</span>
+                      <span>{guide.publishDate}</span>
                     </div>
+                    <h3 className="text-base font-bold text-[#111111] dark:text-white group-hover:text-[#FF6B00] transition-colors leading-snug line-clamp-2">
+                      {guide.title}
+                    </h3>
+                    <p className="mt-2 text-xs text-neutral-600 dark:text-neutral-400 line-clamp-2 leading-relaxed">
+                      {guide.excerpt}
+                    </p>
                   </div>
 
-                  <div className="p-5 flex-1 flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-center gap-2 text-[11px] text-neutral-400 dark:text-neutral-500 mb-2">
-                        <span>{guide.readTime}</span>
-                        <span>•</span>
-                        <span>{guide.publishDate}</span>
-                      </div>
-                      <h3 className="text-base font-bold text-[#111111] dark:text-white group-hover:text-[#FF6B00] transition-colors leading-snug line-clamp-2">
-                        {guide.title}
-                      </h3>
-                      <p className="mt-2 text-xs text-neutral-600 dark:text-neutral-400 line-clamp-2 leading-relaxed">
-                        {guide.excerpt}
-                      </p>
-                    </div>
-
-                    <div className="mt-5 pt-3 border-t border-neutral-100 dark:border-[#252832] flex items-center justify-between text-xs font-semibold text-[#111111] dark:text-neutral-300 group-hover:text-[#FF6B00]">
-                      <span>Read Guide</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </div>
+                  <div className="mt-5 pt-3 border-t border-neutral-100 dark:border-[#252832] flex items-center justify-between text-xs font-semibold text-[#111111] dark:text-neutral-300 group-hover:text-[#FF6B00]">
+                    <span>Read Guide</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
                   </div>
-                </motion.div>
-              </EditableElement>
+                </div>
+              </motion.div>
             ))}
           </div>
         )}
@@ -588,33 +469,17 @@ export const HomePage: React.FC<HomePageProps> = ({
           ======================================================== */}
       <section id="homepage-section-recommendations" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 gap-4">
-          <EditableElement
-            isEditMode={isVisualEditMode}
-            label="Section Heading"
-            onEdit={() =>
-              openEditor({
-                type: 'section-heading',
-                title: 'Edit Recommendations Section Heading',
-                sectionKey: 'recommendations',
-                data: {
-                  heading: recommendationsHeading,
-                  subtext: recommendationsSubtext,
-                },
-              })
-            }
-          >
-            <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-[#FF6B00] block mb-2">
-                RECOMMENDED FOR YOUR SETUP
-              </span>
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-[#111111] dark:text-white tracking-tight">
-                {recommendationsHeading}
-              </h2>
-              <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400 max-w-xl">
-                {recommendationsSubtext}
-              </p>
-            </div>
-          </EditableElement>
+          <div>
+            <span className="text-xs font-bold uppercase tracking-wider text-[#FF6B00] block mb-2">
+              RECOMMENDED FOR YOUR SETUP
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-[#111111] dark:text-white tracking-tight">
+              {recommendationsHeading}
+            </h2>
+            <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400 max-w-xl">
+              {recommendationsSubtext}
+            </p>
+          </div>
 
           <button
             onClick={() => onNavigate({ page: 'recommendations' })}

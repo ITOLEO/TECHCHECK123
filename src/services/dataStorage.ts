@@ -15,8 +15,16 @@ const STORAGE_KEYS = {
 // Clean up legacy dummy data in browser localStorage
 if (typeof window !== 'undefined') {
   try {
-    ['techcheck_products_v1', 'techcheck_categories_v1', 'techcheck_guides_v1', 'techcheck_site_settings_v1'].forEach((k) => {
+    [
+      'techcheck_products_v1',
+      'techcheck_categories_v1',
+      'techcheck_guides_v1',
+      'techcheck_site_settings_v1',
+      'techcheck_draft_v1',
+      'techcheck_visual_mode',
+    ].forEach((k) => {
       localStorage.removeItem(k);
+      sessionStorage.removeItem(k);
     });
   } catch {
     // ignore
@@ -24,7 +32,7 @@ if (typeof window !== 'undefined') {
 }
 
 export const DEFAULT_SITE_SETTINGS: SiteSettings = {
-  announcementText: '🔥 Update: Rekomendasi Monitor & Aksesoris Compact Setup Terbaru Sudah Tersedia!',
+  announcementText: '🔥 Update: New Space-Saving Monitor & Compact Desk Accessories Guide is Live!',
   announcementEnabled: false,
   announcementLink: '',
   heroEyebrow: 'SMART TECH FOR BETTER SETUPS',
@@ -35,11 +43,13 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   heroCtaPrimaryUrl: 'recommendations',
   heroCtaSecondaryText: 'Read Our Guides',
   heroCtaSecondaryUrl: 'guides',
-  heroImage: '/og-image.jpg',
+  heroImage: '/hero-setup.jpg',
   heroImageAlt: 'Build Better, Every Day. Curated compact gaming setup with elevated ultrawide monitor and clean cable management',
   heroBadgeEyebrow: 'Setup Architecture #04',
   heroBadgeTitle: '100cm Compact Studio Desk',
   heroBadgeStat: '65% Surface Cleared',
+  ogImage: '/og-image.jpg',
+  favicon: '/favicon.png',
   supportEmail: 'itleo4444@gmail.com',
   defaultAffiliateSubId: '14139310000',
   adminPasscode: '654321',
@@ -180,7 +190,7 @@ export const dataStorage = {
       }
       return { success: true, message: data.message };
     } catch (e: any) {
-      return { success: false, error: e.message || 'Gagal menyimpan konfigurasi Supabase' };
+      return { success: false, error: e.message || 'Failed to save Supabase configuration' };
     }
   },
 
@@ -241,31 +251,8 @@ export const dataStorage = {
               };
             }),
           }));
-
-          // Smart-merge: Keep newly created local guides if not yet in remote response
-          const currentLocalGuides = safeParse<Guide[]>(STORAGE_KEYS.GUIDES, INITIAL_GUIDES);
-          const mergedGuides: Guide[] = [...formattedGuides];
-
-          currentLocalGuides.forEach((localG) => {
-            const existsOnRemote = mergedGuides.some(
-              (rg) => rg.id === localG.id || rg.slug === localG.slug
-            );
-            if (!existsOnRemote) {
-              mergedGuides.push({
-                ...localG,
-                showContentImages: localG.showContentImages !== false,
-              });
-              // Auto-push this local guide to backend so it gets permanently stored in Supabase
-              fetch('/api/guides', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(localG),
-              }).catch(() => {});
-            }
-          });
-
-          result.guides = mergedGuides;
-          safeSetItem(STORAGE_KEYS.GUIDES, JSON.stringify(mergedGuides));
+          result.guides = formattedGuides;
+          safeSetItem(STORAGE_KEYS.GUIDES, JSON.stringify(formattedGuides));
         }
       }
 
@@ -307,12 +294,12 @@ export const dataStorage = {
       });
       if (!res.ok) {
         const errJson = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
-        return { success: false, message: errJson.error || 'Gagal terhubung ke API Supabase' };
+        return { success: false, message: errJson.error || 'Failed to connect to Supabase API' };
       }
       const data = await res.json();
       return { success: true, results: data.results };
     } catch (e: any) {
-      return { success: false, message: e.message || 'Error koneksi ke server database' };
+      return { success: false, message: e.message || 'Database server connection error' };
     }
   },
 
@@ -632,7 +619,7 @@ export const dataStorage = {
     try {
       const parsed = JSON.parse(jsonStr);
       if (!parsed || typeof parsed !== 'object') {
-        return { success: false, message: 'Format file tidak valid (Bukan JSON object).' };
+        return { success: false, message: 'Invalid file format (Not a valid JSON object).' };
       }
       if (Array.isArray(parsed.products)) {
         this.saveProducts(parsed.products);
@@ -648,7 +635,7 @@ export const dataStorage = {
       }
       return { success: true };
     } catch (e: any) {
-      return { success: false, message: e.message || 'Gagal membaca file JSON.' };
+      return { success: false, message: e.message || 'Failed to parse JSON file.' };
     }
   },
 

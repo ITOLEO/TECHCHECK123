@@ -112,6 +112,8 @@ export interface SiteSettings {
   heroBadgeEyebrow?: string;
   heroBadgeTitle?: string;
   heroBadgeStat?: string;
+  ogImage?: string;
+  favicon?: string;
   supportEmail: string;
   defaultAffiliateSubId: string;
   adminPasscode: string;

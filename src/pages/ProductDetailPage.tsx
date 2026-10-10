@@ -29,7 +29,6 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
         title: `${product.name} Review & Spatial Specs | TechCheck`,
         description: product.verdict || product.shortBenefit,
         canonicalPath: `recommendations/${product.slug}`,
-        ogImage: product.image,
         ogType: 'product',
         jsonLd: {
           '@context': 'https://schema.org',

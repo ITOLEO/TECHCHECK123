@@ -53,11 +53,11 @@ export class ErrorBoundary extends React.Component<Props, State> {
             </div>
 
             <h1 className="text-xl font-black mb-2 text-[#111111] dark:text-white">
-              Terjadi Kesalahan Tampilan
+              Application Error
             </h1>
 
             <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-6 leading-relaxed">
-              Halaman ini mengalami kendala teknis saat memuat konten. Jangan khawatir, Anda dapat memuat ulang atau kembali ke beranda.
+              This page encountered a technical issue while rendering content. You can reload the page or return to the homepage.
             </p>
 
             {this.state.error && (
@@ -73,7 +73,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
                 className="flex-1 py-3 px-4 rounded-xl bg-[#111111] dark:bg-white text-white dark:text-[#111111] font-bold text-xs flex items-center justify-center gap-2 hover:opacity-90 transition-opacity cursor-pointer"
               >
                 <RotateCcw className="w-4 h-4" />
-                Muat Ulang
+                Reload Page
               </button>
 
               <button
@@ -82,7 +82,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
                 className="flex-1 py-3 px-4 rounded-xl bg-neutral-100 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-200 font-bold text-xs flex items-center justify-center gap-2 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors cursor-pointer"
               >
                 <Home className="w-4 h-4" />
-                Kembali ke Beranda
+                Return to Home
               </button>
             </div>
           </div>

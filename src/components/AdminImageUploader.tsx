@@ -21,11 +21,11 @@ export interface AdminImageUploaderProps {
 }
 
 export const AdminImageUploader: React.FC<AdminImageUploaderProps> = ({
-  label = 'URL Gambar Utama',
+  label = 'Main Image URL',
   value,
   onChange,
   presets = ['/acer-nitro.png', '/acer-creator.png', '/powerpac.png', '/acer-portable.png'],
-  placeholder = 'https://example.com/product-image.jpg atau upload file gambar',
+  placeholder = 'https://example.com/product-image.jpg or upload an image file',
   helperText,
 }) => {
   // Determine initial mode: if value starts with data: or /uploads/, prefer 'upload', otherwise 'url' if already a web url
@@ -256,15 +256,15 @@ export const AdminImageUploader: React.FC<AdminImageUploaderProps> = ({
           }));
           setErrorMessage(null);
         } else {
-          setErrorMessage('Server tidak mengembalikan URL penyimpanan yang valid.');
+          setErrorMessage('Server did not return a valid storage URL.');
         }
       } else {
         const errJson = await res.json().catch(() => ({}));
-        setErrorMessage(errJson.error || `Upload gambar gagal (HTTP ${res.status}). Gambar sebelumnya tetap aman.`);
+        setErrorMessage(errJson.error || `Upload failed (HTTP ${res.status}). Previous image preserved.`);
       }
     } catch (uploadErr: any) {
       console.warn('Backend upload failed:', uploadErr);
-      setErrorMessage(`Gagal menghubungi server upload: ${uploadErr.message || uploadErr}. Gambar sebelumnya dipertahankan.`);
+      setErrorMessage(`Failed to reach upload server: ${uploadErr.message || uploadErr}. Previous image preserved.`);
     } finally {
       setIsUploading(false);
     }
@@ -387,10 +387,10 @@ export const AdminImageUploader: React.FC<AdminImageUploaderProps> = ({
 
               <div>
                 <p className="text-sm font-bold text-neutral-800">
-                  {isDragging ? 'Drop file gambar di sini' : 'Klik untuk Upload atau Drag & Drop'}
+                  {isDragging ? 'Drop image file here' : 'Click to Upload or Drag & Drop'}
                 </p>
                 <p className="text-xs text-neutral-500 mt-0.5">
-                  Mendukung format: <span className="font-semibold text-neutral-700">JPG, JPEG, PNG, WEBP, GIF, SVG</span> (Maks. 10MB)
+                  Supported formats: <span className="font-semibold text-neutral-700">JPG, JPEG, PNG, WEBP, GIF, SVG</span> (Max 10MB)
                 </p>
               </div>
 
@@ -398,13 +398,13 @@ export const AdminImageUploader: React.FC<AdminImageUploaderProps> = ({
                 type="button"
                 className="mt-1 px-4 py-2 bg-white hover:bg-neutral-100 text-neutral-800 text-xs font-bold rounded-xl border border-[#E9E9E6] shadow-xs cursor-pointer pointer-events-none"
               >
-                Pilih Gambar Komputer
+                Browse Device Files
               </button>
             </div>
           ) : (
             <div className="flex items-center gap-2 text-xs text-neutral-500">
               <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-              <span>Gambar tersimpan. Anda dapat mengganti atau menghapusnya pada preview di bawah.</span>
+              <span>Image loaded. You can change or remove it in the preview below.</span>
             </div>
           )}
         </div>
@@ -440,7 +440,7 @@ export const AdminImageUploader: React.FC<AdminImageUploaderProps> = ({
           {/* Quick Presets */}
           {presets && presets.length > 0 && (
             <div className="flex items-center gap-1.5 flex-wrap pt-1">
-              <span className="text-[11px] text-neutral-400 font-medium">Preset cepat:</span>
+              <span className="text-[11px] text-neutral-400 font-medium">Quick presets:</span>
               {presets.map((preset) => (
                 <button
                   type="button"

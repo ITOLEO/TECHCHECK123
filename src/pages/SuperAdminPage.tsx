@@ -36,7 +36,6 @@ import {
 import { Product, CategoryInfo, Guide, GuideStep, SiteSettings, ViewRoute } from '../types';
 import { dataStorage, DEFAULT_SITE_SETTINGS } from '../services/dataStorage';
 import { AdminImageUploader } from '../components/AdminImageUploader';
-import { useVisualEditor } from '../contexts/VisualEditorContext';
 
 interface SuperAdminPageProps {
   products: Product[];
@@ -54,7 +53,7 @@ function renderAdminDocPreview(text: string) {
   if (!text?.trim()) {
     return (
       <div className="p-8 text-center text-neutral-400 bg-white rounded-xl border border-dashed border-[#E9E9E6]">
-        Belum ada teks dokumen yang ditulis. Tulis isi artikel pada tab &quot;Tulis Dokumen&quot;.
+        No document content written yet. Compose article text in the &quot;Write Document&quot; tab.
       </div>
     );
   }
@@ -104,7 +103,6 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
   onUpdateSettings,
   onNavigate,
 }) => {
-  const visualEditor = useVisualEditor();
   // Authentication state
   const initialAuth = dataStorage.isAdminAuthenticated();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(initialAuth);
@@ -112,7 +110,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
   // Splash & Loading state before reaching password verification
   const [showSplashLoading, setShowSplashLoading] = useState<boolean>(!initialAuth);
   const [splashProgress, setSplashProgress] = useState<number>(0);
-  const [splashStatusText, setSplashStatusText] = useState<string>('Menginisialisasi gateway superadmin...');
+  const [splashStatusText, setSplashStatusText] = useState<string>('Initializing superadmin gateway...');
 
   const [loginPasscode, setLoginPasscode] = useState('');
   const [loginError, setLoginError] = useState('');
@@ -130,13 +128,13 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
       setSplashProgress(progress);
 
       if (progress < 30) {
-        setSplashStatusText('Menginisialisasi gateway superadmin...');
+        setSplashStatusText('Initializing superadmin gateway...');
       } else if (progress < 65) {
-        setSplashStatusText('Memverifikasi modul keamanan & enkripsi sesi...');
+        setSplashStatusText('Verifying security modules & session encryption...');
       } else if (progress < 90) {
-        setSplashStatusText('Mempersiapkan gerbang verifikasi password...');
+        setSplashStatusText('Preparing authentication gateway...');
       } else {
-        setSplashStatusText('Selesai. Mengalihkan ke verifikasi password...');
+        setSplashStatusText('Ready. Redirecting to passcode verification...');
       }
 
       if (elapsed >= duration) {
@@ -223,28 +221,25 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
         setSupabaseConfig(cfg);
         if (cfg.url) setInputSupabaseUrl(cfg.url);
       });
-      if (!visualEditor.isVisualEditMode) {
-        visualEditor.enterVisualEditMode();
-      }
     }
-  }, [isAuthenticated, visualEditor]);
+  }, [isAuthenticated]);
 
   const handleSaveSupabaseConfig = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputSupabaseUrl.trim() || !inputSupabaseKey.trim()) {
-      showToast('Mohon masukkan URL Proyek dan API Key Supabase');
+      showToast('Please enter both Supabase Project URL and API Key.');
       return;
     }
     setIsSavingSupabaseConfig(true);
     const res = await dataStorage.saveSupabaseConfig(inputSupabaseUrl, inputSupabaseKey);
     setIsSavingSupabaseConfig(false);
     if (res.success) {
-      showToast('Konfigurasi Supabase berhasil disimpan dan terhubung!');
+      showToast('Supabase configuration saved and connected successfully!');
       setShowConfigForm(false);
       handleCheckSupabase();
       dataStorage.getSupabaseConfig().then(setSupabaseConfig);
     } else {
-      showToast(`Gagal menghubungkan: ${res.error || 'Periksa kembali URL & Key'}`);
+      showToast(`Connection failed: ${res.error || 'Check Project URL & Key'}`);
     }
   };
 
@@ -271,7 +266,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
     const status = await dataStorage.checkSupabaseStatus();
     setSupabaseStatus(status);
     setIsCheckingSupabase(false);
-    showToast(status.connected ? 'Supabase terhubung dengan baik! Seluruh tabel siap.' : (status.message || 'Status diperbarui.'));
+    showToast(status.connected ? 'Supabase connected successfully! All tables ready.' : (status.message || 'Status updated.'));
   };
 
   const handleSyncToSupabase = async () => {
@@ -279,10 +274,10 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
     const res = await dataStorage.syncAllToSupabase();
     setIsSyncingSupabase(false);
     if (res.success) {
-      showToast('Seluruh data web berhasil disinkronkan ke tabel Supabase!');
+      showToast('All website data successfully synced to Supabase tables!');
       dataStorage.checkSupabaseStatus().then(setSupabaseStatus);
     } else {
-      showToast(`Gagal sinkronisasi: ${res.message}`);
+      showToast(`Sync failed: ${res.message}`);
     }
   };
 
@@ -295,10 +290,10 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
       if (remote.categories) onUpdateCategories(remote.categories);
       if (remote.guides) onUpdateGuides(remote.guides);
       if (remote.settings) onUpdateSettings(remote.settings);
-      showToast('Data terbaru dari tabel Supabase berhasil dimuat ke web!');
+      showToast('Latest data pulled from Supabase and applied to website!');
       dataStorage.checkSupabaseStatus().then(setSupabaseStatus);
     } else {
-      showToast('Gagal memuat data dari Supabase atau Supabase belum terhubung.');
+      showToast('Failed to load data from Supabase or Supabase is not connected.');
     }
   };
 
@@ -314,7 +309,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
     if (schemaSql) {
       navigator.clipboard.writeText(schemaSql);
       setCopiedSchema(true);
-      showToast('SQL Schema (schema.sql) berhasil disalin ke clipboard!');
+      showToast('SQL Schema (schema.sql) successfully copied to clipboard!');
       setTimeout(() => setCopiedSchema(false), 2500);
     }
   };
@@ -331,15 +326,14 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
     if (cleanInput === '654321' || dataStorage.verifyPasscode(cleanInput)) {
       dataStorage.setAdminAuthenticated(true);
       sessionStorage.setItem('techcheck_developer_mode', 'true');
-      sessionStorage.setItem('techcheck_visual_mode', 'true');
       localStorage.setItem('techcheck_developer_mode', 'true');
-      localStorage.setItem('techcheck_visual_mode', 'true');
-      visualEditor.enterVisualEditMode();
+      sessionStorage.removeItem('techcheck_visual_mode');
+      localStorage.removeItem('techcheck_visual_mode');
       setIsAuthenticated(true);
       setLoginError('');
-      showToast('Berhasil masuk ke Dashboard admintechcheck');
+      showToast('Successfully logged in to Superadmin Dashboard');
     } else {
-      setLoginError('Password tidak valid. Silakan gunakan password: 654321');
+      setLoginError('Invalid passcode. Default passcode: 654321');
     }
   };
 
@@ -349,7 +343,6 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
     sessionStorage.removeItem('techcheck_visual_mode');
     localStorage.removeItem('techcheck_developer_mode');
     localStorage.removeItem('techcheck_visual_mode');
-    visualEditor.exitVisualEditMode();
     setIsAuthenticated(false);
     setLoginPasscode('');
     setShowSplashLoading(false);
@@ -406,7 +399,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
   const handleSaveProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!productFormData.name?.trim()) {
-      setProductFormError('Nama produk wajib diisi!');
+      setProductFormError('Product name is required!');
       return;
     }
     const chosenCategory = productFormData.category?.trim() || categories[0]?.name || 'Accessories';
@@ -494,15 +487,9 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
         const errJson = await res.json().catch(() => ({}));
         throw new Error(errJson.error || 'Server error');
       }
-      const savedProd: Product = await res.json();
-      const reconciledList = updatedList.map((p) => (p.id === newProduct.id || p.slug === newProduct.slug ? { ...p, ...savedProd } : p));
-      onUpdateProducts(reconciledList);
-      dataStorage.saveProducts(reconciledList);
-      dataStorage.clearDraftState();
-      dataStorage.fetchRemoteData();
-      showToast(editingProduct ? `Produk "${savedProd.name || newProduct.name}" berhasil diperbarui di Supabase!` : `Produk "${savedProd.name || newProduct.name}" berhasil ditambahkan ke Supabase!`);
+      showToast(editingProduct ? `Product "${newProduct.name}" updated in Supabase!` : `Product "${newProduct.name}" added to Supabase!`);
     } catch (err: any) {
-      showToast(`Tersimpan lokal, tapi gagal dikirim ke Supabase: ${err.message}`);
+      showToast(`Saved locally, but failed to sync to Supabase: ${err.message}`);
       console.error(err);
     }
 
@@ -528,7 +515,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
     const updated = [duplicated, ...products];
     onUpdateProducts(updated);
     dataStorage.saveProducts(updated);
-    showToast(`Produk "${prod.name}" berhasil diduplikasi!`);
+    showToast(`Product "${prod.name}" successfully duplicated!`);
   };
 
   const handleToggleFeatured = (productId: string) => {
@@ -576,7 +563,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
   const handleSaveCategory = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!categoryFormData.name?.trim()) {
-      setCategoryFormError('Nama kategori wajib diisi!');
+      setCategoryFormError('Category name is required!');
       return;
     }
 
@@ -624,15 +611,9 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
         const errJson = await res.json().catch(() => ({}));
         throw new Error(errJson.error || 'Server error');
       }
-      const savedCat: CategoryInfo = await res.json();
-      const reconciledList = updatedList.map((c) => (c.id === newCat.id || c.slug === newCat.slug ? { ...c, ...savedCat } : c));
-      onUpdateCategories(reconciledList);
-      dataStorage.saveCategories(reconciledList);
-      dataStorage.clearDraftState();
-      dataStorage.fetchRemoteData();
-      showToast(editingCategory ? `Kategori "${savedCat.name || newCat.name}" diperbarui di Supabase!` : `Kategori "${savedCat.name || newCat.name}" ditambahkan ke Supabase!`);
+      showToast(editingCategory ? `Category "${newCat.name}" updated in Supabase!` : `Category "${newCat.name}" added to Supabase!`);
     } catch (err: any) {
-      showToast(`Tersimpan lokal, tapi gagal dikirim ke Supabase: ${err.message}`);
+      showToast(`Saved locally, but failed to sync to Supabase: ${err.message}`);
       console.error(err);
     }
 
@@ -720,19 +701,9 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
   };
 
   const handleCloseGuideModal = () => {
-    const isFormDirty = JSON.stringify(guideFormData) !== initialGuideData;
-    if (isFormDirty) {
-      visualEditor.setPendingExitAction(() => {
-        setIsGuideModalOpen(false);
-        setGuideFormData({});
-        setGuideFormError(null);
-      });
-      visualEditor.setIsUnsavedWarningOpen(true);
-    } else {
-      setIsGuideModalOpen(false);
-      setGuideFormData({});
-      setGuideFormError(null);
-    }
+    setIsGuideModalOpen(false);
+    setGuideFormData({});
+    setGuideFormError(null);
   };
 
   const handleAddGuideStep = () => {
@@ -783,7 +754,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
   const handleSaveGuide = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!guideFormData.title?.trim()) {
-      setGuideFormError('Judul panduan wajib diisi!');
+      setGuideFormError('Guide title is required!');
       return;
     }
 
@@ -837,21 +808,14 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
         throw new Error(errJson.error || 'Server error');
       }
 
-      const savedGuide: Guide = await res.json();
-      const reconciledList = updatedList.map((g) => (g.id === newGuide.id || g.slug === newGuide.slug ? { ...g, ...savedGuide } : g));
-      onUpdateGuides(reconciledList);
-      dataStorage.saveGuides(reconciledList);
-      dataStorage.clearDraftState();
-      dataStorage.fetchRemoteData();
-
       // Sync step records to article_blocks table in Supabase
-      if (Array.isArray(savedGuide.steps || newGuide.steps) && (savedGuide.steps || newGuide.steps).length > 0) {
-        (savedGuide.steps || newGuide.steps).forEach((st, idx) => {
+      if (Array.isArray(newGuide.steps) && newGuide.steps.length > 0) {
+        newGuide.steps.forEach((st, idx) => {
           const stepNumber = st.number || String(idx + 1).padStart(2, '0');
-          const blockId = st.id || `${savedGuide.id || newGuide.id}-step-${stepNumber}`;
+          const blockId = st.id || `${newGuide.id}-step-${stepNumber}`;
           const imgUrl = st.image?.trim() || st.image_url?.trim() || '';
           dataStorage.saveArticleBlock(blockId, {
-            guide_id: savedGuide.id || newGuide.id,
+            guide_id: newGuide.id,
             step_number: stepNumber,
             title: st.title || '',
             text: st.text || '',
@@ -864,9 +828,9 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
         });
       }
 
-      showToast(editingGuide ? `Panduan "${savedGuide.title || newGuide.title}" diperbarui di Supabase!` : `Panduan "${savedGuide.title || newGuide.title}" ditambahkan ke Supabase!`);
+      showToast(editingGuide ? `Guide "${newGuide.title}" updated in Supabase!` : `Guide "${newGuide.title}" added to Supabase!`);
     } catch (err: any) {
-      showToast(`Tersimpan lokal, tapi gagal dikirim ke Supabase: ${err.message}`);
+      showToast(`Saved locally, but failed to sync to Supabase: ${err.message}`);
       console.error(err);
     }
 
@@ -896,14 +860,9 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
         const errJson = await res.json().catch(() => ({}));
         throw new Error(errJson.error || 'Server error');
       }
-      const savedSettings = await res.json();
-      onUpdateSettings(savedSettings);
-      dataStorage.saveSiteSettings(savedSettings);
-      dataStorage.clearDraftState();
-      dataStorage.fetchRemoteData();
-      showToast('Pengaturan website & gambar hero berhasil disimpan ke Supabase!');
+      showToast('Website settings successfully saved to Supabase!');
     } catch (err: any) {
-      showToast(`Tersimpan lokal: ${err.message}`);
+      showToast(`Saved locally: ${err.message}`);
       console.error(err);
     }
   };
@@ -917,7 +876,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
     link.download = `techcheck-backup-${new Date().toISOString().slice(0, 10)}.json`;
     link.click();
     URL.revokeObjectURL(url);
-    showToast('File backup JSON berhasil diunduh!');
+    showToast('Backup JSON file downloaded successfully!');
   };
 
   const handleImportBackup = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -933,9 +892,9 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
         onUpdateCategories(dataStorage.getCategories());
         onUpdateGuides(dataStorage.getGuides());
         onUpdateSettings(dataStorage.getSiteSettings());
-        showToast('Data backup berhasil diimport & dimuat!');
+        showToast('Backup data imported & loaded successfully!');
       } else {
-        showToast(res.message || 'Gagal import file JSON.');
+        showToast(res.message || 'Failed to import JSON file.');
       }
     };
     reader.readAsText(file);
@@ -945,7 +904,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
   const handleResetFactoryData = () => {
     setDeleteTarget({
       type: 'factoryReset',
-      name: 'Reset Seluruh Data Website ke Pengaturan Awal (Factory Reset)',
+      name: 'Reset All Website Data to Defaults (Factory Reset)',
     });
   };
 
@@ -958,26 +917,26 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
       onUpdateProducts(updated);
       dataStorage.saveProducts(updated);
       dataStorage.deleteProductRemote(deleteTarget.id);
-      showToast(`Produk "${deleteTarget.name}" berhasil dihapus.`);
+      showToast(`Product "${deleteTarget.name}" deleted successfully.`);
     } else if (deleteTarget.type === 'category' && deleteTarget.id) {
       const updated = categories.filter((c) => c.id !== deleteTarget.id);
       onUpdateCategories(updated);
       dataStorage.saveCategories(updated);
       dataStorage.deleteCategoryRemote(deleteTarget.id);
-      showToast(`Kategori "${deleteTarget.name}" berhasil dihapus.`);
+      showToast(`Category "${deleteTarget.name}" deleted successfully.`);
     } else if (deleteTarget.type === 'guide' && deleteTarget.id) {
       const updated = guides.filter((g) => g.id !== deleteTarget.id);
       onUpdateGuides(updated);
       dataStorage.saveGuides(updated);
       dataStorage.deleteGuideRemote(deleteTarget.id);
-      showToast(`Panduan "${deleteTarget.name}" berhasil dihapus.`);
+      showToast(`Guide "${deleteTarget.name}" deleted successfully.`);
     } else if (deleteTarget.type === 'factoryReset') {
       const def = dataStorage.resetAllData();
       onUpdateProducts(def.products);
       onUpdateCategories(def.categories);
       onUpdateGuides(def.guides);
       onUpdateSettings(def.settings);
-      showToast('Data berhasil di-reset ke pengaturan awal!');
+      showToast('All data reset to factory defaults successfully!');
     }
 
     setDeleteTarget(null);
@@ -991,7 +950,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
       <div
         onClick={() => setShowSplashLoading(false)}
         className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#111111] text-white px-4 cursor-pointer select-none"
-        title="Klik untuk melewati langsung ke verifikasi password"
+        title="Click to skip directly to passcode verification"
       >
         {/* Ambient Tech Glow */}
         <div className="absolute w-96 h-96 rounded-full bg-[#FF6B00]/15 blur-3xl pointer-events-none" />
@@ -1014,7 +973,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
           </div>
 
           <h2 className="text-2xl font-extrabold text-white tracking-tight">
-            Memuat Super Admin Mode
+            Loading Super Admin Mode
           </h2>
           <p className="text-xs text-neutral-400 mt-1 font-mono">
             {splashStatusText}
@@ -1029,7 +988,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
           </div>
 
           <div className="w-full flex items-center justify-between text-[11px] text-neutral-500 font-mono mt-2.5">
-            <span>Enkripsi Sesi Admin</span>
+            <span>Admin Session Encryption</span>
             <span className="text-[#FF6B00] font-bold">{splashProgress}%</span>
           </div>
 
@@ -1041,7 +1000,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
             }}
             className="mt-8 text-xs font-semibold text-neutral-400 hover:text-white transition-colors flex items-center gap-1.5 cursor-pointer underline underline-offset-4"
           >
-            Lewati & Masuk Verifikasi Password →
+            Skip & Enter Passcode Verification →
           </button>
         </div>
       </div>
@@ -1064,20 +1023,20 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
             </div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-orange-50 dark:bg-orange-950/40 text-[#FF6B00] border border-orange-200/80 dark:border-orange-900/50 mb-2">
               <Shield className="w-3.5 h-3.5" />
-              PORTAL ADMINTECHCHECK
+              ADMINTECHCHECK PORTAL
             </div>
             <h1 className="text-2xl font-extrabold text-[#111111] dark:text-white tracking-tight">
-              Verifikasi Password Superadmin
+              Superadmin Verification
             </h1>
             <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
-              Masukkan password keamanan untuk mengakses mode super admin TechCheck
+              Enter passcode to access the TechCheck superadmin dashboard
             </p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-5">
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-neutral-700 mb-2">
-                Password Super Admin *
+                Superadmin Passcode *
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-400">
@@ -1090,7 +1049,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                     setLoginPasscode(e.target.value);
                     setLoginError('');
                   }}
-                  placeholder="Masukkan password..."
+                  placeholder="Enter passcode..."
                   className="w-full pl-10 pr-4 py-3 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl text-sm focus:outline-none focus:border-[#FF6B00] focus:bg-white transition-all text-[#111111] font-medium"
                   autoFocus
                 />
@@ -1107,7 +1066,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
               type="submit"
               className="w-full py-3.5 px-4 bg-[#FF6B00] hover:bg-[#E05E00] text-white text-sm font-bold rounded-xl transition-all shadow-sm hover:shadow cursor-pointer flex items-center justify-center gap-2"
             >
-              <span>Masuk ke Dashboard admintechcheck</span>
+              <span>Sign In to Dashboard</span>
               <Check className="w-4 h-4" />
             </button>
 
@@ -1117,7 +1076,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
               className="w-full py-2.5 px-4 text-xs font-semibold text-neutral-500 hover:text-[#111111] transition-colors cursor-pointer flex items-center justify-center gap-1.5"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Kembali ke Halaman Depan Web</span>
+              <span>Return to Website</span>
             </button>
           </form>
         </div>
@@ -1162,18 +1121,6 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
             </div>
 
             <div className="flex items-center gap-2.5">
-              <button
-                onClick={() => {
-                  visualEditor.enterVisualEditMode();
-                  onNavigate({ page: 'home' });
-                }}
-                className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#FF6B00] hover:bg-[#e05e00] shadow-sm flex items-center gap-1.5 transition-all cursor-pointer"
-                title="Buka Layer 3: Edit Website / Visual Editor"
-              >
-                <Edit className="w-4 h-4" />
-                <span>Edit Website</span>
-              </button>
-
               <a
                 href="https://techcheck.homes/"
                 onClick={(e) => {
@@ -1181,7 +1128,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                   handleLogout();
                 }}
                 className="px-4 py-2 rounded-xl text-xs font-bold text-neutral-700 dark:text-neutral-200 bg-[#F7F6F2] dark:bg-[#23252E] hover:bg-neutral-200 dark:hover:bg-[#2C2F3A] border border-[#E9E9E6] dark:border-[#2C2F3A] flex items-center gap-1.5 transition-all cursor-pointer text-decoration-none"
-                title="Keluar dari Developer Mode dan buka https://techcheck.homes/"
+                title="Exit Developer Mode and return to https://techcheck.homes/"
               >
                 <LogOut className="w-4 h-4 text-rose-500" />
                 <span>Exit Developer Mode</span>
@@ -1192,7 +1139,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
           {/* Quick Metrics Bar */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-3 border-t border-neutral-100">
             <div className="bg-[#F7F6F2] p-2.5 rounded-xl border border-[#E9E9E6] flex items-center justify-between">
-              <span className="text-xs font-medium text-neutral-500">Total Produk</span>
+              <span className="text-xs font-medium text-neutral-500">Total Products</span>
               <span className="text-base font-black text-[#111111]">{products.length}</span>
             </div>
             <div className="bg-[#F7F6F2] p-2.5 rounded-xl border border-[#E9E9E6] flex items-center justify-between">
@@ -1202,11 +1149,11 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
               </span>
             </div>
             <div className="bg-[#F7F6F2] p-2.5 rounded-xl border border-[#E9E9E6] flex items-center justify-between">
-              <span className="text-xs font-medium text-neutral-500">Kategori</span>
+              <span className="text-xs font-medium text-neutral-500">Categories</span>
               <span className="text-base font-black text-[#111111]">{categories.length}</span>
             </div>
             <div className="bg-[#F7F6F2] p-2.5 rounded-xl border border-[#E9E9E6] flex items-center justify-between">
-              <span className="text-xs font-medium text-neutral-500">Panduan</span>
+              <span className="text-xs font-medium text-neutral-500">Guides</span>
               <span className="text-base font-black text-[#111111]">{guides.length}</span>
             </div>
           </div>
@@ -1223,7 +1170,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
               }`}
             >
               <Package className="w-4 h-4" />
-              <span>Katalog Produk ({products.length})</span>
+              <span>Product Catalog ({products.length})</span>
             </button>
 
             <button
@@ -1235,7 +1182,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
               }`}
             >
               <FolderTree className="w-4 h-4" />
-              <span>Kategori ({categories.length})</span>
+              <span>Categories ({categories.length})</span>
             </button>
 
             <button
@@ -1247,7 +1194,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
               }`}
             >
               <BookOpen className="w-4 h-4" />
-              <span>Panduan & Artikel ({guides.length})</span>
+              <span>Guides & Articles ({guides.length})</span>
             </button>
 
             <button
@@ -1259,7 +1206,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
               }`}
             >
               <Settings className="w-4 h-4" />
-              <span>Pengaturan Web & Afiliasi</span>
+              <span>Web & Affiliate Settings</span>
             </button>
           </div>
       </div>
@@ -1280,7 +1227,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                     type="text"
                     value={productSearch}
                     onChange={(e) => setProductSearch(e.target.value)}
-                    placeholder="Cari produk berdasarkan nama..."
+                    placeholder="Search products by name..."
                     className="w-full pl-9 pr-4 py-2 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl text-xs focus:outline-none focus:border-[#FF6B00] focus:bg-white transition-all"
                   />
                 </div>
@@ -1290,7 +1237,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                   onChange={(e) => setProductCategoryFilter(e.target.value)}
                   className="w-full sm:w-48 py-2 px-3 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl text-xs font-medium focus:outline-none focus:border-[#FF6B00] transition-all"
                 >
-                  <option value="All">Semua Kategori</option>
+                  <option value="All">All Categories</option>
                   {categories.map((c) => (
                     <option key={c.id} value={c.name}>
                       {c.name}
@@ -1304,7 +1251,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                 className="w-full md:w-auto px-5 py-2.5 bg-[#FF6B00] hover:bg-[#E05E00] text-white text-xs font-bold rounded-xl transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer shrink-0"
               >
                 <Plus className="w-4 h-4" />
-                <span>Tambah Produk Baru</span>
+                <span>Add New Product</span>
               </button>
             </div>
 
@@ -1314,19 +1261,19 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                 <table className="w-full text-left border-collapse text-xs">
                   <thead>
                     <tr className="bg-[#F7F6F2] border-b border-[#E9E9E6] text-neutral-500 uppercase tracking-wider font-bold">
-                      <th className="py-3.5 px-4">Produk</th>
-                      <th className="py-3.5 px-4">Kategori</th>
+                      <th className="py-3.5 px-4">Product</th>
+                      <th className="py-3.5 px-4">Category</th>
                       <th className="py-3.5 px-4">Badge</th>
-                      <th className="py-3.5 px-4 text-center">Featured (Beranda)</th>
-                      <th className="py-3.5 px-4">Link Afiliasi</th>
-                      <th className="py-3.5 px-4 text-right">Aksi</th>
+                      <th className="py-3.5 px-4 text-center">Featured (Home)</th>
+                      <th className="py-3.5 px-4">Affiliate Link</th>
+                      <th className="py-3.5 px-4 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#E9E9E6]">
                     {filteredProducts.length === 0 ? (
                       <tr>
                         <td colSpan={6} className="py-12 text-center text-neutral-500">
-                          Tidak ada produk yang sesuai dengan kriteria pencarian.
+                          No products match your search criteria.
                         </td>
                       </tr>
                     ) : (
@@ -1373,7 +1320,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                                   : 'bg-neutral-100 text-neutral-500 border border-neutral-200'
                               }`}
                             >
-                              {prod.featured ? '✓ Tampil di Home' : 'Tidak Tampil'}
+                              {prod.featured ? '✓ On Home' : 'Hidden'}
                             </button>
                           </td>
 
@@ -1390,7 +1337,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                                 <ExternalLink className="w-3 h-3 shrink-0" />
                               </a>
                             ) : (
-                              <span className="text-neutral-400 italic">Belum diset</span>
+                              <span className="text-neutral-400 italic">Not set</span>
                             )}
                           </td>
 
@@ -1398,11 +1345,10 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                             <div className="flex items-center justify-end gap-1.5">
                               <button
                                 onClick={() => {
-                                  visualEditor.enterVisualEditMode();
                                   onNavigate({ page: 'product-detail', slug: prod.slug });
                                 }}
                                 className="p-1.5 text-neutral-500 hover:text-[#111111] hover:bg-neutral-100 rounded-lg transition-colors cursor-pointer"
-                                title="Lihat di Web"
+                                title="View on Site"
                               >
                                 <Eye className="w-4 h-4" />
                               </button>
@@ -1410,7 +1356,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                               <button
                                 onClick={() => handleDuplicateProduct(prod)}
                                 className="p-1.5 text-neutral-500 hover:text-[#FF6B00] hover:bg-neutral-100 rounded-lg transition-colors cursor-pointer"
-                                title="Duplikasi Produk"
+                                title="Duplicate Product"
                               >
                                 <Copy className="w-4 h-4" />
                               </button>
@@ -1418,7 +1364,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                               <button
                                 onClick={() => handleOpenEditProduct(prod)}
                                 className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
-                                title="Edit Produk"
+                                title="Edit Product"
                               >
                                 <Edit className="w-4 h-4" />
                               </button>
@@ -1426,7 +1372,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                               <button
                                 onClick={() => handleDeleteProduct(prod.id, prod.name)}
                                 className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
-                                title="Hapus Produk"
+                                title="Delete Product"
                               >
                                 <Trash2 className="w-4 h-4" />
                               </button>
@@ -1449,8 +1395,8 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
           <div className="space-y-6">
             <div className="bg-white p-5 rounded-2xl border border-[#E9E9E6] flex items-center justify-between">
               <div>
-                <h2 className="text-base font-extrabold text-[#111111]">Kelola Kategori Produk</h2>
-                <p className="text-xs text-neutral-500">Atur pengelompokan produk dan deskripsi kategori</p>
+                <h2 className="text-base font-extrabold text-[#111111]">Manage Product Categories</h2>
+                <p className="text-xs text-neutral-500">Organize product taxonomy and descriptions</p>
               </div>
 
               <button
@@ -1458,7 +1404,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                 className="px-5 py-2.5 bg-[#FF6B00] hover:bg-[#E05E00] text-white text-xs font-bold rounded-xl transition-all shadow-xs flex items-center gap-2 cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
-                <span>Tambah Kategori Baru</span>
+                <span>Add New Category</span>
               </button>
             </div>
 
@@ -1477,7 +1423,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                             <img src={cat.image} alt={cat.name} className="w-full h-full object-cover" />
                           </div>
                           <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-[#F7F6F2] text-neutral-700 border border-neutral-200">
-                            {count} Produk
+                            {count} Products
                           </span>
                         </div>
 
@@ -1501,7 +1447,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                           className="px-3 py-1.5 text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
-                          <span>Hapus</span>
+                          <span>Delete</span>
                         </button>
                       </div>
                     </div>
@@ -1510,7 +1456,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
               </div>
             ) : (
               <div className="bg-white rounded-2xl border border-[#E9E9E6] p-12 text-center text-neutral-500 text-xs">
-                Belum ada kategori produk. Klik "Tambah Kategori Baru" di atas untuk membuat kategori.
+                No product categories yet. Click "Add New Category" above to create one.
               </div>
             )}
           </div>
@@ -1523,9 +1469,9 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
           <div className="space-y-6">
             <div className="bg-white p-5 rounded-2xl border border-[#E9E9E6] flex items-center justify-between">
               <div>
-                <h2 className="text-base font-extrabold text-[#111111]">Panduan & Artikel Editorial</h2>
+                <h2 className="text-base font-extrabold text-[#111111]">Editorial Guides & Blueprints</h2>
                 <p className="text-xs text-neutral-500">
-                  Kelola konten edukasi, tips setup meja, dan artikel rekomendasi
+                  Manage setup advice, desk blueprints, and curated editorial articles
                 </p>
               </div>
 
@@ -1534,7 +1480,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                 className="px-5 py-2.5 bg-[#FF6B00] hover:bg-[#E05E00] text-white text-xs font-bold rounded-xl transition-all shadow-xs flex items-center gap-2 cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
-                <span>Tambah Panduan Baru</span>
+                <span>Add New Guide</span>
               </button>
             </div>
 
@@ -1555,7 +1501,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                             {guide.category} • {guide.readTime}
                           </span>
                           <h3 className="text-base font-bold text-[#111111] line-clamp-1">{guide.title}</h3>
-                          <p className="text-xs text-neutral-400 mt-0.5">Penulis: {guide.author?.name}</p>
+                          <p className="text-xs text-neutral-400 mt-0.5">Author: {guide.author?.name}</p>
                         </div>
                       </div>
 
@@ -1564,20 +1510,19 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                       </p>
 
                       <div className="text-[11px] text-neutral-400">
-                        Total langkah langkah panduan: <span className="font-bold text-neutral-700">{guide.steps.length} langkah</span>
+                        Guide steps count: <span className="font-bold text-neutral-700">{guide.steps.length} steps</span>
                       </div>
                     </div>
 
                     <div className="mt-6 pt-4 border-t border-[#E9E9E6] flex items-center justify-between">
                       <button
                         onClick={() => {
-                          visualEditor.enterVisualEditMode();
                           onNavigate({ page: 'guide-detail', slug: guide.slug });
                         }}
                         className="text-xs font-semibold text-neutral-600 hover:text-[#FF6B00] flex items-center gap-1 cursor-pointer"
                       >
                         <Eye className="w-3.5 h-3.5" />
-                        <span>Lihat Artikel</span>
+                        <span>View Guide</span>
                       </button>
 
                       <div className="flex items-center gap-2">
@@ -1593,7 +1538,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                           className="px-3 py-1.5 text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
-                          <span>Hapus</span>
+                          <span>Delete</span>
                         </button>
                       </div>
                     </div>
@@ -1602,7 +1547,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
               </div>
             ) : (
               <div className="bg-white rounded-2xl border border-[#E9E9E6] p-12 text-center text-neutral-500 text-xs">
-                Belum ada artikel panduan. Klik "Tambah Panduan Baru" di atas untuk membuat panduan pertama.
+                No editorial guides yet. Click "Add New Guide" above to create your first guide.
               </div>
             )}
           </div>
@@ -1616,10 +1561,10 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
             {/* Top Announcement Bar Settings */}
             <div className="bg-white p-6 rounded-2xl border border-[#E9E9E6] shadow-xs">
               <h2 className="text-base font-bold text-[#111111] mb-1">
-                Pengumuman Atas (Announcement Bar)
+                Top Announcement Bar
               </h2>
               <p className="text-xs text-neutral-500 mb-5">
-                Tampilkan banner teks promo atau update penting di paling atas situs web.
+                Display a promotional text banner or announcement bar at the top of the website.
               </p>
 
               <div className="space-y-4 max-w-2xl">
@@ -1637,13 +1582,13 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                     className="w-4 h-4 rounded text-[#FF6B00] focus:ring-[#FF6B00]"
                   />
                   <label htmlFor="announcementToggle" className="text-xs font-bold text-neutral-800 cursor-pointer">
-                    Aktifkan Announcement Bar di Website
+                    Enable Announcement Bar on Website
                   </label>
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-neutral-700 mb-1">
-                    Teks Pengumuman
+                    Announcement Text
                   </label>
                   <input
                     type="text"
@@ -1655,7 +1600,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                       })
                     }
                     onBlur={() => handleSaveSettings(siteSettings)}
-                    placeholder="Contoh: 🔥 Promo Diskon Shopee Monitor Acer Terbatas..."
+                    placeholder="e.g., 🔥 New Space-Saving Monitor & Compact Desk Accessories Guide is Live!"
                     className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl text-xs focus:outline-none focus:border-[#FF6B00] text-[#111111]"
                   />
                 </div>
@@ -1665,16 +1610,16 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
             {/* Hero Copy Editor */}
             <div className="bg-white p-6 rounded-2xl border border-[#E9E9E6] shadow-xs">
               <h2 className="text-base font-bold text-[#111111] mb-1">
-                Kustomisasi Hero Beranda (Homepage Banner)
+                Homepage Hero Banner Customization
               </h2>
               <p className="text-xs text-neutral-500 mb-5">
-                Ubah judul besar, teks eyebrow, dan sub-deskripsi pada bagian depan website.
+                Customize headlines, eyebrow text, and subtext on the homepage banner.
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-3xl">
                 <div>
                   <label className="block text-xs font-semibold text-neutral-700 mb-1">
-                    Eyebrow (Label Kecil Atas)
+                    Eyebrow (Top Label)
                   </label>
                   <input
                     type="text"
@@ -1689,7 +1634,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
 
                 <div>
                   <label className="block text-xs font-semibold text-neutral-700 mb-1">
-                    Headline Baris 1
+                    Headline Line 1
                   </label>
                   <input
                     type="text"
@@ -1704,7 +1649,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
 
                 <div>
                   <label className="block text-xs font-semibold text-neutral-700 mb-1">
-                    Headline Baris 2 (Warna Oranye)
+                    Headline Line 2 (Accent Color)
                   </label>
                   <input
                     type="text"
@@ -1719,7 +1664,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
 
                 <div className="sm:col-span-2">
                   <label className="block text-xs font-semibold text-neutral-700 mb-1">
-                    Subtext Deskripsi Hero
+                    Hero Description Subtext
                   </label>
                   <textarea
                     rows={2}
@@ -1738,16 +1683,16 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
             <div className="bg-white p-6 rounded-2xl border border-[#E9E9E6] shadow-xs space-y-5">
               <div>
                 <h2 className="text-base font-bold text-[#111111] mb-1">
-                  Gambar Hero Banner & Visual Badge
+                  Hero Banner Image & Architectural Badge
                 </h2>
                 <p className="text-xs text-neutral-500">
-                  Upload file gambar baru (JPG, PNG, WEBP, GIF, SVG) atau pilih preset gambar untuk banner utama beranda.
+                  Upload a new image file (JPG, PNG, WEBP, GIF, SVG) or select a preset for the main homepage banner.
                 </p>
               </div>
 
               <div className="max-w-2xl space-y-4">
                 <AdminImageUploader
-                  label="Gambar Hero Banner Utama"
+                  label="Main Hero Banner Image"
                   value={siteSettings.heroImage || '/acer-nitro.png'}
                   onChange={(newUrl) => {
                     const updated = { ...siteSettings, heroImage: newUrl };
@@ -1755,13 +1700,13 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                     handleSaveSettings(updated);
                   }}
                   presets={['/acer-nitro.png', '/acer-creator.png', '/powerpac.png', '/acer-portable.png']}
-                  placeholder="/acer-nitro.png atau upload file baru"
-                  helperText="Gambar otomatis disesuaikan secara proporsional di banner utama."
+                  placeholder="/acer-nitro.png or upload new file"
+                  helperText="Image is automatically scaled proportionally in the hero container."
                 />
 
                 <div>
                   <label className="block text-xs font-semibold text-neutral-700 mb-1">
-                    Alt Text Gambar Hero (SEO & Aksesibilitas)
+                    Hero Image Alt Text (SEO & Accessibility)
                   </label>
                   <input
                     type="text"
@@ -1818,25 +1763,107 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                     className="px-5 py-2.5 bg-[#FF6B00] hover:bg-[#E05E00] text-white text-xs font-bold rounded-xl shadow-xs transition-all cursor-pointer flex items-center gap-1.5"
                   >
                     <CheckCircle2 className="w-4 h-4" />
-                    <span>Simpan Gambar & Pengaturan Hero ke Supabase</span>
+                    <span>Save Hero Settings to Supabase</span>
                   </button>
                 </div>
+              </div>
+            </div>
+
+            {/* Dedicated Open Graph (OG) Image & Favicon Settings Section */}
+            <div className="bg-white p-6 rounded-2xl border border-[#E9E9E6] shadow-xs space-y-6">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-orange-50 border border-orange-200 text-[#FF6B00] flex items-center justify-center shrink-0">
+                  <Sparkles className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-[#111111]">
+                    Social Share Card (OG Image) & Website Favicon
+                  </h2>
+                  <p className="text-xs text-neutral-500 mt-1 leading-relaxed">
+                    Exclusively configure your OpenGraph social preview image and browser tab favicon.
+                    These assets are strictly isolated to social meta tags and browser icon — they are
+                    <strong className="text-neutral-800 font-bold"> NEVER </strong> used as images for products, articles, or categories.
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2 border-t border-[#E9E9E6]">
+                {/* 1. Open Graph (OG) Image */}
+                <div className="p-4 bg-[#F7F6F2] rounded-2xl border border-[#E9E9E6] space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#FF6B00]">
+                      Social Share Preview
+                    </span>
+                    <span className="text-[10px] font-mono font-bold text-neutral-400 bg-white px-2 py-0.5 rounded border border-[#E9E9E6]">
+                      1200 × 630 px
+                    </span>
+                  </div>
+
+                  <AdminImageUploader
+                    label="Open Graph (OG) Image"
+                    value={siteSettings.ogImage || '/og-image.jpg'}
+                    onChange={(newUrl) => {
+                      const updated = { ...siteSettings, ogImage: newUrl || '/og-image.jpg' };
+                      onUpdateSettings(updated);
+                      handleSaveSettings(updated);
+                    }}
+                    presets={['/og-image.jpg']}
+                    placeholder="/og-image.jpg or upload 1200x630 social card"
+                    helperText="Strictly used for link sharing previews on Twitter/X, WhatsApp, Discord, Facebook, and LinkedIn."
+                  />
+                </div>
+
+                {/* 2. Browser Tab Favicon */}
+                <div className="p-4 bg-[#F7F6F2] rounded-2xl border border-[#E9E9E6] space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold uppercase tracking-wider text-emerald-600">
+                      Browser Tab Icon
+                    </span>
+                    <span className="text-[10px] font-mono font-bold text-neutral-400 bg-white px-2 py-0.5 rounded border border-[#E9E9E6]">
+                      32×32 to 512×512 px
+                    </span>
+                  </div>
+
+                  <AdminImageUploader
+                    label="Website Favicon"
+                    value={siteSettings.favicon || '/favicon.png'}
+                    onChange={(newUrl) => {
+                      const updated = { ...siteSettings, favicon: newUrl || '/favicon.png' };
+                      onUpdateSettings(updated);
+                      handleSaveSettings(updated);
+                    }}
+                    presets={['/favicon.png']}
+                    placeholder="/favicon.png or upload icon"
+                    helperText="Strictly used for the browser tab icon (<link rel='icon'>). Supports PNG, ICO, and SVG."
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-2">
+                <button
+                  type="button"
+                  onClick={() => handleSaveSettings(siteSettings)}
+                  className="px-5 py-2.5 bg-[#FF6B00] hover:bg-[#E05E00] text-white text-xs font-bold rounded-xl shadow-xs transition-all cursor-pointer flex items-center gap-1.5"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>Save OG Image & Favicon Settings</span>
+                </button>
               </div>
             </div>
 
             {/* Admin Security Settings */}
             <div className="bg-white p-6 rounded-2xl border border-[#E9E9E6] shadow-xs">
               <h2 className="text-base font-bold text-[#111111] mb-1">
-                Keamanan & Password Superadmin
+                Superadmin Security & Passcode
               </h2>
               <p className="text-xs text-neutral-500 mb-5">
-                Ubah kode akses login untuk proteksi dashboard superadmin ini.
+                Update the login passcode to protect this superadmin dashboard.
               </p>
 
               <div className="max-w-md space-y-4">
                 <div>
                   <label className="block text-xs font-semibold text-neutral-700 mb-1">
-                    Kode Akses Baru (Passcode)
+                    New Access Passcode
                   </label>
                   <input
                     type="text"
@@ -1866,17 +1893,17 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                       {supabaseStatus?.connected ? (
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
-                          4 TABEL TERHUBUNG (LIVE)
+                          4 TABLES CONNECTED (LIVE)
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
                           <span className="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
-                          {supabaseStatus?.configured ? 'TABEL PERLU SCHEMA' : 'STORAGE LOKAL (OFFLINE)'}
+                          {supabaseStatus?.configured ? 'TABLES NEED SCHEMA' : 'LOCAL STORAGE (OFFLINE)'}
                         </span>
                       )}
                     </div>
                     <p className="text-xs text-neutral-500 mt-0.5">
-                      Memastikan kesesuaian data website secara real-time dengan 4 tabel Supabase: <code className="font-mono text-neutral-800 font-bold">categories</code>, <code className="font-mono text-neutral-800 font-bold">products</code>, <code className="font-mono text-neutral-800 font-bold">guides</code>, <code className="font-mono text-neutral-800 font-bold">site_settings</code>
+                      Ensuring real-time data sync with 4 Supabase tables: <code className="font-mono text-neutral-800 font-bold">categories</code>, <code className="font-mono text-neutral-800 font-bold">products</code>, <code className="font-mono text-neutral-800 font-bold">guides</code>, <code className="font-mono text-neutral-800 font-bold">site_settings</code>
                     </p>
                   </div>
                 </div>
@@ -1887,20 +1914,20 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                     onClick={handleCheckSupabase}
                     disabled={isCheckingSupabase}
                     className="px-3 py-2 bg-[#F7F6F2] hover:bg-neutral-200/80 border border-[#E9E9E6] text-neutral-800 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
-                    title="Periksa ulang kesiapan koneksi dan tabel di Supabase"
+                    title="Check connection and schema readiness on Supabase"
                   >
                     <RefreshCw className={`w-3.5 h-3.5 ${isCheckingSupabase ? 'animate-spin' : ''}`} />
-                    <span>{isCheckingSupabase ? 'Memeriksa...' : 'Cek Status'}</span>
+                    <span>{isCheckingSupabase ? 'Checking...' : 'Check Status'}</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={handleOpenSchemaModal}
                     className="px-3 py-2 bg-neutral-900 hover:bg-black text-white text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
-                    title="Lihat atau salin kode DDL SQL untuk Supabase SQL Editor"
+                    title="View or copy DDL SQL schema for Supabase SQL Editor"
                   >
                     <FileCode className="w-3.5 h-3.5 text-[#FF6B00]" />
-                    <span>Lihat / Salin SQL Schema</span>
+                    <span>View / Copy SQL Schema</span>
                   </button>
 
                   <button
@@ -1908,10 +1935,10 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                     onClick={handlePullFromSupabase}
                     disabled={isPullingSupabase}
                     className="px-3 py-2 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
-                    title="Tarik data terbaru dari Supabase ke tampilan web"
+                    title="Pull latest data from Supabase to website"
                   >
                     <Download className={`w-3.5 h-3.5 ${isPullingSupabase ? 'animate-bounce' : ''}`} />
-                    <span>{isPullingSupabase ? 'Memuat...' : 'Tarik dari Supabase (Pull)'}</span>
+                    <span>{isPullingSupabase ? 'Loading...' : 'Pull from Supabase'}</span>
                   </button>
 
                   <button
@@ -1919,10 +1946,10 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                     onClick={handleSyncToSupabase}
                     disabled={isSyncingSupabase}
                     className="px-4 py-2 bg-[#FF6B00] hover:bg-[#E05E00] text-white text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-xs disabled:opacity-50"
-                    title="Kirim dan sinkronkan semua katalog produk, kategori, dan artikel dari web ke Supabase"
+                    title="Sync all products, categories, guides, and settings to Supabase"
                   >
                     <Upload className={`w-3.5 h-3.5 ${isSyncingSupabase ? 'animate-bounce' : ''}`} />
-                    <span>{isSyncingSupabase ? 'Menyinkronkan...' : 'Kirim ke Supabase (Push)'}</span>
+                    <span>{isSyncingSupabase ? 'Syncing...' : 'Push to Supabase'}</span>
                   </button>
                 </div>
               </div>
@@ -1937,18 +1964,18 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                 <div className="flex-1">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <p className="font-bold">
-                      {supabaseStatus?.connected ? 'Status Database: Terhubung & Sinkron' : 'Status Database: Perlu Konfigurasi / Host Belum Aktif'}
+                      {supabaseStatus?.connected ? 'Database Status: Connected & Synced' : 'Database Status: Configuration Required / Host Inactive'}
                     </p>
                     <button
                       type="button"
                       onClick={() => setShowConfigForm(!showConfigForm)}
                       className="px-2.5 py-1 bg-white hover:bg-neutral-100 border border-neutral-300 rounded-lg text-[11px] font-bold text-neutral-800 transition-colors cursor-pointer"
                     >
-                      {showConfigForm ? 'Tutup Pengaturan' : '⚙️ Atur URL & API Key Supabase'}
+                      {showConfigForm ? 'Close Settings' : '⚙️ Configure Supabase URL & Key'}
                     </button>
                   </div>
                   <p className="mt-0.5 text-[11px] leading-relaxed opacity-90">
-                    {supabaseStatus?.message || 'Memeriksa status koneksi ke Supabase...'}
+                    {supabaseStatus?.message || 'Checking connection status to Supabase...'}
                   </p>
                 </div>
               </div>
@@ -1960,7 +1987,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                     <div className="flex items-center gap-2">
                       <Database className="w-4 h-4 text-[#FF6B00]" />
                       <h4 className="text-xs font-bold uppercase tracking-wider text-neutral-800">
-                        Konfigurasi Proyek Supabase
+                        Supabase Project Configuration
                       </h4>
                     </div>
                     {supabaseConfig.url && (
@@ -1984,13 +2011,13 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                         className="w-full px-3 py-2 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl text-xs font-mono text-neutral-800 focus:outline-none focus:border-[#FF6B00]"
                       />
                       <p className="text-[10px] text-neutral-400 mt-1">
-                        Ditemukan di Supabase Dashboard &gt; Project Settings &gt; Configuration &gt; API &gt; Project URL.
+                        Found in Supabase Dashboard &gt; Project Settings &gt; Configuration &gt; API &gt; Project URL.
                       </p>
                     </div>
 
                     <div>
                       <label className="block text-[11px] font-bold text-neutral-700 mb-1">
-                        Supabase API Key (anon public key atau service_role key)
+                        Supabase API Key (anon public key or service_role key)
                       </label>
                       <input
                         type="password"
@@ -2001,13 +2028,13 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                         className="w-full px-3 py-2 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl text-xs font-mono text-neutral-800 focus:outline-none focus:border-[#FF6B00]"
                       />
                       <p className="text-[10px] text-neutral-400 mt-1">
-                        Ditemukan di Supabase Dashboard &gt; Project Settings &gt; Configuration &gt; API &gt; Project API Keys.
+                        Found in Supabase Dashboard &gt; Project Settings &gt; Configuration &gt; API &gt; Project API Keys.
                       </p>
                     </div>
 
                     <div className="flex items-center justify-between pt-2">
                       <p className="text-[11px] text-neutral-500">
-                        {supabaseConfig.hasKey ? 'Status Kunci: Tersimpan di server' : 'Kunci belum dikonfigurasi'}
+                        {supabaseConfig.hasKey ? 'Key Status: Stored in application settings' : 'Key not configured'}
                       </p>
                       <button
                         type="submit"
@@ -2015,7 +2042,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                         className="px-4 py-2 bg-[#111111] hover:bg-black text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-xs disabled:opacity-50 flex items-center gap-1.5"
                       >
                         <RefreshCw className={`w-3.5 h-3.5 ${isSavingSupabaseConfig ? 'animate-spin' : ''}`} />
-                        <span>{isSavingSupabaseConfig ? 'Menyimpan & Menghubungkan...' : 'Simpan & Hubungkan Database'}</span>
+                        <span>{isSavingSupabaseConfig ? 'Saving & Connecting...' : 'Save & Connect Database'}</span>
                       </button>
                     </div>
                   </form>
@@ -2026,7 +2053,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
               <div className="mb-5">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-500 mb-3 flex items-center gap-1.5">
                   <Table className="w-3.5 h-3.5 text-[#FF6B00]" />
-                  <span>Kesesuaian 4 Tabel Supabase & Web:</span>
+                  <span>Supabase & Web 4-Table Consistency:</span>
                 </h3>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
@@ -2039,19 +2066,19 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                           <span className="font-mono text-xs font-bold text-neutral-900">categories</span>
                         </div>
                         {supabaseStatus?.connected ? (
-                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded">SIAP</span>
+                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded">READY</span>
                         ) : (
-                          <span className="text-[10px] font-medium text-neutral-500 bg-neutral-200 px-1.5 py-0.5 rounded">Lokal</span>
+                          <span className="text-[10px] font-medium text-neutral-500 bg-neutral-200 px-1.5 py-0.5 rounded">Local</span>
                         )}
                       </div>
-                      <p className="text-[11px] font-semibold text-neutral-700">Kategori Produk</p>
+                      <p className="text-[11px] font-semibold text-neutral-700">Product Categories</p>
                       <p className="text-[10px] text-neutral-500 mt-1 font-mono">
                         id, name, slug, product_count, image, sort_order
                       </p>
                     </div>
                     <div className="pt-2.5 mt-2.5 border-t border-[#E9E9E6] flex items-center justify-between text-[11px]">
-                      <span className="text-neutral-500">Jumlah di Web:</span>
-                      <span className="font-bold text-[#111111]">{categories.length} data</span>
+                      <span className="text-neutral-500">Items on Web:</span>
+                      <span className="font-bold text-[#111111]">{categories.length} records</span>
                     </div>
                   </div>
 
@@ -2064,19 +2091,19 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                           <span className="font-mono text-xs font-bold text-neutral-900">products</span>
                         </div>
                         {supabaseStatus?.connected ? (
-                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded">SIAP</span>
+                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded">READY</span>
                         ) : (
-                          <span className="text-[10px] font-medium text-neutral-500 bg-neutral-200 px-1.5 py-0.5 rounded">Lokal</span>
+                          <span className="text-[10px] font-medium text-neutral-500 bg-neutral-200 px-1.5 py-0.5 rounded">Local</span>
                         )}
                       </div>
-                      <p className="text-[11px] font-semibold text-neutral-700">Katalog Produk & Afiliasi</p>
+                      <p className="text-[11px] font-semibold text-neutral-700">Products & Affiliates</p>
                       <p className="text-[10px] text-neutral-500 mt-1 font-mono">
                         id, slug, name, category, rating, specifications, gallery, affiliate_url
                       </p>
                     </div>
                     <div className="pt-2.5 mt-2.5 border-t border-[#E9E9E6] flex items-center justify-between text-[11px]">
-                      <span className="text-neutral-500">Jumlah di Web:</span>
-                      <span className="font-bold text-[#111111]">{products.length} data</span>
+                      <span className="text-neutral-500">Items on Web:</span>
+                      <span className="font-bold text-[#111111]">{products.length} records</span>
                     </div>
                   </div>
 
@@ -2089,19 +2116,19 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                           <span className="font-mono text-xs font-bold text-neutral-900">guides</span>
                         </div>
                         {supabaseStatus?.connected ? (
-                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded">SIAP</span>
+                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded">READY</span>
                         ) : (
-                          <span className="text-[10px] font-medium text-neutral-500 bg-neutral-200 px-1.5 py-0.5 rounded">Lokal</span>
+                          <span className="text-[10px] font-medium text-neutral-500 bg-neutral-200 px-1.5 py-0.5 rounded">Local</span>
                         )}
                       </div>
-                      <p className="text-[11px] font-semibold text-neutral-700">Panduan & Artikel Setup</p>
+                      <p className="text-[11px] font-semibold text-neutral-700">Setup Guides & Articles</p>
                       <p className="text-[10px] text-neutral-500 mt-1 font-mono">
                         id, slug, title, category, author_name, steps (JSONB), featured
                       </p>
                     </div>
                     <div className="pt-2.5 mt-2.5 border-t border-[#E9E9E6] flex items-center justify-between text-[11px]">
-                      <span className="text-neutral-500">Jumlah di Web:</span>
-                      <span className="font-bold text-[#111111]">{guides.length} artikel</span>
+                      <span className="text-neutral-500">Items on Web:</span>
+                      <span className="font-bold text-[#111111]">{guides.length} articles</span>
                     </div>
                   </div>
 
@@ -2114,14 +2141,14 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                           <span className="font-mono text-xs font-bold text-neutral-900">site_settings</span>
                         </div>
                         {supabaseStatus?.connected ? (
-                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded">SIAP</span>
+                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded">READY</span>
                         ) : (
-                          <span className="text-[10px] font-medium text-neutral-500 bg-neutral-200 px-1.5 py-0.5 rounded">Lokal</span>
+                          <span className="text-[10px] font-medium text-neutral-500 bg-neutral-200 px-1.5 py-0.5 rounded">Local</span>
                         )}
                       </div>
-                      <p className="text-[11px] font-semibold text-neutral-700">Pengaturan Website</p>
+                      <p className="text-[11px] font-semibold text-neutral-700">Site Settings & Assets</p>
                       <p className="text-[10px] text-neutral-500 mt-1 font-mono">
-                        id (1), announcement_text, hero_copy, admin_passcode
+                        id (1), announcement_text, hero_copy, og_image, favicon, admin_passcode
                       </p>
                     </div>
                     <div className="pt-2.5 mt-2.5 border-t border-[#E9E9E6] flex items-center justify-between text-[11px]">
@@ -2135,21 +2162,21 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
               {/* Instructions on connecting */}
               <div className="p-4 rounded-xl bg-[#F7F6F2] border border-[#E9E9E6] text-xs text-neutral-600">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="font-bold text-neutral-800">Langkah Memastikan Tabel Supabase Sinkron dengan Web:</p>
+                  <p className="font-bold text-neutral-800">Steps to Synchronize Supabase with Web:</p>
                   <button
                     type="button"
                     onClick={handleOpenSchemaModal}
                     className="text-[11px] font-bold text-[#FF6B00] hover:underline cursor-pointer flex items-center gap-1"
                   >
                     <FileCode className="w-3 h-3" />
-                    <span>Buka File schema.sql</span>
+                    <span>Open schema.sql</span>
                   </button>
                 </div>
                 <ol className="list-decimal list-inside space-y-1 pl-1 text-[11px] text-neutral-600">
-                  <li>Buka proyek Supabase Anda (<a href="https://supabase.com/dashboard" target="_blank" rel="noreferrer" className="text-[#FF6B00] font-semibold hover:underline">supabase.com/dashboard</a>) dan masuk ke menu <strong>SQL Editor</strong>.</li>
-                  <li>Jalankan seluruh isi kode dari file <code className="bg-white px-1.5 py-0.5 rounded border border-neutral-300 font-mono font-bold text-neutral-800">schema.sql</code> untuk membuat 4 tabel (<code className="font-mono text-neutral-800">categories</code>, <code className="font-mono text-neutral-800">products</code>, <code className="font-mono text-neutral-800">guides</code>, <code className="font-mono text-neutral-800">site_settings</code>) serta aturan RLS.</li>
-                  <li>Masukkan <code className="bg-white px-1.5 py-0.5 rounded border border-neutral-300 font-mono font-bold text-neutral-800">SUPABASE_URL</code> dan <code className="bg-white px-1.5 py-0.5 rounded border border-neutral-300 font-mono font-bold text-neutral-800">SUPABASE_KEY</code> ke dalam Secrets / Environment aplikasi.</li>
-                  <li>Klik tombol <strong>"Kirim ke Supabase (Push)"</strong> di atas untuk menyinkronkan seluruh katalog dan pengaturan web Anda ke tabel Supabase secara otomatis!</li>
+                  <li>Open your Supabase project dashboard (<a href="https://supabase.com/dashboard" target="_blank" rel="noreferrer" className="text-[#FF6B00] font-semibold hover:underline">supabase.com/dashboard</a>) and go to <strong>SQL Editor</strong>.</li>
+                  <li>Run the SQL statements from <code className="bg-white px-1.5 py-0.5 rounded border border-neutral-300 font-mono font-bold text-neutral-800">schema.sql</code> to create the 4 tables (<code className="font-mono text-neutral-800">categories</code>, <code className="font-mono text-neutral-800">products</code>, <code className="font-mono text-neutral-800">guides</code>, <code className="font-mono text-neutral-800">site_settings</code>) and RLS security policies.</li>
+                  <li>Enter your <code className="bg-white px-1.5 py-0.5 rounded border border-neutral-300 font-mono font-bold text-neutral-800">SUPABASE_URL</code> and <code className="bg-white px-1.5 py-0.5 rounded border border-neutral-300 font-mono font-bold text-neutral-800">SUPABASE_KEY</code> in the form above or project environment variables.</li>
+                  <li>Click <strong>"Push to Supabase"</strong> above to synchronize all web products, categories, guides, and settings automatically!</li>
                 </ol>
               </div>
             </div>
@@ -2160,7 +2187,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                 Backup, Restore & Reset Data
               </h2>
               <p className="text-xs text-neutral-500 mb-5">
-                Amankan data website Anda secara berkala atau pulihkan dari file JSON cadangan.
+                Safeguard website data regularly or restore from a JSON backup file.
               </p>
 
               <div className="flex flex-wrap items-center gap-4">
@@ -2174,7 +2201,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
 
                 <label className="px-4 py-2.5 bg-[#F7F6F2] hover:bg-neutral-200 border border-[#E9E9E6] text-neutral-800 text-xs font-bold rounded-xl transition-all flex items-center gap-2 cursor-pointer">
                   <Upload className="w-4 h-4 text-blue-600" />
-                  <span>Import Data dari JSON</span>
+                  <span>Import Data from JSON</span>
                   <input
                     type="file"
                     accept=".json"
@@ -2188,7 +2215,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                   className="px-4 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold rounded-xl transition-all flex items-center gap-2 cursor-pointer ml-auto"
                 >
                   <RefreshCw className="w-4 h-4" />
-                  <span>Reset ke Pengaturan Awal (Factory Reset)</span>
+                  <span>Reset to Factory Defaults</span>
                 </button>
               </div>
             </div>
@@ -2206,10 +2233,10 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
             <div className="shrink-0 p-5 sm:p-6 border-b border-[#E9E9E6] flex items-center justify-between bg-[#F7F6F2]">
               <div>
                 <span className="text-[10px] font-bold uppercase tracking-wider text-[#FF6B00]">
-                  {editingProduct ? 'EDIT PRODUK' : 'PRODUK BARU'}
+                  {editingProduct ? 'EDIT PRODUCT' : 'NEW PRODUCT'}
                 </span>
                 <h3 className="text-xl font-extrabold text-[#111111]">
-                  {editingProduct ? `Edit: ${editingProduct.name}` : 'Tambah Produk Baru'}
+                  {editingProduct ? `Edit: ${editingProduct.name}` : 'Add New Product'}
                 </h3>
               </div>
               <button
@@ -2236,7 +2263,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
               {/* Basic Details */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-bold text-neutral-700 mb-1">Nama Produk *</label>
+                  <label className="block font-bold text-neutral-700 mb-1">Product Name *</label>
                   <input
                     type="text"
                     required
@@ -2245,13 +2272,13 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                       setProductFormData({ ...productFormData, name: e.target.value });
                       if (productFormError) setProductFormError(null);
                     }}
-                    placeholder="Contoh: Acer Nitro KG271U Z2"
+                    placeholder="Example: Acer Nitro KG271U Z2"
                     className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl font-medium focus:outline-none focus:border-[#FF6B00]"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-neutral-700 mb-2">Kategori *</label>
+                  <label className="block font-bold text-neutral-700 mb-2">Category *</label>
                   {categories.length > 0 ? (
                     <div className="flex flex-wrap gap-2">
                       {Array.from(
@@ -2275,24 +2302,24 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                     </div>
                   ) : (
                     <div className="text-xs text-neutral-500 italic p-3 bg-neutral-100 rounded-xl border border-neutral-200">
-                      Belum ada kategori yang ditambahkan. Silakan ke tab "Kelola Kategori" untuk menambah kategori terlebih dahulu.
+                      No categories added yet. Please navigate to the Categories tab to add a category first.
                     </div>
                   )}
                 </div>
 
                 <div>
-                  <label className="block font-bold text-neutral-700 mb-1">Badge Produk</label>
+                  <label className="block font-bold text-neutral-700 mb-1">Product Badge</label>
                   <input
                     type="text"
                     value={productFormData.badge || ''}
                     onChange={(e) => setProductFormData({ ...productFormData, badge: e.target.value })}
-                    placeholder="Contoh: BEST GAMING MONITOR, CREATOR FAVORITE"
+                    placeholder="Example: BEST GAMING MONITOR, CREATOR FAVORITE"
                     className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl font-medium"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-neutral-700 mb-1">Tampilkan di Beranda (Featured)</label>
+                  <label className="block font-bold text-neutral-700 mb-1">Feature on Homepage</label>
                   <div className="flex items-center gap-2 pt-2">
                     <input
                       type="checkbox"
@@ -2302,7 +2329,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                       className="w-4 h-4 rounded text-[#FF6B00] focus:ring-[#FF6B00]"
                     />
                     <label htmlFor="modalFeaturedToggle" className="font-semibold text-neutral-700 cursor-pointer">
-                      Ya, tampilkan di bagian Top Picks beranda
+                      Yes, feature in Homepage Top Picks section
                     </label>
                   </div>
                 </div>
@@ -2311,13 +2338,13 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
               {/* Short Benefit & Description */}
               <div>
                 <label className="block font-bold text-neutral-700 mb-1">
-                  Short Benefit (Teks ringkas di bawah judul card)
+                  Short Benefit (Summary text beneath card title)
                 </label>
                 <input
                   type="text"
                   value={productFormData.shortBenefit || ''}
                   onChange={(e) => setProductFormData({ ...productFormData, shortBenefit: e.target.value })}
-                  placeholder="Contoh: 27' WQHD IPS gaming monitor with 275Hz refresh rate..."
+                  placeholder="Example: 27' WQHD IPS gaming monitor with 275Hz refresh rate..."
                   className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl font-medium"
                 />
               </div>
@@ -2326,20 +2353,20 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
               <div>
                 <label className="block font-bold text-neutral-700 mb-1 flex items-center gap-1.5">
                   <Link2 className="w-3.5 h-3.5 text-[#FF6B00]" />
-                  <span>Link Afiliasi Shopee / Mitra (Affiliate URL) *</span>
+                  <span>Affiliate / Partner Link (URL) *</span>
                 </label>
                 <input
                   type="text"
                   value={productFormData.affiliateUrl || ''}
                   onChange={(e) => setProductFormData({ ...productFormData, affiliateUrl: e.target.value })}
-                  placeholder="https://shopee.sg/... atau https://atid.me/..."
+                  placeholder="https://shopee.sg/... or https://atid.me/..."
                   className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl font-mono text-neutral-800"
                 />
               </div>
 
               {/* Product Main Image with Multi-format Upload & URL */}
               <AdminImageUploader
-                label="URL Gambar Utama"
+                label="Primary Product Image"
                 value={productFormData.image || ''}
                 onChange={(newUrl) => {
                   setProductFormData({
@@ -2349,13 +2376,13 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                   });
                 }}
                 presets={['/acer-nitro.png', '/acer-creator.png', '/powerpac.png', '/acer-portable.png']}
-                placeholder="https://example.com/product-image.jpg atau upload gambar"
+                placeholder="https://example.com/product-image.jpg or upload file"
               />
 
               {/* Product Highlights (Line by line) */}
               <div>
                 <label className="block font-bold text-neutral-700 mb-1">
-                  Product Highlights (1 baris per poin)
+                  Product Highlights (1 point per line)
                 </label>
                 <textarea
                   rows={3}
@@ -2369,7 +2396,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
               {/* Why We Recommend It (Line by line) */}
               <div>
                 <label className="block font-bold text-neutral-700 mb-1">
-                  Why We Recommend It / Benefits (1 baris per poin)
+                  Why We Recommend It / Benefits (1 point per line)
                 </label>
                 <textarea
                   rows={3}
@@ -2383,7 +2410,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
               {/* Specifications JSON / Key Values */}
               <div>
                 <label className="block font-bold text-neutral-700 mb-1">
-                  Spesifikasi Teknis (Format: Nama: Nilai, 1 baris per spesifikasi)
+                  Technical Specifications (Format: Spec Name: Value, 1 per line)
                 </label>
                 <textarea
                   rows={4}
@@ -2397,7 +2424,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
               {/* Best For & Verdict */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-bold text-neutral-700 mb-1">Best For (Target Pengguna)</label>
+                  <label className="block font-bold text-neutral-700 mb-1">Best For (Target User)</label>
                   <input
                     type="text"
                     value={productFormData.bestFor || ''}
@@ -2408,7 +2435,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                 </div>
 
                 <div>
-                  <label className="block font-bold text-neutral-700 mb-1">Our Take (Verdict Review)</label>
+                  <label className="block font-bold text-neutral-700 mb-1">Our Take (Editorial Verdict)</label>
                   <input
                     type="text"
                     value={productFormData.verdict || ''}
@@ -2422,7 +2449,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
               {/* Great For & Setup Considerations */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-bold text-neutral-700 mb-1">Cocok Untuk / Great For (1 baris per poin)</label>
+                  <label className="block font-bold text-neutral-700 mb-1">Great For (1 point per line)</label>
                   <textarea
                     rows={2}
                     value={greatForText}
@@ -2433,7 +2460,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                 </div>
 
                 <div>
-                  <label className="block font-bold text-neutral-700 mb-1">Pertimbangan Setup / Considerations (1 baris per poin)</label>
+                  <label className="block font-bold text-neutral-700 mb-1">Setup Considerations (1 point per line)</label>
                   <textarea
                     rows={2}
                     value={setupConsiderationsText}
@@ -2452,14 +2479,14 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                   onClick={() => setIsProductModalOpen(false)}
                   className="px-5 py-2.5 bg-white hover:bg-neutral-100 text-neutral-700 font-bold rounded-xl border border-[#E9E9E6] transition-all cursor-pointer shadow-2xs"
                 >
-                  Batal
+                  Cancel
                 </button>
                 <button
                   type="submit"
                   className="px-6 py-2.5 bg-[#FF6B00] hover:bg-[#E05E00] text-white font-bold rounded-xl transition-all shadow-xs flex items-center gap-2 cursor-pointer"
                 >
                   <Check className="w-4 h-4" />
-                  <span>Simpan Produk</span>
+                  <span>Save Product</span>
                 </button>
               </div>
             </form>
@@ -2476,7 +2503,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
             {/* Modal Header */}
             <div className="shrink-0 p-5 sm:p-6 border-b border-[#E9E9E6] flex items-center justify-between bg-[#F7F6F2]">
               <h3 className="text-lg font-extrabold text-[#111111]">
-                {editingCategory ? `Edit Kategori: ${editingCategory.name}` : 'Tambah Kategori Baru'}
+                {editingCategory ? `Edit Category: ${editingCategory.name}` : 'Add New Category'}
               </h3>
               <button
                 type="button"
@@ -2498,7 +2525,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                 )}
 
                 <div>
-                  <label className="block font-bold text-neutral-700 mb-1">Nama Kategori *</label>
+                  <label className="block font-bold text-neutral-700 mb-1">Category Name *</label>
                   <input
                     type="text"
                     required
@@ -2507,40 +2534,40 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                       setCategoryFormData({ ...categoryFormData, name: e.target.value });
                       if (categoryFormError) setCategoryFormError(null);
                     }}
-                    placeholder="Contoh: Audio, Lighting, Monitors"
+                    placeholder="Example: Audio, Lighting, Desk Setup, Storage"
                     className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl font-medium focus:outline-none focus:border-[#FF6B00]"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-neutral-700 mb-1">Slug URL (Opsional)</label>
+                  <label className="block font-bold text-neutral-700 mb-1">URL Slug (Optional)</label>
                   <input
                     type="text"
                     value={categoryFormData.slug || ''}
                     onChange={(e) => setCategoryFormData({ ...categoryFormData, slug: e.target.value })}
-                    placeholder="monitors, accessories (otomatis jika kosong)"
+                    placeholder="monitors, accessories (auto-generated if left blank)"
                     className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl font-mono"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-neutral-700 mb-1">Deskripsi Kategori</label>
+                  <label className="block font-bold text-neutral-700 mb-1">Category Description</label>
                   <textarea
                     rows={3}
                     value={categoryFormData.description || ''}
                     onChange={(e) => setCategoryFormData({ ...categoryFormData, description: e.target.value })}
-                    placeholder="Deskripsi ringkas kategori..."
+                    placeholder="Brief category summary..."
                     className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl"
                   />
                 </div>
 
                 <div>
                   <AdminImageUploader
-                    label="URL Gambar Cover"
+                    label="Category Cover Image URL"
                     value={categoryFormData.image || ''}
                     onChange={(newUrl) => setCategoryFormData({ ...categoryFormData, image: newUrl })}
                     presets={['/acer-nitro.png', '/acer-creator.png', '/powerpac.png', '/acer-portable.png']}
-                    placeholder="https://example.com/category-cover.jpg atau upload gambar"
+                    placeholder="https://example.com/category-cover.jpg or upload file"
                   />
                 </div>
               </div>
@@ -2552,13 +2579,13 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                   onClick={() => setIsCategoryModalOpen(false)}
                   className="px-5 py-2 bg-white hover:bg-neutral-100 text-neutral-700 font-bold rounded-xl border border-[#E9E9E6] transition-all cursor-pointer shadow-2xs"
                 >
-                  Batal
+                  Cancel
                 </button>
                 <button
                   type="submit"
                   className="px-5 py-2 bg-[#FF6B00] hover:bg-[#E05E00] text-white font-bold rounded-xl transition-all shadow-xs cursor-pointer"
                 >
-                  Simpan Kategori
+                  Save Category
                 </button>
               </div>
             </form>
@@ -2577,10 +2604,10 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
               <div className="flex items-center justify-between">
                 <div>
                   <span className="text-[10px] font-bold uppercase tracking-wider text-[#FF6B00]">
-                    Developer Article Editor
+                    Editorial Article Editor
                   </span>
                   <h3 className="text-lg font-extrabold text-[#111111]">
-                    {editingGuide ? `Edit Panduan: ${editingGuide.title}` : 'Tambah Panduan Baru'}
+                    {editingGuide ? `Edit Guide: ${editingGuide.title}` : 'Add New Guide'}
                   </h3>
                 </div>
                 <button
@@ -2603,7 +2630,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                       : 'bg-white text-neutral-600 hover:text-neutral-900 border border-[#E9E9E6]'
                   }`}
                 >
-                  1. Informasi Dasar
+                  1. Basic Details
                 </button>
                 <button
                   type="button"
@@ -2614,7 +2641,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                       : 'bg-white text-neutral-600 hover:text-neutral-900 border border-[#E9E9E6]'
                   }`}
                 >
-                  2. Penulis & Editorial
+                  2. Author & Editorial
                 </button>
                 <button
                   type="button"
@@ -2628,12 +2655,12 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                   {guideFormData.layoutFormat === 'document' ? (
                     <>
                       <FileText className="w-3.5 h-3.5" />
-                      <span>3. Isi Lembar Dokumen</span>
+                      <span>3. Document Body</span>
                     </>
                   ) : (
                     <>
                       <ListOrdered className="w-3.5 h-3.5" />
-                      <span>3. Poin & Langkah</span>
+                      <span>3. Steps & Points</span>
                       <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-[#FF6B00] text-white">
                         {guideFormData.steps?.length || 0}
                       </span>
@@ -2657,7 +2684,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                 {guideModalTab === 'basic' && (
                   <div className="space-y-4">
                     <div>
-                      <label className="block font-bold text-neutral-700 mb-1">Judul Panduan *</label>
+                      <label className="block font-bold text-neutral-700 mb-1">Guide Title *</label>
                       <input
                         type="text"
                         required
@@ -2666,30 +2693,30 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                           setGuideFormData({ ...guideFormData, title: e.target.value });
                           if (guideFormError) setGuideFormError(null);
                         }}
-                        placeholder="Contoh: The Ultimate Dual Monitor Desk Mount Guide"
+                        placeholder="Example: The Ultimate Dual Monitor Desk Mount Guide"
                         className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl font-medium"
                       />
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="block font-bold text-neutral-700 mb-1">Slug URL (Opsional)</label>
+                        <label className="block font-bold text-neutral-700 mb-1">URL Slug (Optional)</label>
                         <input
                           type="text"
                           value={guideFormData.slug || ''}
                           onChange={(e) => setGuideFormData({ ...guideFormData, slug: e.target.value })}
-                          placeholder="dual-monitor-setup (otomatis jika kosong)"
+                          placeholder="dual-monitor-setup (auto-generated if empty)"
                           className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl font-mono"
                         />
                       </div>
 
                       <div>
-                        <label className="block font-bold text-neutral-700 mb-1">Kategori Panduan</label>
+                        <label className="block font-bold text-neutral-700 mb-1">Guide Category</label>
                         <input
                           type="text"
                           value={guideFormData.category || ''}
                           onChange={(e) => setGuideFormData({ ...guideFormData, category: e.target.value })}
-                          placeholder="Setup Advice, Cable Management"
+                          placeholder="Setup Advice, Cable Management, Ergonomics"
                           className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl"
                         />
                       </div>
@@ -2697,7 +2724,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div>
-                        <label className="block font-bold text-neutral-700 mb-1">Waktu Baca (Read Time)</label>
+                        <label className="block font-bold text-neutral-700 mb-1">Read Time</label>
                         <input
                           type="text"
                           value={guideFormData.readTime || ''}
@@ -2708,7 +2735,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                       </div>
 
                       <div>
-                        <label className="block font-bold text-neutral-700 mb-1">Tanggal Publikasi</label>
+                        <label className="block font-bold text-neutral-700 mb-1">Publication Date</label>
                         <input
                           type="text"
                           value={guideFormData.publishDate || ''}
@@ -2732,21 +2759,21 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                     </div>
 
                     <div>
-                      <label className="block font-bold text-neutral-700 mb-1">Ringkasan / Excerpt</label>
+                      <label className="block font-bold text-neutral-700 mb-1">Summary / Excerpt</label>
                       <textarea
                         rows={2}
                         value={guideFormData.excerpt || ''}
                         onChange={(e) => setGuideFormData({ ...guideFormData, excerpt: e.target.value })}
-                        placeholder="Ringkasan singkat tentang panduan ini..."
+                        placeholder="Brief overview summary of this guide..."
                         className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl"
                       />
                     </div>
 
-                    {/* PENGATURAN FORMAT & GAMBAR KONTEN ARTIKEL */}
+                    {/* ARTICLE FORMAT & MEDIA DISPLAY CONTROLS */}
                     <div className="p-4 bg-orange-50/70 border border-orange-200/90 rounded-2xl space-y-4">
                       <div>
                         <label className="block font-bold text-neutral-800 text-xs mb-1.5">
-                          1. Format Tampilan Artikel
+                          1. Article Layout Format
                         </label>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                           <button
@@ -2760,9 +2787,9 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                           >
                             <FileText className={`w-4 h-4 shrink-0 mt-0.5 ${guideFormData.layoutFormat === 'document' ? 'text-[#FF6B00]' : 'text-neutral-400'}`} />
                             <div>
-                              <div className="font-bold text-xs text-neutral-900">📄 Format Lembar Dokumen Biasa</div>
+                              <div className="font-bold text-xs text-neutral-900">📄 Clean Document Format</div>
                               <div className="text-[11px] text-neutral-500 mt-0.5 leading-snug">
-                                Teks mengalir bebas tanpa nomor poin (seperti lembar dokumen/blog biasa).
+                                Continuous editorial flow without forced point numbers (standard blog/essay).
                               </div>
                             </div>
                           </button>
@@ -2778,9 +2805,9 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                           >
                             <ListOrdered className={`w-4 h-4 shrink-0 mt-0.5 ${guideFormData.layoutFormat !== 'document' ? 'text-[#FF6B00]' : 'text-neutral-400'}`} />
                             <div>
-                              <div className="font-bold text-xs text-neutral-900">🔢 Format Poin Terstruktur</div>
+                              <div className="font-bold text-xs text-neutral-900">🔢 Structured Step-by-Step</div>
                               <div className="text-[11px] text-neutral-500 mt-0.5 leading-snug">
-                                Terstruktur dengan poin tahapan (01, 02...).
+                                Modular point-based walkthrough (01, 02, etc.).
                               </div>
                             </div>
                           </button>
@@ -2797,7 +2824,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                                 className="w-4 h-4 rounded text-[#FF6B00] focus:ring-[#FF6B00]"
                               />
                               <span className="text-xs text-neutral-700 font-medium">
-                                Sembunyikan nomor angka (01, 02) pada setiap poin (tampilkan judul poin saja)
+                                Hide point numbers (01, 02) on steps (display titles only)
                               </span>
                             </label>
                           </div>
@@ -2807,7 +2834,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                       {/* Photo Control Selector */}
                       <div className="pt-3 border-t border-orange-200/70">
                         <label className="block font-bold text-neutral-800 text-xs mb-1.5">
-                          2. Pengaturan Foto dalam Artikel
+                          2. Article Body Photos
                         </label>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                           <button
@@ -2821,9 +2848,9 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                           >
                             <span className="text-base shrink-0">🌟</span>
                             <div>
-                              <div className="font-bold text-xs text-neutral-900">Hanya Foto Hero di Atas (Rekomendasi)</div>
+                              <div className="font-bold text-xs text-neutral-900">Hero Cover Photo Only (Recommended)</div>
                               <div className="text-[11px] text-neutral-500 mt-0.5 leading-snug">
-                                Hanya 1 foto cover Hero di paling atas. Isi artikel bersih TANPA FOTO dan tanpa kotak kosong.
+                                Uses only the primary Hero image at top. Body text remains completely clean with zero empty image boxes.
                               </div>
                             </div>
                           </button>
@@ -2839,9 +2866,9 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                           >
                             <span className="text-base shrink-0">📷</span>
                             <div>
-                              <div className="font-bold text-xs text-neutral-900">Izinkan Foto di Dalam Isi Artikel</div>
+                              <div className="font-bold text-xs text-neutral-900">Enable Images in Article Body</div>
                               <div className="text-[11px] text-neutral-500 mt-0.5 leading-snug">
-                                Tampilkan foto di dalam isi artikel jika Anda memiliki gambar pendukung.
+                                Display photos within each step when supporting diagrams or photos are available.
                               </div>
                             </div>
                           </button>
@@ -2851,11 +2878,11 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
 
                     <div>
                       <AdminImageUploader
-                        label="URL Gambar Header / Cover (Hero Section)"
+                        label="Hero Header Image URL (Hero Section)"
                         value={guideFormData.image || ''}
                         onChange={(newUrl) => setGuideFormData({ ...guideFormData, image: newUrl })}
                         presets={['/acer-nitro.png', '/acer-creator.png', '/powerpac.png', '/acer-portable.png']}
-                        placeholder="https://example.com/guide-header.jpg atau upload gambar"
+                        placeholder="https://example.com/guide-header.jpg or upload file"
                       />
                     </div>
                   </div>
@@ -2866,7 +2893,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="block font-bold text-neutral-700 mb-1">Nama Penulis</label>
+                        <label className="block font-bold text-neutral-700 mb-1">Author Name</label>
                         <input
                           type="text"
                           value={guideFormData.author?.name || ''}
@@ -2886,7 +2913,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                       </div>
 
                       <div>
-                        <label className="block font-bold text-neutral-700 mb-1">Peran Penulis</label>
+                        <label className="block font-bold text-neutral-700 mb-1">Author Role</label>
                         <input
                           type="text"
                           value={guideFormData.author?.role || ''}
@@ -2908,7 +2935,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
 
                     <div>
                       <AdminImageUploader
-                        label="Avatar Penulis"
+                        label="Author Avatar"
                         value={guideFormData.author?.avatar || ''}
                         onChange={(newUrl) =>
                           setGuideFormData({
@@ -2921,48 +2948,48 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                           })
                         }
                         presets={['/acer-nitro.png', '/acer-creator.png', '/powerpac.png', '/acer-portable.png']}
-                        placeholder="https://example.com/avatar.jpg atau upload avatar"
+                        placeholder="https://example.com/avatar.jpg or upload avatar"
                       />
                     </div>
 
                     <div>
-                      <label className="block font-bold text-neutral-700 mb-1">Paragraf Pengantar (Intro)</label>
+                      <label className="block font-bold text-neutral-700 mb-1">Introductory Paragraph (Intro)</label>
                       <textarea
                         rows={3}
                         value={guideFormData.intro || ''}
                         onChange={(e) => setGuideFormData({ ...guideFormData, intro: e.target.value })}
-                        placeholder="Paragraf pembuka artikel secara mendalam..."
+                        placeholder="In-depth opening editorial introduction..."
                         className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl"
                       />
                     </div>
 
                     <div>
                       <label className="block font-bold text-neutral-700 mb-1">
-                        Prinsip Utama / Core Spatial Principle (Callout Box)
+                        Core Spatial Principle (Callout Box)
                       </label>
                       <textarea
                         rows={2}
                         value={guideFormData.callout || ''}
                         onChange={(e) => setGuideFormData({ ...guideFormData, callout: e.target.value })}
-                        placeholder="Prinsip spatial kunci yang ingin ditekankan..."
+                        placeholder="Key spatial or architectural takeaway to emphasize..."
                         className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl"
                       />
                     </div>
 
                     <div>
-                      <label className="block font-bold text-neutral-700 mb-1">Kesimpulan Akhir (Summary)</label>
+                      <label className="block font-bold text-neutral-700 mb-1">Conclusion & Verdict (Summary)</label>
                       <textarea
                         rows={3}
                         value={guideFormData.summary || ''}
                         onChange={(e) => setGuideFormData({ ...guideFormData, summary: e.target.value })}
-                        placeholder="Ringkasan akhir dan rekomendasi kesimpulan..."
+                        placeholder="Final summary takeaway and recommendation..."
                         className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl"
                       />
                     </div>
                   </div>
                 )}
 
-                {/* TAB 3: KONTEN DOKUMEN & LANGKAH ARTIKEL */}
+                {/* TAB 3: DOCUMENT CONTENT & STEPS */}
                 {guideModalTab === 'steps' && (
                   <div className="space-y-5">
                     {/* Notice if photo mode is off */}
@@ -2971,7 +2998,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                         <div className="flex items-center gap-2">
                           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
                           <span>
-                            <strong>Mode Bebas Foto Aktif:</strong> Hanya foto cover (Hero) di paling atas yang dipakai. Tidak ada kewajiban mengisi foto di dalam artikel.
+                            <strong>Clean Mode Active:</strong> Only the primary Hero cover photo is used. Article body remains clean without empty image placeholders.
                           </span>
                         </div>
                         <button
@@ -2979,35 +3006,35 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                           onClick={() => setGuideModalTab('basic')}
                           className="text-emerald-900 font-bold hover:underline shrink-0 text-[11px] cursor-pointer"
                         >
-                          Ubah di Tab 1 →
+                          Change in Tab 1 →
                         </button>
                       </div>
                     ) : (
                       <div className="p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-2xl text-xs flex items-center justify-between">
                         <span>
-                          📷 <strong>Mode Foto Artikel Aktif:</strong> Foto yang Anda isi di bawah akan ditampilkan di dalam artikel.
+                          📷 <strong>Article Photos Active:</strong> Images uploaded for steps below will be displayed in the published article.
                         </span>
                         <button
                           type="button"
                           onClick={() => setGuideModalTab('basic')}
                           className="text-amber-900 font-bold hover:underline shrink-0 text-[11px] cursor-pointer"
                         >
-                          Ubah ke Tanpa Foto →
+                          Switch to Hero Only →
                         </button>
                       </div>
                     )}
 
-                    {/* JIKA FORMAT DOKUMEN: EDITOR LEMBAR DOKUMEN BIASA */}
+                    {/* CONTINUOUS DOCUMENT FORMAT */}
                     {guideFormData.layoutFormat === 'document' ? (
                       <div className="bg-[#F7F6F2] p-4 sm:p-5 rounded-2xl border border-[#E9E9E6] space-y-4">
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-[#E9E9E6]">
                           <div>
                             <h4 className="font-extrabold text-neutral-900 text-sm flex items-center gap-1.5">
                               <FileText className="w-4 h-4 text-[#FF6B00]" />
-                              <span>Lembar Dokumen Biasa (Bebas / Tanpa Poin)</span>
+                              <span>Continuous Document Format (Unstructured)</span>
                             </h4>
                             <p className="text-[11px] text-neutral-500">
-                              Tulis mengalir layaknya dokumen, esai, atau artikel berita biasa tanpa dipaksa menjadi poin 01, 02.
+                              Compose flowing editorial essays or articles without being forced into separate step cards.
                             </p>
                           </div>
 
@@ -3022,7 +3049,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                                   : 'text-neutral-600 hover:text-neutral-900'
                               }`}
                             >
-                              ✍️ Tulis Dokumen
+                              ✍️ Write Document
                             </button>
                             <button
                               type="button"
@@ -3041,46 +3068,46 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                         {/* Quick Format Toolbar (Active in Write Mode) */}
                         {!guideDocPreview && (
                           <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                            <span className="text-[11px] font-bold text-neutral-500 mr-1">Sisipkan Format:</span>
+                            <span className="text-[11px] font-bold text-neutral-500 mr-1">Insert Format:</span>
                             <button
                               type="button"
                               onClick={() => {
-                                const addition = '\n\n## Subjudul Pembahasan\n';
+                                const addition = '\n\n## Section Heading\n';
                                 setGuideFormData((prev) => ({ ...prev, content: (prev.content || '') + addition }));
                               }}
                               className="px-2.5 py-1 bg-white hover:bg-neutral-100 border border-[#E9E9E6] rounded-lg text-[11px] font-bold text-neutral-700 cursor-pointer"
                             >
-                              + H2 Subjudul
+                              + H2 Heading
                             </button>
                             <button
                               type="button"
                               onClick={() => {
-                                const addition = '\n\n### Topik Pembahasan\n';
+                                const addition = '\n\n### Subtopic\n';
                                 setGuideFormData((prev) => ({ ...prev, content: (prev.content || '') + addition }));
                               }}
                               className="px-2.5 py-1 bg-white hover:bg-neutral-100 border border-[#E9E9E6] rounded-lg text-[11px] font-bold text-neutral-700 cursor-pointer"
                             >
-                              + H3 Topik
+                              + H3 Topic
                             </button>
                             <button
                               type="button"
                               onClick={() => {
-                                const addition = '\n\n- Poin catatan pertama\n- Poin catatan kedua\n';
+                                const addition = '\n\n- Key practical point one\n- Key practical point two\n';
                                 setGuideFormData((prev) => ({ ...prev, content: (prev.content || '') + addition }));
                               }}
                               className="px-2.5 py-1 bg-white hover:bg-neutral-100 border border-[#E9E9E6] rounded-lg text-[11px] font-bold text-neutral-700 cursor-pointer"
                             >
-                              + Poin List (-)
+                              + Bullet List (-)
                             </button>
                             <button
                               type="button"
                               onClick={() => {
-                                const addition = '\n\n> Catatan atau prinsip penting di sini...\n';
+                                const addition = '\n\n> Important spatial principle or note here...\n';
                                 setGuideFormData((prev) => ({ ...prev, content: (prev.content || '') + addition }));
                               }}
                               className="px-2.5 py-1 bg-white hover:bg-neutral-100 border border-[#E9E9E6] rounded-lg text-[11px] font-bold text-neutral-700 cursor-pointer"
                             >
-                              + Kutipan (&gt;)
+                              + Quote (&gt;)
                             </button>
                             <button
                               type="button"
@@ -3090,17 +3117,17 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                               }}
                               className="px-2.5 py-1 bg-white hover:bg-neutral-100 border border-[#E9E9E6] rounded-lg text-[11px] font-bold text-neutral-700 cursor-pointer"
                             >
-                              + Pembatas (---)
+                              + Divider (---)
                             </button>
                             <button
                               type="button"
                               onClick={() => {
-                                const addition = '\n\n![Deskripsi Gambar](https://example.com/foto.jpg)\n\n';
+                                const addition = '\n\n![Image Caption](https://example.com/photo.jpg)\n\n';
                                 setGuideFormData((prev) => ({ ...prev, content: (prev.content || '') + addition }));
                               }}
                               className="px-2.5 py-1 bg-white hover:bg-neutral-100 border border-orange-200 text-[#FF6B00] rounded-lg text-[11px] font-bold cursor-pointer flex items-center gap-1"
                             >
-                              📷 + Sisipkan Foto
+                              📷 + Insert Image
                             </button>
 
                             {/* Convert existing steps if available */}
@@ -3109,9 +3136,9 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                                 type="button"
                                 onClick={handleConvertStepsToDocument}
                                 className="px-2.5 py-1 bg-orange-100 hover:bg-orange-200 border border-orange-300 rounded-lg text-[11px] font-bold text-[#FF6B00] cursor-pointer ml-auto"
-                                title="Satukan poin-poin langkah yang sudah ada ke dalam teks dokumen mengalir"
+                                title="Convert existing steps into continuous document text"
                               >
-                                🔄 Konversi {guideFormData.steps.length} Langkah ke Teks Dokumen
+                                🔄 Convert {guideFormData.steps.length} Steps to Document
                               </button>
                             )}
                           </div>
@@ -3124,17 +3151,17 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                               rows={12}
                               value={guideFormData.content || ''}
                               onChange={(e) => setGuideFormData({ ...guideFormData, content: e.target.value })}
-                              placeholder="Tuliskan isi artikel Anda di sini layaknya lembar dokumen biasa...&#10;&#10;## 1. Pembahasan Utama&#10;Tulis paragraf penjelasan secara mengalir bebas tanpa harus dipecah menjadi kartu poin terpisah.&#10;&#10;## 2. Penjelasan Lanjutan&#10;Semua paragraf mengalir rapi dan indah tanpa kewajiban foto!&#10;&#10;![Foto Ruang Setup](https://example.com/foto.jpg)"
+                              placeholder="Write your editorial guide content here in clean markdown...&#10;&#10;## 1. Core Principles&#10;Explain the setup philosophy clearly without forcing separate cards.&#10;&#10;## 2. Spatial Implementation&#10;All paragraphs flow cleanly with zero unwanted image boxes!&#10;&#10;![Desk Architecture](https://example.com/setup.jpg)"
                               className="w-full p-3.5 bg-white border border-[#E9E9E6] rounded-xl text-xs font-sans leading-relaxed focus:border-[#FF6B00] focus:outline-none"
                             />
                             <p className="text-[11px] text-neutral-500">
-                              Tips: Gunakan <code>## Judul Bagian</code> untuk membuat subjudul, <code>**tebal**</code> untuk teks tebal, dan <code>![Keterangan](URL_GAMBAR)</code> untuk menyisipkan foto.
+                              Tips: Use <code>## Section</code> for headings, <code>**bold**</code> for emphasis, and <code>![Caption](IMAGE_URL)</code> to insert photos.
                             </p>
                           </div>
                         ) : (
                           <div className="space-y-2">
                             <div className="text-[11px] font-bold text-neutral-500">
-                              Preview Tampilan Dokumen di Halaman Publik:
+                              Public Document Preview:
                             </div>
                             {renderAdminDocPreview(guideFormData.content || '')}
                           </div>
@@ -3143,7 +3170,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                         {/* Optional Hardware Mention in Document */}
                         <div className="pt-3 border-t border-[#E9E9E6]">
                           <label className="block font-bold text-neutral-800 text-xs mb-1">
-                            Rekomendasi Hardware Tertaut untuk Dokumen Ini (Opsional)
+                            Linked Recommended Hardware (Optional)
                           </label>
                           <select
                             value={guideFormData.steps?.[0]?.recommendedProductSlug || ''}
@@ -3152,7 +3179,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                               const currentSteps = Array.isArray(guideFormData.steps) ? [...guideFormData.steps] : [];
                               if (currentSteps.length === 0) {
                                 if (slug) {
-                                  currentSteps.push({ number: '01', title: 'Hardware Rekomendasi', text: '', recommendedProductSlug: slug });
+                                  currentSteps.push({ number: '01', title: 'Recommended Hardware', text: '', recommendedProductSlug: slug });
                                 }
                               } else {
                                 currentSteps[0] = { ...currentSteps[0], recommendedProductSlug: slug };
@@ -3164,7 +3191,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                             }}
                             className="w-full p-2.5 bg-white border border-[#E9E9E6] rounded-xl text-xs font-medium"
                           >
-                            <option value="">-- Tidak Ada Hardware Tertaut --</option>
+                            <option value="">-- No Linked Hardware --</option>
                             {products.map((p) => (
                               <option key={p.id} value={p.slug}>
                                 {p.name} ({p.category})
@@ -3172,21 +3199,21 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                             ))}
                           </select>
                           <p className="text-[11px] text-neutral-500 mt-1">
-                            Jika dipilih, kartu spesifikasi produk ini akan ditampilkan secara rapi di bagian akhir lembar dokumen.
+                            If selected, this product specification card will be neatly displayed at the bottom of the article.
                           </p>
                         </div>
                       </div>
                     ) : (
-                      /* JIKA FORMAT POIN TERSTRUKTUR: EDITOR LANGKAH PER LANGKAH */
+                      /* STRUCTURED STEP-BY-STEP FORMAT */
                       <div className="space-y-4 pt-1">
                         <div className="flex items-center justify-between pb-2 border-b border-[#E9E9E6]">
                           <div>
                             <h4 className="font-extrabold text-neutral-900 text-sm flex items-center gap-1.5">
                               <ListOrdered className="w-4 h-4 text-[#FF6B00]" />
-                              <span>Langkah Panduan Terstruktur ({guideFormData.steps?.length || 0})</span>
+                              <span>Structured Guide Steps ({guideFormData.steps?.length || 0})</span>
                             </h4>
                             <p className="text-[11px] text-neutral-500">
-                              Tambahkan tahapan poin (01, 02, dst.) atau poin tanpa angka.
+                              Add sequential action items (01, 02, etc.) or unnumbered points.
                             </p>
                           </div>
 
@@ -3196,19 +3223,19 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                             className="px-3.5 py-1.5 bg-[#FF6B00] hover:bg-[#E05E00] text-white font-bold text-xs rounded-xl transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
                           >
                             <Plus className="w-3.5 h-3.5" />
-                            <span>Tambah Langkah</span>
+                            <span>Add Step</span>
                           </button>
                         </div>
 
                         {(!guideFormData.steps || guideFormData.steps.length === 0) ? (
                           <div className="p-6 text-center bg-[#F7F6F2] rounded-2xl border border-dashed border-[#E9E9E6] text-neutral-500 space-y-1">
-                            <p className="text-xs">Belum ada langkah panduan terstruktur.</p>
+                            <p className="text-xs">No structured guide steps created yet.</p>
                             <button
                               type="button"
                               onClick={handleAddGuideStep}
                               className="text-xs font-bold text-[#FF6B00] hover:underline cursor-pointer"
                             >
-                              + Tambah Langkah Pertama
+                              + Add First Step
                             </button>
                           </div>
                         ) : (
@@ -3224,7 +3251,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                                       {step.number || String(idx + 1).padStart(2, '0')}
                                     </span>
                                     <span className="font-extrabold text-neutral-800 text-xs">
-                                      Langkah #{idx + 1}
+                                      Step #{idx + 1}
                                     </span>
                                   </div>
 
@@ -3233,7 +3260,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                                       type="button"
                                       disabled={idx === 0}
                                       onClick={() => handleMoveGuideStep(idx, 'up')}
-                                      title="Pindah ke Atas"
+                                      title="Move Up"
                                       className="p-1 rounded text-neutral-400 hover:text-neutral-700 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
                                     >
                                       ▲
@@ -3242,7 +3269,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                                       type="button"
                                       disabled={idx === (guideFormData.steps?.length || 0) - 1}
                                       onClick={() => handleMoveGuideStep(idx, 'down')}
-                                      title="Pindah ke Bawah"
+                                      title="Move Down"
                                       className="p-1 rounded text-neutral-400 hover:text-neutral-700 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
                                     >
                                       ▼
@@ -3250,7 +3277,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                                     <button
                                       type="button"
                                       onClick={() => handleDeleteGuideStep(idx)}
-                                      title="Hapus Langkah Ini"
+                                      title="Delete Step"
                                       className="p-1 rounded text-rose-500 hover:bg-rose-100 transition-colors cursor-pointer ml-1"
                                     >
                                       <Trash2 className="w-3.5 h-3.5" />
@@ -3260,26 +3287,26 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
 
                                 <div>
                                   <label className="block font-bold text-neutral-700 mb-1">
-                                    Judul Langkah
+                                    Step Title
                                   </label>
                                   <input
                                     type="text"
                                     value={step.title || ''}
                                     onChange={(e) => handleUpdateGuideStep(idx, { title: e.target.value })}
-                                    placeholder="Contoh: Mengatur Posisi dan Ketinggian Monitor"
+                                    placeholder="Example: Positioning and Leveling Monitor Height"
                                     className="w-full p-2 bg-white border border-[#E9E9E6] rounded-xl text-xs font-semibold"
                                   />
                                 </div>
 
                                 <div>
                                   <label className="block font-bold text-neutral-700 mb-1">
-                                    Instruksi / Deskripsi Langkah
+                                    Step Instructions / Procedure
                                   </label>
                                   <textarea
                                     rows={3}
                                     value={step.text || ''}
                                     onChange={(e) => handleUpdateGuideStep(idx, { text: e.target.value })}
-                                    placeholder="Tuliskan isi langkah secara detail..."
+                                    placeholder="Detail the walkthrough steps and clearances..."
                                     className="w-full p-2 bg-white border border-[#E9E9E6] rounded-xl text-xs"
                                   />
                                 </div>
@@ -3287,14 +3314,14 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                   <div>
                                     <label className="block font-bold text-neutral-700 mb-1">
-                                      Rekomendasi Produk (Opsional)
+                                      Recommended Product (Optional)
                                     </label>
                                     <select
                                       value={step.recommendedProductSlug || ''}
                                       onChange={(e) => handleUpdateGuideStep(idx, { recommendedProductSlug: e.target.value })}
                                       className="w-full p-2 bg-white border border-[#E9E9E6] rounded-xl text-xs font-medium"
                                     >
-                                      <option value="">-- Tidak Ada Produk Tertaut --</option>
+                                      <option value="">-- No Linked Product --</option>
                                       {products.map((p) => (
                                         <option key={p.id} value={p.slug}>
                                           {p.name} ({p.category})
@@ -3305,7 +3332,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
 
                                   <div>
                                     <AdminImageUploader
-                                      label={`Foto Langkah #${step.number || String(idx + 1).padStart(2, '0')} (Article Block)`}
+                                      label={`Step #${step.number || String(idx + 1).padStart(2, '0')} Photo (Article Block)`}
                                       value={step.image || ''}
                                       onChange={async (newUrl) => {
                                         handleUpdateGuideStep(idx, { image: newUrl, image_url: newUrl });
@@ -3325,26 +3352,26 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                                               guide_id: gId,
                                             });
                                             if (res.success) {
-                                              showToast(`Foto langkah #${stepNum} tersimpan ke database!`);
+                                              showToast(`Step #${stepNum} photo saved to database!`);
                                             }
                                           } catch (err) {
                                             console.warn('Targeted article block save error:', err);
                                           }
                                         }
                                       }}
-                                      presets={['/hero-setup.jpg', '/og-image.jpg', '/acer-nitro.png', '/acer-creator.png', '/powerpac.png', '/acer-portable.png']}
-                                      placeholder="https://... atau upload foto langkah"
-                                      helperText="Foto diupload langsung ke Supabase Storage & tersimpan aman di database article_blocks."
+                                      presets={['/hero-setup.jpg', '/acer-nitro.png', '/acer-creator.png', '/powerpac.png', '/acer-portable.png']}
+                                      placeholder="https://... or upload step photo"
+                                      helperText="Image uploaded to Supabase Storage & stored securely in article_blocks database."
                                     />
                                     {!guideFormData.showContentImages && (
                                       <div className="mt-2 p-2 bg-orange-50 border border-orange-200/60 rounded-xl text-[11px] text-orange-950 flex items-center justify-between">
-                                        <span>🌟 Mode Tanpa Foto aktif di Tab 1 (Foto ini disimpan tetapi disembunyikan di publik).</span>
+                                        <span>🌟 Clean Mode active in Tab 1 (This photo is saved but hidden from public view).</span>
                                         <button
                                           type="button"
                                           onClick={() => setGuideFormData((prev) => ({ ...prev, showContentImages: true }))}
                                           className="text-[#FF6B00] font-bold hover:underline shrink-0 text-[10px] cursor-pointer ml-1"
                                         >
-                                          Aktifkan Foto →
+                                          Enable Photos →
                                         </button>
                                       </div>
                                     )}
@@ -3373,14 +3400,14 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                     onClick={handleCloseGuideModal}
                     className="px-5 py-2 bg-white hover:bg-neutral-100 text-neutral-700 font-bold rounded-xl border border-[#E9E9E6] transition-all cursor-pointer shadow-2xs text-xs"
                   >
-                    Batal
+                    Cancel
                   </button>
                   <button
                     type="submit"
                     className="px-6 py-2 bg-[#FF6B00] hover:bg-[#E05E00] text-white font-bold rounded-xl transition-all shadow-xs cursor-pointer text-xs flex items-center gap-1.5"
                   >
                     <Check className="w-3.5 h-3.5" />
-                    <span>Simpan Panduan</span>
+                    <span>Save Guide</span>
                   </button>
                 </div>
               </div>
@@ -3402,21 +3429,21 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
 
               <h3 className="text-lg font-extrabold text-[#111111] mb-2">
                 {deleteTarget.type === 'factoryReset'
-                  ? 'Konfirmasi Factory Reset'
-                  : 'Konfirmasi Penghapusan'}
+                  ? 'Confirm Factory Reset'
+                  : 'Confirm Deletion'}
               </h3>
 
               <p className="text-xs text-neutral-600 leading-relaxed mb-6">
                 {deleteTarget.type === 'factoryReset' ? (
                   <>
-                    Apakah Anda yakin ingin me-reset seluruh data website ke pengaturan awal? Semua produk baru,
-                    kategori baru, dan pengaturan kustom akan dikembalikan ke data default.
+                    Are you sure you want to reset all website data to initial factory defaults? All newly added products,
+                    categories, and custom settings will be restored to defaults.
                   </>
                 ) : (
                   <>
-                    Apakah Anda yakin ingin menghapus {deleteTarget.type === 'product' ? 'produk' : deleteTarget.type === 'category' ? 'kategori' : 'panduan'}{' '}
-                    <strong className="text-neutral-900 font-bold">"{deleteTarget.name}"</strong>? Tindakan ini
-                    akan langsung menghapusnya dari website dan tidak dapat dibatalkan.
+                    Are you sure you want to delete this {deleteTarget.type === 'product' ? 'product' : deleteTarget.type === 'category' ? 'category' : 'guide'}{' '}
+                    <strong className="text-neutral-900 font-bold">"{deleteTarget.name}"</strong>? This action
+                    will permanently remove it from the website and cannot be undone.
                   </>
                 )}
               </p>
@@ -3427,7 +3454,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                   onClick={() => setDeleteTarget(null)}
                   className="px-5 py-2.5 bg-[#F7F6F2] hover:bg-neutral-200 text-neutral-700 font-bold rounded-xl text-xs transition-all cursor-pointer"
                 >
-                  Batal
+                  Cancel
                 </button>
                 <button
                   type="button"
@@ -3436,7 +3463,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                 >
                   <Trash2 className="w-4 h-4" />
                   <span>
-                    {deleteTarget.type === 'factoryReset' ? 'Ya, Reset Sekarang' : 'Ya, Hapus Sekarang'}
+                    {deleteTarget.type === 'factoryReset' ? 'Yes, Reset Now' : 'Yes, Delete Now'}
                   </span>
                 </button>
               </div>
@@ -3458,10 +3485,10 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                 </div>
                 <div>
                   <h3 className="text-base font-extrabold text-white">
-                    Skema Database Supabase (schema.sql)
+                    Supabase Database Schema (schema.sql)
                   </h3>
                   <p className="text-xs text-neutral-400">
-                    Jalankan skrip ini sekali di Supabase Dashboard &gt; SQL Editor untuk membuat 4 tabel & RLS.
+                    Run this script once in your Supabase Dashboard &gt; SQL Editor to create the 4 tables & RLS policies.
                   </p>
                 </div>
               </div>
@@ -3473,7 +3500,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                   className="px-3.5 py-1.5 bg-[#FF6B00] hover:bg-[#E05E00] text-white text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
                 >
                   {copiedSchema ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>{copiedSchema ? 'Tersalin!' : 'Salin Semua SQL'}</span>
+                  <span>{copiedSchema ? 'Copied!' : 'Copy All SQL'}</span>
                 </button>
                 <button
                   type="button"
@@ -3487,18 +3514,18 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
 
             {/* SQL Code Body */}
             <div className="p-4 overflow-y-auto font-mono text-xs text-emerald-400 bg-[#121212] flex-1 select-text leading-relaxed whitespace-pre">
-              {schemaSql || 'Memuat skema SQL...'}
+              {schemaSql || 'Loading SQL schema...'}
             </div>
 
             {/* Modal Footer */}
             <div className="p-4 border-t border-neutral-800 bg-[#1a1a1a] flex items-center justify-between text-xs text-neutral-400">
-              <span>Mencakup: <code className="text-neutral-200">categories</code>, <code className="text-neutral-200">products</code>, <code className="text-neutral-200">guides</code>, <code className="text-neutral-200">site_settings</code> + RLS</span>
+              <span>Includes: <code className="text-neutral-200">categories</code>, <code className="text-neutral-200">products</code>, <code className="text-neutral-200">guides</code>, <code className="text-neutral-200">site_settings</code> + RLS</span>
               <button
                 type="button"
                 onClick={() => setShowSchemaModal(false)}
                 className="px-4 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-white font-bold rounded-xl text-xs transition-all cursor-pointer"
               >
-                Tutup
+                Close
               </button>
             </div>
           </div>

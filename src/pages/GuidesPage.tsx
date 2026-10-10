@@ -5,8 +5,6 @@ import { Guide } from '../types';
 import { SafeImage } from '../components/SafeImage';
 import { analytics } from '../services/analytics';
 import { updateSEO, buildBreadcrumbSchema } from '../services/seo';
-import { useVisualEditor } from '../contexts/VisualEditorContext';
-import { EditableElement } from '../components/visual-editor/EditableElement';
 
 interface GuidesPageProps {
   guides: Guide[];
@@ -14,7 +12,6 @@ interface GuidesPageProps {
 }
 
 export const GuidesPage: React.FC<GuidesPageProps> = ({ guides, onSelectGuide }) => {
-  const visualEditor = useVisualEditor();
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -122,171 +119,147 @@ export const GuidesPage: React.FC<GuidesPageProps> = ({ guides, onSelectGuide })
 
       {/* Featured Guide Banner (Large Rounded-3xl Card) */}
       {featuredGuide && (
-        <EditableElement
-          isEditMode={visualEditor.isVisualEditMode}
-          label={`Featured Guide: ${featuredGuide.title}`}
-          onEdit={() =>
-            visualEditor.openEditor({
-              type: 'guide',
-              title: `Edit Guide: ${featuredGuide.title}`,
-              data: featuredGuide,
-            })
-          }
+        <motion.div
+          whileHover={{ y: -4 }}
+          transition={{ duration: 0.2 }}
+          onClick={() => onSelectGuide(featuredGuide.slug)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') onSelectGuide(featuredGuide.slug);
+          }}
+          tabIndex={0}
+          role="button"
+          aria-label={`Read featured guide: ${featuredGuide.title}`}
+          className="group bg-white dark:bg-[#16171C] rounded-3xl border border-[#E9E9E6] dark:border-[#272932] hover:border-[#FF6B00] dark:hover:border-[#FF6B00] shadow-md overflow-hidden cursor-pointer grid grid-cols-1 lg:grid-cols-12 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
         >
-          <motion.div
-            whileHover={{ y: -4 }}
-            transition={{ duration: 0.2 }}
-            onClick={() => onSelectGuide(featuredGuide.slug)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') onSelectGuide(featuredGuide.slug);
-            }}
-            tabIndex={0}
-            role="button"
-            aria-label={`Read featured guide: ${featuredGuide.title}`}
-            className="group bg-white dark:bg-[#16171C] rounded-3xl border border-[#E9E9E6] dark:border-[#272932] hover:border-[#FF6B00] dark:hover:border-[#FF6B00] shadow-md overflow-hidden cursor-pointer grid grid-cols-1 lg:grid-cols-12 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
-          >
-            <div className="lg:col-span-7 aspect-16/10 lg:aspect-auto overflow-hidden bg-neutral-100 dark:bg-[#1C1E25] relative">
-              <SafeImage
-                src={featuredGuide.image}
-                alt={featuredGuide.title}
-                fallbackText={featuredGuide.title}
-                className="w-full h-full object-cover group-hover:scale-104 transition-transform duration-500 ease-out"
-                loading="eager"
-              />
-              <div className="absolute top-4 left-4">
-                <span className="px-3 py-1 rounded-xl text-xs font-bold tracking-wider uppercase bg-[#FF6B00] text-white shadow-xs">
-                  Featured Blueprint
+          <div className="lg:col-span-7 aspect-16/10 lg:aspect-auto overflow-hidden bg-neutral-100 dark:bg-[#1C1E25] relative">
+            <SafeImage
+              src={featuredGuide.image}
+              alt={featuredGuide.title}
+              fallbackText={featuredGuide.title}
+              className="w-full h-full object-cover group-hover:scale-104 transition-transform duration-500 ease-out"
+              loading="eager"
+            />
+            <div className="absolute top-4 left-4">
+              <span className="px-3 py-1 rounded-xl text-xs font-bold tracking-wider uppercase bg-[#FF6B00] text-white shadow-xs">
+                Featured Blueprint
+              </span>
+            </div>
+          </div>
+
+          <div className="lg:col-span-5 p-7 sm:p-10 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center gap-2 text-xs font-semibold mb-3">
+                <span className="uppercase tracking-wider text-[#FF6B00]">
+                  {featuredGuide.category}
+                </span>
+                <span className="text-neutral-400">•</span>
+                <span className="text-neutral-500 dark:text-neutral-400 flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5" />
+                  {featuredGuide.readTime}
                 </span>
               </div>
-            </div>
 
-            <div className="lg:col-span-5 p-7 sm:p-10 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center gap-2 text-xs font-semibold mb-3">
-                  <span className="uppercase tracking-wider text-[#FF6B00]">
-                    {featuredGuide.category}
-                  </span>
-                  <span className="text-neutral-400">•</span>
-                  <span className="text-neutral-500 dark:text-neutral-400 flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5" />
-                    {featuredGuide.readTime}
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-[#111111] dark:text-white group-hover:text-[#FF6B00] transition-colors leading-tight">
+                {featuredGuide.title}
+              </h2>
+
+              <p className="mt-4 text-xs sm:text-sm text-neutral-600 dark:text-neutral-300 leading-relaxed">
+                {featuredGuide.excerpt}
+              </p>
+
+              {featuredGuide.layoutFormat === 'document' ? (
+                <div className="mt-6 pt-4 border-t border-neutral-100 dark:border-neutral-800 flex items-center gap-2">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-neutral-100 dark:bg-[#1D1F27] text-neutral-600 dark:text-neutral-400 border border-neutral-200/80 dark:border-neutral-800">
+                    📄 Document Format
                   </span>
                 </div>
-
-                <h2 className="text-2xl sm:text-3xl font-extrabold text-[#111111] dark:text-white group-hover:text-[#FF6B00] transition-colors leading-tight">
-                  {featuredGuide.title}
-                </h2>
-
-                <p className="mt-4 text-xs sm:text-sm text-neutral-600 dark:text-neutral-300 leading-relaxed">
-                  {featuredGuide.excerpt}
-                </p>
-
-                {featuredGuide.layoutFormat === 'document' ? (
-                  <div className="mt-6 pt-4 border-t border-neutral-100 dark:border-neutral-800 flex items-center gap-2">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-neutral-100 dark:bg-[#1D1F27] text-neutral-600 dark:text-neutral-400 border border-neutral-200/80 dark:border-neutral-800">
-                      📄 Format Lembar Dokumen
+              ) : (
+                featuredGuide.steps && featuredGuide.steps.length > 0 && (
+                  <div className="mt-6 pt-6 border-t border-neutral-100 dark:border-neutral-800 space-y-2">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 block">
+                      Inside this blueprint:
                     </span>
+                    <ul className="text-xs text-neutral-600 dark:text-neutral-400 space-y-1">
+                      {featuredGuide.steps.slice(0, 3).map((st, i) => (
+                        <li key={st.number || i} className="flex items-center gap-2 truncate">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#FF6B00] shrink-0" />
+                          <span className="truncate">{st.title}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                ) : (
-                  featuredGuide.steps && featuredGuide.steps.length > 0 && (
-                    <div className="mt-6 pt-6 border-t border-neutral-100 dark:border-neutral-800 space-y-2">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400 block">
-                        Inside this blueprint:
-                      </span>
-                      <ul className="text-xs text-neutral-600 dark:text-neutral-400 space-y-1">
-                        {featuredGuide.steps.slice(0, 3).map((st, i) => (
-                          <li key={st.number || i} className="flex items-center gap-2 truncate">
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#FF6B00] shrink-0" />
-                            <span className="truncate">{st.title}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )
-                )}
-              </div>
-
-              <div className="mt-8 pt-4 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between">
-                <span className="text-xs text-neutral-400">
-                  Published {featuredGuide.publishDate}
-                </span>
-                <span className="text-sm font-bold text-[#111111] dark:text-white group-hover:text-[#FF6B00] transition-colors flex items-center gap-1.5">
-                  <span>Read Blueprint</span>
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </span>
-              </div>
+                )
+              )}
             </div>
-          </motion.div>
-        </EditableElement>
+
+            <div className="mt-8 pt-4 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between">
+              <span className="text-xs text-neutral-400">
+                Published {featuredGuide.publishDate}
+              </span>
+              <span className="text-sm font-bold text-[#111111] dark:text-white group-hover:text-[#FF6B00] transition-colors flex items-center gap-1.5">
+                <span>Read Blueprint</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </span>
+            </div>
+          </div>
+        </motion.div>
       )}
 
       {/* Grid of Other Guides in Rounded-3xl Cards */}
       {regularGuides.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {regularGuides.map((guide) => (
-            <EditableElement
+            <motion.div
               key={guide.id}
-              isEditMode={visualEditor.isVisualEditMode}
-              label={`Guide: ${guide.title}`}
-              onEdit={() =>
-                visualEditor.openEditor({
-                  type: 'guide',
-                  title: `Edit Guide: ${guide.title}`,
-                  data: guide,
-                })
-              }
+              whileHover={{ y: -5 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => onSelectGuide(guide.slug)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') onSelectGuide(guide.slug);
+              }}
+              tabIndex={0}
+              role="button"
+              aria-label={`Read guide: ${guide.title}`}
+              className="group bg-white dark:bg-[#16171C] rounded-3xl border border-[#E9E9E6] dark:border-[#272932] hover:border-[#FF6B00] dark:hover:border-[#FF6B00] shadow-xs hover:shadow-xl transition-all overflow-hidden cursor-pointer flex flex-col justify-between focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] h-full"
             >
-              <motion.div
-                whileHover={{ y: -5 }}
-                transition={{ duration: 0.2 }}
-                onClick={() => onSelectGuide(guide.slug)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') onSelectGuide(guide.slug);
-                }}
-                tabIndex={0}
-                role="button"
-                aria-label={`Read guide: ${guide.title}`}
-                className="group bg-white dark:bg-[#16171C] rounded-3xl border border-[#E9E9E6] dark:border-[#272932] hover:border-[#FF6B00] dark:hover:border-[#FF6B00] shadow-xs hover:shadow-xl transition-all overflow-hidden cursor-pointer flex flex-col justify-between focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] h-full"
-              >
-                <div className="relative aspect-16/10 overflow-hidden bg-neutral-100 dark:bg-[#1C1E25]">
-                  <SafeImage
-                    src={guide.image}
-                    alt={guide.title}
-                    fallbackText={guide.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
-                    loading="lazy"
-                  />
-                  <div className="absolute top-3.5 left-3.5">
-                    <span className="px-2.5 py-1 rounded-xl text-[10px] font-bold uppercase tracking-wider bg-black/75 text-white">
-                      {guide.category}
-                    </span>
+              <div className="relative aspect-16/10 overflow-hidden bg-neutral-100 dark:bg-[#1C1E25]">
+                <SafeImage
+                  src={guide.image}
+                  alt={guide.title}
+                  fallbackText={guide.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                  loading="lazy"
+                />
+                <div className="absolute top-3.5 left-3.5">
+                  <span className="px-2.5 py-1 rounded-xl text-[10px] font-bold uppercase tracking-wider bg-black/75 text-white">
+                    {guide.category}
+                  </span>
+                </div>
+              </div>
+
+              <div className="p-6 flex-1 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center gap-2 text-[11px] text-neutral-400 dark:text-neutral-500 mb-2.5">
+                    <span>{guide.readTime}</span>
+                    <span>•</span>
+                    <span>{guide.publishDate}</span>
                   </div>
+
+                  <h3 className="text-base font-bold text-[#111111] dark:text-white group-hover:text-[#FF6B00] transition-colors leading-snug line-clamp-2">
+                    {guide.title}
+                  </h3>
+
+                  <p className="mt-2 text-xs text-neutral-600 dark:text-neutral-400 line-clamp-3 leading-relaxed">
+                    {guide.excerpt}
+                  </p>
                 </div>
 
-                <div className="p-6 flex-1 flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-center gap-2 text-[11px] text-neutral-400 dark:text-neutral-500 mb-2.5">
-                      <span>{guide.readTime}</span>
-                      <span>•</span>
-                      <span>{guide.publishDate}</span>
-                    </div>
-
-                    <h3 className="text-base font-bold text-[#111111] dark:text-white group-hover:text-[#FF6B00] transition-colors leading-snug line-clamp-2">
-                      {guide.title}
-                    </h3>
-
-                    <p className="mt-2 text-xs text-neutral-600 dark:text-neutral-400 line-clamp-3 leading-relaxed">
-                      {guide.excerpt}
-                    </p>
-                  </div>
-
-                  <div className="mt-6 pt-3.5 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between text-xs font-bold text-neutral-800 dark:text-neutral-200 group-hover:text-[#FF6B00]">
-                    <span>Read Blueprint</span>
-                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-                  </div>
+                <div className="mt-6 pt-3.5 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between text-xs font-bold text-neutral-800 dark:text-neutral-200 group-hover:text-[#FF6B00]">
+                  <span>Read Blueprint</span>
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </div>
-              </motion.div>
-            </EditableElement>
+              </div>
+            </motion.div>
           ))}
         </div>
       )}

@@ -94,7 +94,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 }
               }}
               className="text-[11px] font-bold uppercase tracking-wider text-[#FF6B00] hover:underline cursor-pointer focus-visible:outline-none"
-              title={`Lihat semua produk dalam kategori ${product.category}`}
+              title={`View all products in ${product.category}`}
             >
               {product.category}
             </button>

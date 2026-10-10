@@ -47,8 +47,8 @@ Left and right desktop satellite speakers encroach on mouse swing territory duri
         number: '02',
         title: 'Shift from Desk Lamps to an Asymmetric Screenbar',
         text: 'Traditional desk lamps occupy valuable corner surface area and often cause glare on monitor screens. An asymmetric monitor light bar clips directly onto your display bezel, casting warm or cool illumination only across your keyboard and notepad without reflection.',
-        image: '/og-image.jpg',
-        image_url: '/og-image.jpg',
+        image: '/acer-nitro.png',
+        image_url: '/acer-nitro.png',
         recommendedProductSlug: 'asymmetric-screenbar-light',
       },
       {
@@ -65,8 +65,8 @@ Left and right desktop satellite speakers encroach on mouse swing territory duri
         number: '04',
         title: 'Tuck Audio Beneath the Display',
         text: 'Left and right desktop satellite speakers encroach on mouse swing territory during fast-paced competitive gaming. A slim horizontal soundbar fits neatly between your monitor arm base and display bezel for centered acoustics with zero lateral desk loss.',
-        image: '/og-image.jpg',
-        image_url: '/og-image.jpg',
+        image: '/acer-creator.png',
+        image_url: '/acer-creator.png',
         recommendedProductSlug: 'slim-desktop-soundbar',
       },
     ],
@@ -116,8 +116,8 @@ Avoid single-use plastic zip ties that damage cable jackets when reconfiguring g
         number: '02',
         title: 'Anchor the Primary Power Strip Inside the Tray',
         text: 'Place a surge-protected power strip directly inside the tray. Connect all heavy transformers, PC plugs, and monitor adapters into this tray strip so that only ONE master power cord drops down to the wall outlet.',
-        image: '/og-image.jpg',
-        image_url: '/og-image.jpg',
+        image: '/hero-setup.jpg',
+        image_url: '/hero-setup.jpg',
       },
       {
         id: 'guide-cable-management-blueprint-step-03',
@@ -168,8 +168,8 @@ For setups under 120cm, a screenbar is objectively superior in spatial efficienc
         number: '01',
         title: 'Zero-Footprint Mounting',
         text: 'A screenbar counterweights directly onto the top bezel of your monitor, utilizing gravity and high-friction silicone pads. It leaves 100% of your desktop surface untouched.',
-        image: '/og-image.jpg',
-        image_url: '/og-image.jpg',
+        image: '/acer-portable.png',
+        image_url: '/acer-portable.png',
         recommendedProductSlug: 'asymmetric-screenbar-light',
       },
       {
@@ -185,43 +185,11 @@ For setups under 120cm, a screenbar is objectively superior in spatial efficienc
         number: '03',
         title: 'Direct USB Power Sync',
         text: 'Screenbars draw low voltage 5V power from your monitor USB hub or PC rear port, powering on and off automatically when your system boots without extra wall plugs.',
-        image: '/og-image.jpg',
-        image_url: '/og-image.jpg',
+        image: '/acer-creator.png',
+        image_url: '/acer-creator.png',
       },
     ],
     callout: 'Space Comparison: A typical architect desk lamp base covers approximately 300cm² of desktop area. A monitor light bar covers exactly 0cm².',
     summary: 'For desks under 120cm, a monitor screenbar is unquestionably the superior choice for eye comfort, clean aesthetics, and space preservation.',
-  },
-  {
-    id: 'guide-1791525231853',
-    slug: 'tiny-room-big-setup-how-to-fit-a-full-gaming-station-in-an-hdb-bedroom',
-    title: 'Tiny Room, Big Setup: How to Fit a Full Gaming Station in an HDB Bedroom',
-    category: 'Setup Advice',
-    readTime: '6 min read',
-    publishDate: 'Oct 9, 2026',
-    excerpt: 'A small HDB bedroom can still support a comfortable gaming station. Measure your room, choose a layout that fits, organise cables, and prioritise airflow and comfortable seating. The goal is not to fit the most equipment into the smallest space. It is to build a gaming setup that works without making your bedroom feel crowded.',
-    image: '/hero-setup.jpg',
-    featured: false,
-    layoutFormat: 'document',
-    showContentImages: true,
-    author: {
-      name: 'TechCheck Editorial Team',
-      role: 'Setup Specialist',
-      avatar: '/acer-nitro.png',
-    },
-    intro: 'A small HDB bedroom can still support a comfortable gaming station. Measure your room, choose a layout that fits, organise cables, and prioritise airflow and comfortable seating. The goal is not to fit the most equipment into the smallest space. It is to build a gaming setup that works without making your bedroom feel crowded.',
-    content: `A small HDB bedroom can still support a comfortable gaming station. Measure your room, choose a layout that fits, organise cables, and prioritise airflow and comfortable seating. The goal is not to fit the most equipment into the smallest space. It is to build a gaming setup that works without making your bedroom feel crowded.
-
-## 1. Room Dimension & Spatial Planning
-Before purchasing any new furniture or hardware, measure your exact usable wall space and doorway swing radius. A standard 100cm to 120cm desk provides ample room for a 27-inch display and keyboard without choking the room flow.
-
-## 2. Elevate Equipment Vertically
-Use heavy-duty C-clamp monitor arms to lift monitors off the desk. Mount your power extension cords and PC cables underneath the desk using wire management trays.
-
-## 3. Airflow & Acoustic Control
-In compact bedrooms, gaming PCs generate heat quickly. Position your tower off the carpeted floor using an elevated cart or clamp to allow clear intake and exhaust airflow.`,
-    steps: [],
-    callout: 'Spatial Tip: In an HDB bedroom, every centimeter of floor space matters. Using vertical clamp arms frees up 60% of surface area.',
-    summary: 'A compact room does not restrict you to compromises. With smart vertical storage and clean cable management, your HDB setup will look and feel twice as large.',
   },
 ];
