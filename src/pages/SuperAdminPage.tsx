@@ -2273,7 +2273,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                     <button
                       type="button"
                       onClick={() => {
-                        navigator.clipboard.writeText('google-site-verification=ak33i50nUtWjsrn9dKkM81hhDeHGK5EN-sA37d');
+                        navigator.clipboard.writeText('google-site-verification=ak33i50nUtWjsrn9dKkM81hhDeHGK5EN-sA37doS1Bg');
                         setCopiedDns('value');
                         setTimeout(() => setCopiedDns(null), 2000);
                       }}
@@ -2284,7 +2284,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                     </button>
                   </div>
                   <div className="p-2 bg-neutral-900 text-emerald-400 font-mono text-xs rounded select-all break-all">
-                    google-site-verification=ak33i50nUtWjsrn9dKkM81hhDeHGK5EN-sA37d
+                    google-site-verification=ak33i50nUtWjsrn9dKkM81hhDeHGK5EN-sA37doS1Bg
                   </div>
                 </div>
               </div>
@@ -2296,7 +2296,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                   <div>
                     <h4 className="text-xs font-bold text-emerald-950">HTML Meta Tag (Live in &lt;head&gt;)</h4>
                     <p className="text-[11px] text-emerald-800 mt-0.5 font-mono break-all">
-                      &lt;meta name="google-site-verification" content="ak33i50nUtWjsrn9dKkM81hhDeHGK5EN-sA37d" /&gt;
+                      &lt;meta name="google-site-verification" content="ak33i50nUtWjsrn9dKkM81hhDeHGK5EN-sA37doS1Bg" /&gt;
                     </p>
                     <span className="text-[10px] text-emerald-700 font-medium mt-1 block">
                       ⚡ Instant verification on Search Console without DNS delay.
@@ -2309,7 +2309,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                   <div>
                     <h4 className="text-xs font-bold text-blue-950">HTML Verification Endpoint (Live)</h4>
                     <p className="text-[11px] text-blue-800 mt-0.5 font-mono break-all">
-                      /googleak33i50nUtWjsrn9dKkM81hhDeHGK5EN-sA37d.html
+                      /googleak33i50nUtWjsrn9dKkM81hhDeHGK5EN-sA37doS1Bg.html
                     </p>
                     <span className="text-[10px] text-blue-700 font-medium mt-1 block">
                       📄 Serves official verification response to Google crawler.

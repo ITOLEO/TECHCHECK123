@@ -80,6 +80,12 @@ function saveImageToCache(filename: string, mimeType: string, base64: string) {
 }
 
 // Google Search Console Verification routes
+app.get('/googleak33i50nUtWjsrn9dKkM81hhDeHGK5EN-sA37doS1Bg.html', (req: Request, res: Response) => {
+  res.type('text/html').send('google-site-verification: googleak33i50nUtWjsrn9dKkM81hhDeHGK5EN-sA37doS1Bg.html');
+});
+app.get('/ak33i50nUtWjsrn9dKkM81hhDeHGK5EN-sA37doS1Bg.html', (req: Request, res: Response) => {
+  res.type('text/html').send('google-site-verification: ak33i50nUtWjsrn9dKkM81hhDeHGK5EN-sA37doS1Bg.html');
+});
 app.get('/googleak33i50nUtWjsrn9dKkM81hhDeHGK5EN-sA37d.html', (req: Request, res: Response) => {
   res.type('text/html').send('google-site-verification: googleak33i50nUtWjsrn9dKkM81hhDeHGK5EN-sA37d.html');
 });
