@@ -35,6 +35,7 @@ export const AdminImageUploader: React.FC<AdminImageUploaderProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [previewDataUrl, setPreviewDataUrl] = useState<string | null>(null);
   const [metaInfo, setMetaInfo] = useState<{
     filename?: string;
     format?: string;
@@ -233,6 +234,8 @@ export const AdminImageUploader: React.FC<AdminImageUploaderProps> = ({
         return;
       }
 
+      setPreviewDataUrl(dataUrl);
+
       const isSvg = mimeType === 'image/svg+xml' || file.type === 'image/svg+xml';
       const cleanFileName = isSvg
         ? file.name
@@ -320,6 +323,7 @@ export const AdminImageUploader: React.FC<AdminImageUploaderProps> = ({
 
   const handleRemoveImage = () => {
     onChange('');
+    setPreviewDataUrl(null);
     setMetaInfo({});
     setErrorMessage(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
@@ -506,7 +510,7 @@ export const AdminImageUploader: React.FC<AdminImageUploaderProps> = ({
         <div className="mt-3 rounded-2xl border border-[#E9E9E6] bg-white p-3 shadow-xs space-y-3">
           <div className="relative w-full h-48 sm:h-56 bg-[#F7F6F2] rounded-xl overflow-hidden border border-[#E9E9E6]/60 flex items-center justify-center p-2">
             <img
-              src={value}
+              src={previewDataUrl || value}
               alt="Product Preview"
               className="max-h-full max-w-full object-contain rounded-lg transition-transform duration-200"
               onLoad={(e) => {
@@ -518,7 +522,17 @@ export const AdminImageUploader: React.FC<AdminImageUploaderProps> = ({
                 setErrorMessage(null);
               }}
               onError={() => {
-                setErrorMessage('Failed to load image preview. Please check URL or file format.');
+                // If local path failed, try to fallback without breaking UI
+                if (!previewDataUrl && value.startsWith('/uploads/')) {
+                  const namePart = value.replace('/uploads/', '');
+                  if (!namePart.includes('/')) {
+                    setErrorMessage(null);
+                    return;
+                  }
+                }
+                if (!previewDataUrl) {
+                  setErrorMessage('Failed to load image preview. Please check URL or file format.');
+                }
               }}
             />
           </div>

@@ -38,7 +38,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
             buildBreadcrumbSchema([
               { name: 'Home', path: '' },
               { name: 'Recommendations', path: 'recommendations' },
-              { name: product.category, path: `recommendations?category=${encodeURIComponent(product.category)}` },
+              { name: product.category, path: `categories/${categoryToSlug(product.category)}` },
               { name: product.name, path: `recommendations/${product.slug}` },
             ]),
           ],
