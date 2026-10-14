@@ -644,23 +644,48 @@ export const GuideDetailPage: React.FC<GuideDetailPageProps> = ({
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') onSelectGuide(rg.slug);
                   }}
-                  tabIndex={0}
                   role="button"
+                  tabIndex={0}
                   aria-label={`Read guide: ${rg.title}`}
-                  className="group bg-white dark:bg-[#16171C] rounded-3xl border border-[#E9E9E6] dark:border-[#272932] hover:border-[#FF6B00] dark:hover:border-[#FF6B00] p-5 transition-all cursor-pointer flex flex-col justify-between focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
+                  className="group bg-white dark:bg-[#16171C] rounded-2xl border border-[#E9E9E6] dark:border-[#272932] hover:border-[#FF6B00] dark:hover:border-[#FF6B00] shadow-xs hover:shadow-md transition-all overflow-hidden cursor-pointer flex flex-col justify-between focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] h-full"
                 >
-                  <div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#FF6B00] block mb-1">
-                      {rg.category}
-                    </span>
-                    <h4 className="text-sm font-bold text-[#111111] dark:text-neutral-100 group-hover:text-[#FF6B00] transition-colors line-clamp-2">
-                      {rg.title}
-                    </h4>
+                  <div className="aspect-16/10 overflow-hidden bg-neutral-100 dark:bg-[#1D1F27] relative">
+                    <SafeImage
+                      src={rg.image}
+                      alt={rg.title}
+                      fallbackText={rg.title}
+                      className="w-full h-full object-cover group-hover:scale-104 transition-transform duration-300"
+                      loading="lazy"
+                    />
+                    <div className="absolute top-3 left-3">
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-black/70 text-white">
+                        {rg.category}
+                      </span>
+                    </div>
                   </div>
-                  <span className="mt-4 text-xs font-bold text-neutral-500 dark:text-neutral-400 group-hover:text-[#FF6B00] flex items-center gap-1">
-                    <span>Read</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </span>
+
+                  <div className="p-5 flex-1 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 text-[11px] text-neutral-400 dark:text-neutral-500 mb-2">
+                        <span>{rg.readTime}</span>
+                        <span>•</span>
+                        <span>{rg.publishDate}</span>
+                      </div>
+                      <h4 className="text-base font-bold text-[#111111] dark:text-white group-hover:text-[#FF6B00] transition-colors leading-snug line-clamp-2">
+                        {rg.title}
+                      </h4>
+                      {rg.excerpt && (
+                        <p className="mt-2 text-xs text-neutral-600 dark:text-neutral-400 line-clamp-2 leading-relaxed">
+                          {rg.excerpt}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="mt-5 pt-3 border-t border-neutral-100 dark:border-[#252832] flex items-center justify-between text-xs font-semibold text-[#111111] dark:text-neutral-300 group-hover:text-[#FF6B00]">
+                      <span>Read Guide</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
