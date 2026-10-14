@@ -18,6 +18,7 @@ export interface AdminImageUploaderProps {
   presets?: string[];
   placeholder?: string;
   helperText?: string;
+  bucket?: 'product-images' | 'article-images' | 'site-images';
 }
 
 export const AdminImageUploader: React.FC<AdminImageUploaderProps> = ({
@@ -27,6 +28,7 @@ export const AdminImageUploader: React.FC<AdminImageUploaderProps> = ({
   presets = ['/acer-nitro.png', '/acer-creator.png', '/powerpac.png', '/acer-portable.png'],
   placeholder = 'https://example.com/product-image.jpg or upload an image file',
   helperText,
+  bucket,
 }) => {
   // Determine initial mode: if value starts with data: or /uploads/, prefer 'upload', otherwise 'url' if already a web url
   const [activeTab, setActiveTab] = useState<'upload' | 'url'>(
@@ -178,6 +180,7 @@ export const AdminImageUploader: React.FC<AdminImageUploaderProps> = ({
     try {
       // Client-side image optimization to prevent HTTP/2 ping failure and connection drops
       const compressImage = async (inputFile: File): Promise<{ dataUrl: string; mimeType: string }> => {
+        // SVG and GIF are read as-is (SVG is vector, GIF contains animations)
         if (inputFile.type === 'image/svg+xml' || inputFile.type === 'image/gif') {
           return new Promise((resolve, reject) => {
             const r = new FileReader();
@@ -210,7 +213,16 @@ export const AdminImageUploader: React.FC<AdminImageUploaderProps> = ({
               const ctx = canvas.getContext('2d');
               if (ctx) {
                 ctx.drawImage(img, 0, 0, width, height);
-                const compressed = canvas.toDataURL('image/jpeg', 0.86);
+                // Retain specific raster format: PNG for transparency, WebP for webp, JPEG for jpeg
+                if (inputFile.type === 'image/png') {
+                  resolve({ dataUrl: canvas.toDataURL('image/png'), mimeType: 'image/png' });
+                  return;
+                }
+                if (inputFile.type === 'image/webp') {
+                  resolve({ dataUrl: canvas.toDataURL('image/webp', 0.88), mimeType: 'image/webp' });
+                  return;
+                }
+                const compressed = canvas.toDataURL('image/jpeg', 0.88);
                 resolve({ dataUrl: compressed, mimeType: 'image/jpeg' });
                 return;
               }
@@ -236,58 +248,86 @@ export const AdminImageUploader: React.FC<AdminImageUploaderProps> = ({
 
       setPreviewDataUrl(dataUrl);
 
-      const isSvg = mimeType === 'image/svg+xml' || file.type === 'image/svg+xml';
-      const cleanFileName = isSvg
-        ? file.name
-        : file.name.replace(/\.[^/.]+$/, '') + '.jpeg';
+      // Clean filename strictly aligned with actual MIME type
+      let cleanFileName = file.name;
+      if (mimeType === 'image/svg+xml') {
+        cleanFileName = file.name.replace(/\.[^/.]+$/, '') + '.svg';
+      } else if (mimeType === 'image/gif') {
+        cleanFileName = file.name.replace(/\.[^/.]+$/, '') + '.gif';
+      } else if (mimeType === 'image/png') {
+        cleanFileName = file.name.replace(/\.[^/.]+$/, '') + '.png';
+      } else if (mimeType === 'image/webp') {
+        cleanFileName = file.name.replace(/\.[^/.]+$/, '') + '.webp';
+      } else {
+        const origExt = file.name.slice(file.name.lastIndexOf('.')).toLowerCase();
+        const ext = origExt === '.jpg' ? '.jpg' : '.jpeg';
+        cleanFileName = file.name.replace(/\.[^/.]+$/, '') + ext;
+      }
 
-      // Attempt server-side upload to Supabase Storage or /uploads
+      // Infer target bucket according to system architecture if not explicitly provided
+      const targetBucket: 'product-images' | 'article-images' | 'site-images' =
+        bucket ||
+        (label.toLowerCase().includes('hero') ||
+        label.toLowerCase().includes('og') ||
+        label.toLowerCase().includes('favicon') ||
+        label.toLowerCase().includes('site') ||
+        label.toLowerCase().includes('banner')
+          ? 'site-images'
+          : label.toLowerCase().includes('guide') ||
+            label.toLowerCase().includes('step') ||
+            label.toLowerCase().includes('article') ||
+            label.toLowerCase().includes('author') ||
+            label.toLowerCase().includes('avatar')
+          ? 'article-images'
+          : 'product-images');
+
+      // Attempt server-side upload to authorized Supabase Storage bucket
       try {
+        const adminPasscode =
+          typeof window !== 'undefined'
+            ? localStorage.getItem('techcheck_admin_passcode') ||
+              sessionStorage.getItem('techcheck_admin_passcode') ||
+              '654321'
+            : '654321';
+
         const res = await fetch('/api/upload', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'x-admin-passcode': adminPasscode,
+          },
           body: JSON.stringify({
             filename: cleanFileName,
             fileData: dataUrl,
-            mimeType: isSvg ? 'image/svg+xml' : 'image/jpeg',
+            mimeType: mimeType,
+            bucket: targetBucket,
           }),
         });
 
-        if (res.ok) {
-          const json = await res.json();
-          if (json.url) {
-            onChange(json.url);
-            setMetaInfo((prev) => ({
-              ...prev,
-              filename: json.filename || cleanFileName,
-              format: isSvg ? 'SVG' : 'JPEG',
-            }));
-            setErrorMessage(null);
-          } else {
-            onChange(dataUrl);
-            setMetaInfo((prev) => ({
-              ...prev,
-              filename: cleanFileName,
-              format: isSvg ? 'SVG' : 'JPEG',
-            }));
-          }
-        } else {
-          // If server returns error, use compressed JPEG dataUrl so data is never lost
-          onChange(dataUrl);
+        const json = await res.json().catch(() => ({}));
+
+        if (res.ok && json.success && json.url && (json.url.startsWith('http://') || json.url.startsWith('https://'))) {
+          // Permanent storage upload succeeded!
+          onChange(json.url);
+          setPreviewDataUrl(json.url);
           setMetaInfo((prev) => ({
             ...prev,
-            filename: cleanFileName,
-            format: isSvg ? 'SVG' : 'JPEG',
+            filename: json.filename || cleanFileName,
+            format: format,
           }));
+          setErrorMessage(null);
+        } else {
+          // Upload failed: do NOT call onChange; retain previous image value
+          const errMsg = json.error || `Upload gagal ke penyimpanan permanen Supabase (HTTP ${res.status}).`;
+          setErrorMessage(errMsg);
+          setPreviewDataUrl(null);
+          if (fileInputRef.current) fileInputRef.current.value = '';
         }
-      } catch (uploadErr) {
-        // Fallback to compressed JPEG dataUrl
-        onChange(dataUrl);
-        setMetaInfo((prev) => ({
-          ...prev,
-          filename: cleanFileName,
-          format: isSvg ? 'SVG' : 'JPEG',
-        }));
+      } catch (uploadErr: any) {
+        // Network or fetch failure: retain previous image value
+        setErrorMessage(`Koneksi upload gagal: ${uploadErr.message || uploadErr}`);
+        setPreviewDataUrl(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
       }
     } catch (err: any) {
       setErrorMessage(`Error processing file: ${err.message || err}`);

@@ -252,33 +252,8 @@ app.get('/sitemap.xml', async (req: Request, res: Response) => {
   }
 });
 
-// Dedicated Reliable Image Serving Route: Serves images from disk or in-memory cache
-app.get('/api/images/:filename', (req: Request, res: Response) => {
-  const { filename } = req.params;
+// Image routes are registered after getSupabase() initialization below
 
-  // 1. Try disk
-  const diskPath = path.join(uploadsDir, filename);
-  if (fs.existsSync(diskPath)) {
-    const ext = path.extname(filename).toLowerCase();
-    const mime = ext === '.png' ? 'image/png' : ext === '.webp' ? 'image/webp' : ext === '.svg' ? 'image/svg+xml' : ext === '.gif' ? 'image/gif' : 'image/jpeg';
-    res.setHeader('Content-Type', mime);
-    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-    res.sendFile(diskPath);
-    return;
-  }
-
-  // 2. Try JSON / In-Memory cache
-  if (imagesCache[filename]) {
-    const item = imagesCache[filename];
-    const buffer = Buffer.from(item.base64, 'base64');
-    res.setHeader('Content-Type', item.mimeType || 'image/jpeg');
-    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-    res.send(buffer);
-    return;
-  }
-
-  res.status(404).send('Image not found');
-});
 
 // Dynamic Supabase Client
 let supabaseClient: SupabaseClient | null = null;
@@ -303,8 +278,11 @@ function getSupabaseConfig(): { url: string; key: string } {
   if (!url) {
     url = (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '').trim();
   }
-  if (!key) {
-    key = (process.env.SUPABASE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '').trim();
+  // Server-side: prefer service role key if available in env, otherwise fallback to config key or general key
+  if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    key = process.env.SUPABASE_SERVICE_ROLE_KEY.trim();
+  } else if (!key) {
+    key = (process.env.SUPABASE_KEY || process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '').trim();
   }
 
   // Clean URL: Strip trailing /rest/v1 or trailing slashes
@@ -339,14 +317,104 @@ function getSupabase(): SupabaseClient | null {
   return supabaseClient;
 }
 
+function getMimeFromExtension(extension: string): string {
+  switch (extension.toLowerCase()) {
+    case '.png': return 'image/png';
+    case '.webp': return 'image/webp';
+    case '.gif': return 'image/gif';
+    case '.svg': return 'image/svg+xml';
+    case '.jpg':
+    case '.jpeg': return 'image/jpeg';
+    default: return 'application/octet-stream';
+  }
+}
+
+// Unified image serving handler for /uploads/:filename and /api/images/:filename
+async function handleServeImage(req: Request, res: Response) {
+  const rawFilename = req.params.filename;
+  if (!rawFilename) {
+    res.status(400).send('Filename missing');
+    return;
+  }
+
+  // Security: Prevent directory traversal (e.g. ../ or null bytes or slash)
+  const safeFilename = path.basename(rawFilename);
+  if (safeFilename !== rawFilename || safeFilename.includes('..') || safeFilename.includes('\0')) {
+    res.status(400).send('Invalid filename');
+    return;
+  }
+
+  const ext = path.extname(safeFilename).toLowerCase();
+
+  // 1. Primary: Check Supabase Storage across authorized buckets (product-images, article-images, site-images)
+  const supabase = getSupabase();
+  if (supabase) {
+    const AVAILABLE_BUCKETS = ['product-images', 'article-images', 'site-images'] as const;
+    for (const bName of AVAILABLE_BUCKETS) {
+      try {
+        const { data, error } = await supabase.storage.from(bName).download(safeFilename);
+        if (!error && data) {
+          const buffer = Buffer.from(await data.arrayBuffer());
+          const mime = data.type && data.type !== 'application/octet-stream' ? data.type : getMimeFromExtension(ext);
+          res.setHeader('Content-Type', mime);
+          res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+          res.send(buffer);
+          return;
+        }
+      } catch (storageErr) {
+        // Continue checking other buckets
+      }
+    }
+  }
+
+  // 2. Compatibility Fallback: Check local filesystem (uploadsDir and public/uploads)
+  const localCandidates = [
+    path.join(uploadsDir, safeFilename),
+    path.join(process.cwd(), 'public', 'uploads', safeFilename),
+    path.join(process.cwd(), 'dist', 'uploads', safeFilename),
+  ];
+  for (const diskPath of localCandidates) {
+    if (fs.existsSync(diskPath)) {
+      try {
+        const mime = getMimeFromExtension(ext);
+        res.setHeader('Content-Type', mime);
+        res.setHeader('Cache-Control', 'public, max-age=86400');
+        res.sendFile(diskPath);
+        return;
+      } catch (fsErr) {}
+    }
+  }
+
+  // 3. Compatibility Fallback: Check in-memory / JSON cache
+  if (imagesCache[safeFilename]) {
+    try {
+      const item = imagesCache[safeFilename];
+      const buffer = Buffer.from(item.base64, 'base64');
+      res.setHeader('Content-Type', item.mimeType || getMimeFromExtension(ext));
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+      res.send(buffer);
+      return;
+    } catch (cacheErr) {}
+  }
+
+  // 4. Not found in Supabase Storage or local cache:
+  // As per Requirement C.4: Mark as image not yet recoverable, do not guess URL, do not fake.
+  res.status(404).json({
+    error: 'Image not found',
+    filename: safeFilename,
+    recoverable: false,
+    message: 'Gambar tidak ditemukan di Supabase Storage maupun cache lokal.',
+  });
+}
+
+// Mount unified image routes
+app.get('/api/images/:filename', handleServeImage);
+app.get('/uploads/:filename', handleServeImage);
+
 // Convert any oversized base64 data URLs to clean persistent image URLs (Supabase CDN or Server Image Route)
 function sanitizeImageUrl(url: string | undefined | null): string {
   if (!url || typeof url !== 'string') return url || '';
-  let clean = url.trim();
-  if (clean.includes('/api/images/')) {
-    clean = clean.replace(/\/api\/images\//g, '/uploads/');
-  }
-  return clean;
+  return url.trim();
 }
 
 // Convert any oversized base64 data URLs to clean persistent image URLs (Supabase CDN or Server Image Route)
@@ -359,12 +427,37 @@ async function normalizeAndUploadImageIfBase64(imageUrl: string | undefined | nu
     const mimeMatch = imageUrl.match(/^data:(image\/[a-zA-Z0-9+.-]+);base64,/);
     const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
     const isSvg = mimeType === 'image/svg+xml' || imageUrl.includes('image/svg+xml');
-    const ext = isSvg ? '.svg' : '.jpeg';
-    const finalMime = isSvg ? 'image/svg+xml' : 'image/jpeg';
+    const isPng = mimeType === 'image/png' || imageUrl.includes('image/png');
+    const isWebp = mimeType === 'image/webp' || imageUrl.includes('image/webp');
+    const isGif = mimeType === 'image/gif' || imageUrl.includes('image/gif');
+
+    let ext = '.jpeg';
+    let finalMime = 'image/jpeg';
+    if (isSvg) {
+      ext = '.svg';
+      finalMime = 'image/svg+xml';
+    } else if (isPng) {
+      ext = '.png';
+      finalMime = 'image/png';
+    } else if (isWebp) {
+      ext = '.webp';
+      finalMime = 'image/webp';
+    } else if (isGif) {
+      ext = '.gif';
+      finalMime = 'image/gif';
+    }
 
     const base64Data = imageUrl.includes('base64,') ? imageUrl.split('base64,')[1] : imageUrl;
     const fileBuffer = Buffer.from(base64Data, 'base64');
     const uniqueFilename = `${prefix}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}${ext}`;
+
+    // Target bucket based on prefix
+    let targetBucket: 'product-images' | 'article-images' | 'site-images' = 'product-images';
+    if (prefix.startsWith('guide') || prefix.startsWith('block') || prefix.startsWith('article')) {
+      targetBucket = 'article-images';
+    } else if (prefix.startsWith('hero') || prefix.startsWith('site') || prefix.startsWith('og') || prefix.startsWith('fav')) {
+      targetBucket = 'site-images';
+    }
 
     // 1. Cache in memory and disk (both public/uploads and dist/uploads if dist exists)
     saveImageToCache(uniqueFilename, finalMime, base64Data);
@@ -381,16 +474,8 @@ async function normalizeAndUploadImageIfBase64(imageUrl: string | undefined | nu
     const supabase = getSupabase();
     if (supabase) {
       try {
-        const BUCKET_NAME = 'techcheck-images';
-        try {
-          const { data: buckets } = await supabase.storage.listBuckets();
-          if (!buckets?.some((b: any) => b.name === BUCKET_NAME)) {
-            await supabase.storage.createBucket(BUCKET_NAME, { public: true });
-          }
-        } catch (bErr) {}
-
         const { error: storageErr } = await supabase.storage
-          .from(BUCKET_NAME)
+          .from(targetBucket)
           .upload(uniqueFilename, fileBuffer, {
             contentType: finalMime,
             upsert: true,
@@ -398,20 +483,22 @@ async function normalizeAndUploadImageIfBase64(imageUrl: string | undefined | nu
 
         if (!storageErr) {
           const { data: publicUrlData } = supabase.storage
-            .from(BUCKET_NAME)
+            .from(targetBucket)
             .getPublicUrl(uniqueFilename);
 
-          if (publicUrlData?.publicUrl) {
+          if (publicUrlData?.publicUrl && publicUrlData.publicUrl.startsWith('http')) {
             return publicUrlData.publicUrl;
           }
+        } else {
+          console.warn(`Supabase storage upload error in normalizeAndUploadImageIfBase64 (${targetBucket}):`, storageErr.message);
         }
       } catch (sErr: any) {
         console.warn('Supabase image upload warning:', sErr.message);
       }
     }
 
-    // 3. Reliable static uploads route fallback
-    return `/uploads/${uniqueFilename}`;
+    // If storage is not available or upload fails, keep original image data rather than inventing a broken /uploads/ URL
+    return sanitizeImageUrl(imageUrl);
   } catch (err: any) {
     console.warn('normalizeAndUploadImageIfBase64 failed:', err.message);
     return sanitizeImageUrl(imageUrl);
@@ -704,10 +791,36 @@ function fromSettingsRow(row: any) {
 // API ROUTES
 // ==========================================
 
-// 0. Image Upload API (Uploads to Supabase Storage with local / disk / cache fallback)
+// 0. Image Upload API (Uploads to authorized Supabase Storage buckets: product-images, article-images, site-images)
 app.post('/api/upload', async (req: Request, res: Response) => {
   try {
-    const { filename, fileData, mimeType } = req.body;
+    // Security Verification: Require valid Admin authentication
+    const authHeader = req.headers['authorization'];
+    const customPasscodeHeader = req.headers['x-admin-passcode'];
+    const bodyPasscode = req.body.adminPasscode;
+
+    const providedCode = (
+      (typeof customPasscodeHeader === 'string' ? customPasscodeHeader : '') ||
+      (typeof bodyPasscode === 'string' ? bodyPasscode : '') ||
+      (typeof authHeader === 'string' && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '')
+    ).trim();
+
+    const validCodes = new Set(['654321', (process.env.ADMIN_PASSCODE || '').trim()].filter(Boolean));
+    try {
+      const localDb = getLocalDb();
+      if (localDb.settings?.adminPasscode) validCodes.add(String(localDb.settings.adminPasscode).trim());
+    } catch (e) {}
+
+    if (!providedCode || !validCodes.has(providedCode)) {
+      res.status(401).json({
+        success: false,
+        error: 'Unauthorized: Admin authentication is required to upload files.',
+        storage: 'unauthorized',
+      });
+      return;
+    }
+
+    const { filename, fileData, mimeType, bucket } = req.body;
     if (!fileData || !filename) {
       res.status(400).json({ error: 'Missing fileData or filename' });
       return;
@@ -741,19 +854,53 @@ app.post('/api/upload', async (req: Request, res: Response) => {
       }
     }
 
+    // Strict alignment of MIME type and extension
     const isSvg = mimeType === 'image/svg+xml' || ext === '.svg';
-    const safeExt = isSvg ? '.svg' : '.jpeg';
-    const finalMime = isSvg ? 'image/svg+xml' : 'image/jpeg';
+    const isPng = mimeType === 'image/png' || ext === '.png';
+    const isWebp = mimeType === 'image/webp' || ext === '.webp';
+    const isGif = mimeType === 'image/gif' || ext === '.gif';
+
+    let safeExt = '.jpeg';
+    let finalMime = 'image/jpeg';
+    if (isSvg) {
+      safeExt = '.svg';
+      finalMime = 'image/svg+xml';
+    } else if (isPng) {
+      safeExt = '.png';
+      finalMime = 'image/png';
+    } else if (isWebp) {
+      safeExt = '.webp';
+      finalMime = 'image/webp';
+    } else if (isGif) {
+      safeExt = '.gif';
+      finalMime = 'image/gif';
+    } else {
+      safeExt = ext === '.jpg' ? '.jpg' : '.jpeg';
+      finalMime = 'image/jpeg';
+    }
+
+    // Determine target bucket according to system architecture
+    const VALID_BUCKETS = ['product-images', 'article-images', 'site-images'] as const;
+    type ValidBucket = (typeof VALID_BUCKETS)[number];
+
+    let targetBucket: ValidBucket = 'product-images';
+    if (bucket && VALID_BUCKETS.includes(bucket as ValidBucket)) {
+      targetBucket = bucket as ValidBucket;
+    } else if (filename.includes('guide') || filename.includes('article') || filename.includes('step') || filename.includes('author')) {
+      targetBucket = 'article-images';
+    } else if (filename.includes('hero') || filename.includes('site') || filename.includes('banner') || filename.includes('favicon') || filename.includes('og')) {
+      targetBucket = 'site-images';
+    }
 
     const baseName = path.basename(filename, ext).replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 50);
     const uniqueFilename = `${baseName}-${Date.now()}${safeExt}`;
     const base64Data = fileData.includes('base64,') ? fileData.split('base64,')[1] : fileData;
     const fileBuffer = Buffer.from(base64Data, 'base64');
 
-    // Always cache image data so /uploads/:filename is instantly available
+    // Cache image data locally for dev / memory fallback
     saveImageToCache(uniqueFilename, finalMime, base64Data);
 
-    // Save to disk (both public/uploads and dist/uploads if dist exists)
+    // Save to disk for local dev fallback
     try {
       const targetPath = path.join(uploadsDir, uniqueFilename);
       fs.writeFileSync(targetPath, fileBuffer);
@@ -763,57 +910,76 @@ app.post('/api/upload', async (req: Request, res: Response) => {
       }
     } catch (e) {}
 
-    // 1. Primary: Upload directly to Supabase Storage (Generates persistent public CDN URL)
+    // Primary & Mandatory: Upload to Supabase Storage (Generates persistent public CDN URL)
     const supabase = getSupabase();
-    if (supabase) {
-      try {
-        const BUCKET_NAME = 'techcheck-images';
-
-        // Auto-create bucket if missing
-        try {
-          const { data: buckets } = await supabase.storage.listBuckets();
-          if (!buckets?.some((b: any) => b.name === BUCKET_NAME)) {
-            await supabase.storage.createBucket(BUCKET_NAME, { public: true });
-          }
-        } catch (bErr) {}
-
-        const { error: storageErr } = await supabase.storage
-          .from(BUCKET_NAME)
-          .upload(uniqueFilename, fileBuffer, {
-            contentType: finalMime,
-            upsert: true,
-          });
-
-        if (!storageErr) {
-          const { data: publicUrlData } = supabase.storage
-            .from(BUCKET_NAME)
-            .getPublicUrl(uniqueFilename);
-
-          if (publicUrlData?.publicUrl) {
-            res.json({
-              success: true,
-              url: publicUrlData.publicUrl,
-              filename: uniqueFilename,
-              mimeType: finalMime,
-              storage: 'supabase',
-            });
-            return;
-          }
-        } else {
-          console.warn('Supabase storage upload error:', storageErr.message);
-        }
-      } catch (storageEx: any) {
-        console.warn('Supabase storage upload attempt skipped:', storageEx.message);
-      }
+    if (!supabase) {
+      res.status(500).json({
+        success: false,
+        error: 'Supabase belum dikonfigurasi. Harap atur kredensial Supabase URL & Key di Admin Settings.',
+        storage: 'unconfigured',
+      });
+      return;
     }
 
-    // 2. Reliable Static Upload Route Fallback
+    let publicUrl = '';
+
+    try {
+      const { error: storageErr } = await supabase.storage
+        .from(targetBucket)
+        .upload(uniqueFilename, fileBuffer, {
+          contentType: finalMime,
+          upsert: true,
+        });
+
+      if (storageErr) {
+        console.error(`Supabase storage upload error to ${targetBucket}:`, storageErr);
+        res.status(500).json({
+          success: false,
+          error: `Gagal mengunggah ke Supabase Storage bucket '${targetBucket}': ${storageErr.message}.`,
+          details: storageErr.message,
+          filename: uniqueFilename,
+          bucket: targetBucket,
+          storage: 'supabase_failed',
+        });
+        return;
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from(targetBucket)
+        .getPublicUrl(uniqueFilename);
+
+      if (!publicUrlData?.publicUrl || !publicUrlData.publicUrl.startsWith('http')) {
+        res.status(500).json({
+          success: false,
+          error: `Supabase Storage berhasil mengunggah file ke '${targetBucket}' tetapi gagal menghasilkan URL publik.`,
+          filename: uniqueFilename,
+          bucket: targetBucket,
+          storage: 'supabase_no_url',
+        });
+        return;
+      }
+
+      publicUrl = publicUrlData.publicUrl;
+    } catch (storageEx: any) {
+      console.error(`Supabase storage upload exception (${targetBucket}):`, storageEx);
+      res.status(500).json({
+        success: false,
+        error: `Kesalahan saat mengunggah ke Supabase Storage: ${storageEx.message || storageEx}`,
+        filename: uniqueFilename,
+        bucket: targetBucket,
+        storage: 'supabase_exception',
+      });
+      return;
+    }
+
+    // Permanent public CDN URL returned
     res.json({
       success: true,
-      url: `/uploads/${uniqueFilename}`,
+      url: publicUrl,
       filename: uniqueFilename,
+      bucket: targetBucket,
       mimeType: finalMime,
-      storage: 'server',
+      storage: 'supabase',
     });
   } catch (err: any) {
     res.status(500).json({ error: err.message || 'Image upload failed' });
@@ -950,6 +1116,19 @@ app.get('/api/status', async (req: Request, res: Response) => {
     const allReady = results.every((r) => r.ready);
     const failedTables = results.filter((r) => !r.ready);
 
+    // Probe Storage bucket 'techcheck-images'
+    let storageStatus = { ready: false, bucket: 'techcheck-images', error: '' };
+    try {
+      const { error: sErr } = await supabase.storage.from('techcheck-images').list('', { limit: 1 });
+      if (!sErr) {
+        storageStatus.ready = true;
+      } else {
+        storageStatus.error = sErr.message;
+      }
+    } catch (stErr: any) {
+      storageStatus.error = stErr.message || String(stErr);
+    }
+
     if (!allReady) {
       const errorMsg = failedTables.map((f) => `Tabel '${f.name}': ${f.error}`).join('; ');
       res.json({
@@ -958,6 +1137,7 @@ app.get('/api/status', async (req: Request, res: Response) => {
         message: `Terhubung ke Supabase URL, namun beberapa tabel belum tersedia (${failedTables.map((f) => f.name).join(', ')}). Silakan jalankan file schema.sql di Supabase SQL Editor. Detail: ${errorMsg}`,
         tables: ['categories', 'products', 'guides', 'site_settings'],
         tableDetails: results,
+        storageStatus,
       });
       return;
     }
@@ -968,6 +1148,7 @@ app.get('/api/status', async (req: Request, res: Response) => {
       message: 'Database web dan seluruh 4 tabel di Supabase terhubung 100% dan siap digunakan!',
       tables: ['categories', 'products', 'guides', 'site_settings'],
       tableDetails: results,
+      storageStatus,
     });
   } catch (err: any) {
     res.json({
@@ -2015,9 +2196,6 @@ async function runAutoImageMigration() {
 // VITE MIDDLEWARE & STATIC SERVING
 // ==========================================
 async function startServer() {
-  // Execute image URL sanitization
-  runAutoImageMigration().catch(() => {});
-
   if (process.env.NODE_ENV !== 'production') {
     const { createServer: createViteServer } = await import('vi' + 'te'); // Hidden from static analyzer
     const vite = await createViteServer({

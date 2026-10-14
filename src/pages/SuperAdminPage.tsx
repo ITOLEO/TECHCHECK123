@@ -37,6 +37,7 @@ import {
 import { Product, CategoryInfo, Guide, GuideStep, SiteSettings, ViewRoute } from '../types';
 import { dataStorage, DEFAULT_SITE_SETTINGS } from '../services/dataStorage';
 import { AdminImageUploader } from '../components/AdminImageUploader';
+import { SafeImage } from '../components/SafeImage';
 
 interface SuperAdminPageProps {
   products: Product[];
@@ -329,6 +330,8 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
       dataStorage.setAdminAuthenticated(true);
       sessionStorage.setItem('techcheck_developer_mode', 'true');
       localStorage.setItem('techcheck_developer_mode', 'true');
+      sessionStorage.setItem('techcheck_admin_passcode', cleanInput);
+      localStorage.setItem('techcheck_admin_passcode', cleanInput);
       sessionStorage.removeItem('techcheck_visual_mode');
       localStorage.removeItem('techcheck_visual_mode');
       setIsAuthenticated(true);
@@ -343,8 +346,10 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
     dataStorage.setAdminAuthenticated(false);
     sessionStorage.removeItem('techcheck_developer_mode');
     sessionStorage.removeItem('techcheck_visual_mode');
+    sessionStorage.removeItem('techcheck_admin_passcode');
     localStorage.removeItem('techcheck_developer_mode');
     localStorage.removeItem('techcheck_visual_mode');
+    localStorage.removeItem('techcheck_admin_passcode');
     setIsAuthenticated(false);
     setLoginPasscode('');
     setShowSplashLoading(false);
@@ -1422,7 +1427,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                       <div>
                         <div className="flex items-center justify-between mb-4">
                           <div className="w-12 h-12 rounded-xl bg-neutral-100 border border-neutral-200 overflow-hidden">
-                            <img src={cat.image} alt={cat.name} className="w-full h-full object-cover" />
+                            <SafeImage src={cat.image} alt={cat.name} fallbackText={cat.name} className="w-full h-full object-cover" />
                           </div>
                           <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-[#F7F6F2] text-neutral-700 border border-neutral-200">
                             {count} Products
@@ -1496,7 +1501,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                     <div>
                       <div className="flex items-center gap-4 mb-4">
                         <div className="w-16 h-16 rounded-xl bg-neutral-100 border border-neutral-200 overflow-hidden shrink-0">
-                          <img src={guide.image} alt={guide.title} className="w-full h-full object-cover" />
+                          <SafeImage src={guide.image} alt={guide.title} fallbackText={guide.title} className="w-full h-full object-cover" />
                         </div>
                         <div>
                           <span className="text-[10px] font-bold uppercase tracking-wider text-[#FF6B00]">
@@ -1695,6 +1700,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
               <div className="max-w-2xl space-y-4">
                 <AdminImageUploader
                   label="Main Hero Banner Image"
+                  bucket="site-images"
                   value={siteSettings.heroImage || '/hero-setup.jpg'}
                   onChange={(newUrl) => {
                     const updated = { ...siteSettings, heroImage: newUrl };
@@ -1803,6 +1809,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
 
                   <AdminImageUploader
                     label="Open Graph (OG) Image"
+                    bucket="site-images"
                     value={siteSettings.ogImage || '/og-image.jpg'}
                     onChange={(newUrl) => {
                       const updated = { ...siteSettings, ogImage: newUrl || '/og-image.jpg' };
@@ -1828,6 +1835,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
 
                   <AdminImageUploader
                     label="Website Favicon"
+                    bucket="site-images"
                     value={siteSettings.favicon || '/favicon.png'}
                     onChange={(newUrl) => {
                       const updated = { ...siteSettings, favicon: newUrl || '/favicon.png' };
@@ -1979,6 +1987,31 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                   <p className="mt-0.5 text-[11px] leading-relaxed opacity-90">
                     {supabaseStatus?.message || 'Checking connection status to Supabase...'}
                   </p>
+
+                  {/* Supabase Storage Status Indicator */}
+                  {supabaseStatus?.connected && (
+                    <div className="mt-3 pt-2.5 border-t border-black/10 flex items-center justify-between gap-2 flex-wrap">
+                      <div className="flex items-center gap-1.5 text-[11px]">
+                        <span className="font-semibold">Supabase Storage ('techcheck-images'):</span>
+                        {supabaseStatus?.storageStatus?.ready ? (
+                          <span className="inline-flex items-center gap-1 font-bold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-md">
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                            Ready (Public Bucket)
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 font-bold text-rose-700 bg-rose-100/80 px-2 py-0.5 rounded-md" title={supabaseStatus?.storageStatus?.error}>
+                            <AlertTriangle className="w-3 h-3 text-rose-600" />
+                            Bucket Missing / Need Creation
+                          </span>
+                        )}
+                      </div>
+                      {!supabaseStatus?.storageStatus?.ready && (
+                        <p className="w-full text-[10px] text-amber-900 mt-1 font-mono bg-white/70 p-2 rounded-lg border border-amber-200">
+                          Catatan: Untuk upload gambar permanen, buat bucket <strong>'techcheck-images'</strong> (Public) di Supabase Dashboard &gt; Storage atau jalankan Bagian 4 di file <code>setup_database.sql</code>.
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -2505,6 +2538,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
               {/* Product Main Image with Multi-format Upload & URL */}
               <AdminImageUploader
                 label="Primary Product Image"
+                bucket="product-images"
                 value={productFormData.image || ''}
                 onChange={(newUrl) => {
                   setProductFormData({
@@ -2702,6 +2736,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                 <div>
                   <AdminImageUploader
                     label="Category Cover Image URL"
+                    bucket="product-images"
                     value={categoryFormData.image || ''}
                     onChange={(newUrl) => setCategoryFormData({ ...categoryFormData, image: newUrl })}
                     presets={['/acer-nitro.png', '/acer-creator.png', '/powerpac.png', '/acer-portable.png']}
@@ -3017,6 +3052,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                     <div>
                       <AdminImageUploader
                         label="Hero Header Image URL (Hero Section)"
+                        bucket="article-images"
                         value={guideFormData.image || ''}
                         onChange={(newUrl) => setGuideFormData({ ...guideFormData, image: newUrl })}
                         presets={['/acer-nitro.png', '/acer-creator.png', '/powerpac.png', '/acer-portable.png']}
@@ -3074,6 +3110,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                     <div>
                       <AdminImageUploader
                         label="Author Avatar"
+                        bucket="article-images"
                         value={guideFormData.author?.avatar || ''}
                         onChange={(newUrl) =>
                           setGuideFormData({
@@ -3471,6 +3508,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                                   <div>
                                     <AdminImageUploader
                                       label={`Step #${step.number || String(idx + 1).padStart(2, '0')} Photo (Article Block)`}
+                                      bucket="article-images"
                                       value={step.image || ''}
                                       onChange={async (newUrl) => {
                                         handleUpdateGuideStep(idx, { image: newUrl, image_url: newUrl });

@@ -23,32 +23,33 @@ export const SafeImage: React.FC<SafeImageProps> = ({
   const [hasError, setHasError] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Sanitize and reset error when src changes
+  const [retryCount, setRetryCount] = useState(0);
+
+  // Reset error when src changes
   React.useEffect(() => {
-    let cleanSrc = src;
-    if (cleanSrc && cleanSrc.includes('/api/images/')) {
-      cleanSrc = cleanSrc.replace(/\/api\/images\//g, '/uploads/');
-    }
-    setCurrentSrc(cleanSrc);
+    setCurrentSrc(src);
     setHasError(false);
     setIsLoaded(false);
+    setRetryCount(0);
   }, [src]);
 
   const handleError = () => {
-    if (currentSrc) {
+    if (currentSrc && retryCount < 2) {
       const cleanPath = currentSrc.split('?')[0];
-      if (cleanPath.includes('/api/images/')) {
-        setCurrentSrc(cleanPath.replace(/\/api\/images\//g, '/uploads/'));
-        return;
-      }
+      setRetryCount((prev) => prev + 1);
+
       if (cleanPath.startsWith('/uploads/')) {
         const filename = cleanPath.replace('/uploads/', '');
-        // Fall back to root asset or images directory
-        if (!currentSrc.includes('/images/') && !currentSrc.includes('/assets/')) {
-          setCurrentSrc(`/images/${filename}`);
-          return;
-        }
+        setCurrentSrc(`/api/images/${filename}`);
+        return;
       }
+
+      if (cleanPath.startsWith('/api/images/')) {
+        const filename = cleanPath.replace('/api/images/', '');
+        setCurrentSrc(`/uploads/${filename}`);
+        return;
+      }
+
       if (cleanPath === '/hero-setup.jpg' || cleanPath === '/hero-setup.png') {
         setCurrentSrc('/hero-setup.webp');
         return;

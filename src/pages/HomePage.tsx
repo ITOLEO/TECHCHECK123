@@ -235,9 +235,10 @@ export const HomePage: React.FC<HomePageProps> = ({
               className="lg:col-span-6"
             >
               <div className="relative aspect-[6/5] rounded-2xl overflow-hidden shadow-xl border border-[#E9E9E6] dark:border-[#272932] bg-neutral-900 group">
-                <img
+                <SafeImage
                   src={heroImage}
                   alt="Compact studio desk setup"
+                  fallbackText="100cm Compact Studio Desk"
                   className="absolute inset-0 h-full w-full object-cover"
                 />
                 <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/90 to-transparent pointer-events-none" />
