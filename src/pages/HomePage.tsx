@@ -12,6 +12,7 @@ import {
 import { motion } from 'motion/react';
 import { Product, CategoryInfo, Guide, SiteSettings, ViewRoute, RecommendationGoal } from '../types';
 import { ProductCard } from '../components/ProductCard';
+import { ProductCarousel } from '../components/ProductCarousel';
 import { SafeImage } from '../components/SafeImage';
 import { analytics } from '../services/analytics';
 import { updateSEO, buildBreadcrumbSchema } from '../services/seo';
@@ -90,11 +91,10 @@ export const HomePage: React.FC<HomePageProps> = ({
     siteSettings.guidesSubtext ||
     'Learn how to measure clearance, route cables under desks, and optimize monitor heights for compact spaces.';
 
-  const featuredProducts = products.filter((p) => p.featured);
-  const displayProducts = featuredProducts.length > 0 ? featuredProducts.slice(0, 4) : products.slice(0, 4);
+  const displayProducts = products.length > 0 ? products : [];
 
   const featuredGuide = guides.find((g) => g.featured) || guides[0];
-  const secondaryGuides = guides.filter((g) => g.id !== featuredGuide?.id).slice(0, 3);
+  const secondaryGuides = guides.filter((g) => g.id !== featuredGuide?.id).slice(0, 6);
 
   const handleHeroCtaClick = (targetUrl?: string, defaultPage: 'recommendations' | 'guides' = 'recommendations') => {
     analytics.track('page_view', { route: targetUrl || defaultPage });
@@ -287,23 +287,12 @@ export const HomePage: React.FC<HomePageProps> = ({
           </button>
         </div>
 
-        {/* 4 Product Cards Grid */}
-        {displayProducts.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {displayProducts.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onSelectProduct={onSelectProduct}
-                onNavigate={onNavigate}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="bg-white dark:bg-[#16171D] rounded-2xl border border-[#E9E9E6] dark:border-[#272932] p-10 text-center text-neutral-500 text-xs">
-            No products available.
-          </div>
-        )}
+        {/* Product Carousel with Endless Infinite Horizontal Scroll */}
+        <ProductCarousel
+          products={displayProducts}
+          onSelectProduct={onSelectProduct}
+          onNavigate={onNavigate}
+        />
       </section>
 
       {/* ========================================================
@@ -408,7 +397,7 @@ export const HomePage: React.FC<HomePageProps> = ({
           </div>
         )}
 
-        {/* Secondary 3 Guides Grid */}
+        {/* Secondary Guides Grid (6 Cards) */}
         {secondaryGuides.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {secondaryGuides.map((guide) => (

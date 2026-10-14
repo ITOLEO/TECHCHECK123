@@ -107,7 +107,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           </div>
 
           {/* Product Name */}
-          <h3 className="text-base sm:text-lg font-bold text-[#111111] dark:text-neutral-100 leading-snug group-hover:text-[#FF6B00] transition-colors mb-2 line-clamp-2 min-h-[2.8rem] flex items-center">
+          <h3 className="text-base sm:text-lg font-bold text-[#111111] dark:text-neutral-100 leading-snug group-hover:text-[#FF6B00] transition-colors mb-2 line-clamp-3 min-h-[3.6rem] flex items-center">
             <a
               href={`/recommendations/${product.slug}`}
               onClick={(e) => {
@@ -121,13 +121,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           </h3>
 
           {/* Short Benefit Statement */}
-          <p className="text-xs sm:text-sm font-medium text-neutral-600 dark:text-neutral-300 leading-relaxed mb-4 line-clamp-2 min-h-[2.5rem]">
+          <p className="text-xs sm:text-sm font-medium text-neutral-600 dark:text-neutral-300 leading-relaxed mb-4 line-clamp-3 min-h-[2.8rem]">
             {product.shortBenefit}
           </p>
         </div>
 
         {/* Action Buttons - Centered button group with synchronized dimensions */}
-        <div className="mt-auto flex flex-row items-center justify-center gap-2.5 pt-3.5 border-t border-neutral-100 dark:border-[#23252E] w-full">
+        <div className="mt-auto shrink-0 flex flex-row items-center justify-center gap-2.5 pt-3.5 pb-1 border-t border-neutral-100 dark:border-[#23252E] w-full">
           <motion.button
             whileTap={{ scale: 0.97 }}
             type="button"
