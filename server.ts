@@ -576,6 +576,7 @@ function toProductRow(p: any) {
     featured: Boolean(p.featured),
     product_type: p.productType ?? 'Gear',
     desk_size_compatibility: p.deskSizeCompatibility ?? 'All Desks',
+    status: p.status ?? 'published',
   };
 }
 
@@ -603,6 +604,7 @@ function fromProductRow(row: any) {
     featured: Boolean(row.featured),
     productType: row.product_type ?? 'Gear',
     deskSizeCompatibility: row.desk_size_compatibility ?? 'All Desks',
+    status: row.status ?? 'published',
   };
 }
 
@@ -1292,11 +1294,14 @@ app.get('/api/products', async (req: Request, res: Response) => {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (!error && Array.isArray(data) && data.length > 0) {
+      if (!error && Array.isArray(data)) {
         const products = data.map(fromProductRow);
         saveLocalDb({ products });
         res.json(products);
         return;
+      }
+      if (error) {
+        console.warn('Supabase products fetch warning:', error.message);
       }
     } catch (err: any) {
       console.warn('Supabase products fetch failed, falling back to localDb:', err.message);
@@ -1309,38 +1314,82 @@ app.get('/api/products', async (req: Request, res: Response) => {
 
 app.post('/api/products', async (req: Request, res: Response) => {
   const product = { ...req.body };
+
+  // Generate unique stable ID if not provided or placeholder
+  if (!product.id || typeof product.id !== 'string' || product.id.trim() === '' || product.id === 'new') {
+    product.id = `prod-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+  } else {
+    product.id = product.id.trim();
+  }
+
+  // Ensure valid slug
+  if (!product.slug || typeof product.slug !== 'string' || product.slug.trim() === '') {
+    product.slug = (product.name || 'product')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '') || `prod-${Date.now()}`;
+  } else {
+    product.slug = product.slug.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  }
+
   if (product.image && product.image.startsWith('data:image/')) {
     product.image = await normalizeAndUploadImageIfBase64(product.image, `prod-${product.slug || 'item'}`);
   }
+
   const row = toProductRow(product);
 
-  // Update local persistent storage immediately
-  const localDb = getLocalDb();
-  const existing = localDb.products || [];
-  const updated = existing.some((p: any) => p.id === product.id)
-    ? existing.map((p: any) => (p.id === product.id ? product : p))
-    : [product, ...existing];
-  saveLocalDb({ products: updated });
-
   const supabase = getSupabase();
-  if (supabase) {
-    try {
-      const { data, error } = await supabase
-        .from('products')
-        .upsert(row)
-        .select()
-        .single();
-
-      if (!error && data) {
-        res.json(fromProductRow(data));
-        return;
-      }
-    } catch (err: any) {
-      console.warn('Supabase product upsert failed, preserved in localDb:', err.message);
-    }
+  if (!supabase) {
+    res.status(503).json({
+      success: false,
+      error: 'Database Supabase belum terkonfigurasi pada server.',
+    });
+    return;
   }
 
-  res.json(product);
+  try {
+    const { data, error } = await supabase
+      .from('products')
+      .upsert(row, { onConflict: 'id' })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('[Supabase Product Insert Error]:', error);
+      res.status(500).json({
+        success: false,
+        error: `Gagal menyimpan produk ke Supabase: ${error.message}`,
+        details: error.message,
+      });
+      return;
+    }
+
+    if (!data) {
+      res.status(500).json({
+        success: false,
+        error: 'Supabase berhasil memproses permintaan tetapi tidak mengembalikan data record produk.',
+      });
+      return;
+    }
+
+    const savedProduct = fromProductRow(data);
+
+    // Update local persistent storage ONLY after confirmed Supabase success
+    const localDb = getLocalDb();
+    const existing = localDb.products || [];
+    const updated = existing.some((p: any) => p.id === savedProduct.id)
+      ? existing.map((p: any) => (p.id === savedProduct.id ? savedProduct : p))
+      : [savedProduct, ...existing];
+    saveLocalDb({ products: updated });
+
+    res.status(200).json(savedProduct);
+  } catch (err: any) {
+    console.error('[Supabase Product Exception]:', err);
+    res.status(500).json({
+      success: false,
+      error: `Kesalahan saat menyimpan produk ke Supabase: ${err.message || err}`,
+    });
+  }
 });
 
 app.delete('/api/products/:id', async (req: Request, res: Response) => {
