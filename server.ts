@@ -278,9 +278,10 @@ function getSupabaseConfig(): { url: string; key: string } {
   if (!url) {
     url = (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '').trim();
   }
-  // Server-side: prefer service role key if available in env, otherwise fallback to config key or general key
-  if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    key = process.env.SUPABASE_SERVICE_ROLE_KEY.trim();
+  // Server-side: prefer privileged secret key (SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY) if available in server env
+  const serverSecretKey = (process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
+  if (serverSecretKey) {
+    key = serverSecretKey;
   } else if (!key) {
     key = (process.env.SUPABASE_KEY || process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '').trim();
   }
@@ -805,16 +806,41 @@ app.post('/api/upload', async (req: Request, res: Response) => {
       (typeof authHeader === 'string' && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '')
     ).trim();
 
-    const validCodes = new Set(['654321', (process.env.ADMIN_PASSCODE || '').trim()].filter(Boolean));
+    const envPasscode = (process.env.ADMIN_PASSCODE || '').trim();
+    const isProduction = process.env.NODE_ENV === 'production' || Boolean(process.env.VERCEL);
+
+    let dbPasscode = '';
     try {
       const localDb = getLocalDb();
-      if (localDb.settings?.adminPasscode) validCodes.add(String(localDb.settings.adminPasscode).trim());
+      if (localDb.settings?.adminPasscode) {
+        dbPasscode = String(localDb.settings.adminPasscode).trim();
+      }
     } catch (e) {}
+
+    // In Production: Never fall back to the weak default '654321'.
+    // Must have a configured passcode (envPasscode or non-default dbPasscode).
+    // If not configured in Production, fail with a clear configuration message without displaying any secrets.
+    if (isProduction && !envPasscode && (!dbPasscode || dbPasscode === '654321')) {
+      res.status(500).json({
+        success: false,
+        error: 'Konfigurasi keamanan Production belum lengkap: Harap atur environment variable ADMIN_PASSCODE pada server.',
+        storage: 'unconfigured_security',
+      });
+      return;
+    }
+
+    const validCodes = new Set<string>();
+    if (envPasscode) validCodes.add(envPasscode);
+    if (dbPasscode) validCodes.add(dbPasscode);
+    if (!isProduction && validCodes.size === 0) {
+      // Local development fallback only when no custom passcode is configured
+      validCodes.add('654321');
+    }
 
     if (!providedCode || !validCodes.has(providedCode)) {
       res.status(401).json({
         success: false,
-        error: 'Unauthorized: Admin authentication is required to upload files.',
+        error: 'Unauthorized: Autentikasi admin diperlukan untuk mengunggah gambar.',
         storage: 'unauthorized',
       });
       return;
