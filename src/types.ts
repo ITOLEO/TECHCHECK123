@@ -24,6 +24,7 @@ export interface Product {
   featured?: boolean;
   productType: string;
   deskSizeCompatibility: string;
+  status?: 'draft' | 'published';
 }
 
 export interface CategoryInfo {

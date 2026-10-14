@@ -41,7 +41,7 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ categories, prod
 
   const getCategoryCount = (cat: CategoryInfo) => {
     if (products && products.length > 0) {
-      const realCount = products.filter((p) => p.category === cat.name).length;
+      const realCount = products.filter((p) => (p.category || '').trim().toLowerCase() === (cat.name || '').trim().toLowerCase()).length;
       if (realCount > 0) return realCount;
     }
     return cat.productCount || 0;

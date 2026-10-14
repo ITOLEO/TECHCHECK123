@@ -162,6 +162,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [productFormData, setProductFormData] = useState<Partial<Product>>({});
   const [productFormError, setProductFormError] = useState<string | null>(null);
+  const [isSubmittingProduct, setIsSubmittingProduct] = useState(false);
 
   // Raw text buffers for multiline fields to allow natural typing without losing newlines
   const [highlightsText, setHighlightsText] = useState('');
@@ -447,7 +448,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
       .filter(Boolean);
 
     const newProduct: Product = {
-      id: editingProduct ? editingProduct.id : `prod-${Date.now()}`,
+      id: editingProduct ? editingProduct.id : `prod-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
       slug,
       name: productFormData.name.trim(),
       category: chosenCategory,
@@ -472,17 +473,11 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
       featured: !!productFormData.featured,
       productType: productFormData.productType || chosenCategory,
       deskSizeCompatibility: productFormData.deskSizeCompatibility || 'Universal',
+      status: productFormData.status || 'published',
     };
 
-    let updatedList: Product[];
-    if (editingProduct) {
-      updatedList = products.map((p) => (p.id === editingProduct.id ? newProduct : p));
-    } else {
-      updatedList = [newProduct, ...products];
-    }
-
-    onUpdateProducts(updatedList);
-    dataStorage.saveProducts(updatedList);
+    setIsSubmittingProduct(true);
+    setProductFormError(null);
 
     try {
       const res = await fetch('/api/products', {
@@ -490,17 +485,38 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newProduct),
       });
+
       if (!res.ok) {
         const errJson = await res.json().catch(() => ({}));
-        throw new Error(errJson.error || 'Server error');
+        throw new Error(errJson.error || errJson.details || `Server returned HTTP ${res.status}`);
       }
-      showToast(editingProduct ? `Product "${newProduct.name}" updated in Supabase!` : `Product "${newProduct.name}" added to Supabase!`);
-    } catch (err: any) {
-      showToast(`Saved locally, but failed to sync to Supabase: ${err.message}`);
-      console.error(err);
-    }
 
-    setIsProductModalOpen(false);
+      const savedProduct: Product = await res.json();
+
+      // Only update local state and storage AFTER confirmed server/Supabase success!
+      let updatedList: Product[];
+      if (editingProduct) {
+        updatedList = products.map((p) => (p.id === editingProduct.id ? savedProduct : p));
+      } else {
+        updatedList = [savedProduct, ...products];
+      }
+
+      onUpdateProducts(updatedList);
+      dataStorage.saveProducts(updatedList);
+
+      showToast(
+        editingProduct
+          ? `Product "${savedProduct.name}" updated in Supabase!`
+          : `Product "${savedProduct.name}" added to Supabase!`
+      );
+      setIsProductModalOpen(false);
+    } catch (err: any) {
+      setProductFormError(`Gagal menyimpan produk ke Supabase: ${err.message}`);
+      showToast(`Gagal menyimpan: ${err.message}`);
+      console.error('[Product Save Error]:', err);
+    } finally {
+      setIsSubmittingProduct(false);
+    }
   };
 
   const handleDeleteProduct = (productId: string, productName: string) => {
@@ -511,26 +527,59 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
     });
   };
 
-  const handleDuplicateProduct = (prod: Product) => {
+  const handleDuplicateProduct = async (prod: Product) => {
     const duplicated: Product = {
       ...prod,
-      id: `prod-${Date.now()}`,
+      id: `prod-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
       slug: `${prod.slug}-copy-${Math.floor(Math.random() * 1000)}`,
       name: `${prod.name} (Copy)`,
       featured: false,
     };
-    const updated = [duplicated, ...products];
-    onUpdateProducts(updated);
-    dataStorage.saveProducts(updated);
-    showToast(`Product "${prod.name}" successfully duplicated!`);
+
+    try {
+      const res = await fetch('/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(duplicated),
+      });
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error || 'Server error');
+      }
+      const saved: Product = await res.json();
+      const updated = [saved, ...products];
+      onUpdateProducts(updated);
+      dataStorage.saveProducts(updated);
+      showToast(`Product "${prod.name}" successfully duplicated and saved to Supabase!`);
+    } catch (e: any) {
+      showToast(`Failed to duplicate product: ${e.message}`);
+    }
   };
 
-  const handleToggleFeatured = (productId: string) => {
-    const updated = products.map((p) =>
-      p.id === productId ? { ...p, featured: !p.featured } : p
-    );
-    onUpdateProducts(updated);
-    dataStorage.saveProducts(updated);
+  const handleToggleFeatured = async (productId: string) => {
+    const target = products.find((p) => p.id === productId);
+    if (!target) return;
+    const toggled: Product = { ...target, featured: !target.featured };
+
+    try {
+      const res = await fetch('/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(toggled),
+      });
+      if (res.ok) {
+        const saved: Product = await res.json();
+        const updated = products.map((p) => (p.id === productId ? saved : p));
+        onUpdateProducts(updated);
+        dataStorage.saveProducts(updated);
+        showToast(`Product "${target.name}" featured status updated!`);
+      } else {
+        const errJson = await res.json().catch(() => ({}));
+        showToast(`Failed to update featured status: ${errJson.error || 'Server error'}`);
+      }
+    } catch (e: any) {
+      showToast(`Failed to update featured status: ${e.message}`);
+    }
   };
 
   // Filtered products for table
@@ -538,9 +587,9 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
     return products.filter((p) => {
       const matchCat = productCategoryFilter === 'All' || p.category === productCategoryFilter;
       const matchSearch =
-        p.name.toLowerCase().includes(productSearch.toLowerCase()) ||
-        p.shortBenefit.toLowerCase().includes(productSearch.toLowerCase()) ||
-        p.category.toLowerCase().includes(productSearch.toLowerCase());
+        (p.name || '').toLowerCase().includes(productSearch.toLowerCase()) ||
+        (p.shortBenefit || '').toLowerCase().includes(productSearch.toLowerCase()) ||
+        (p.category || '').toLowerCase().includes(productSearch.toLowerCase());
       return matchCat && matchSearch;
     });
   }, [products, productSearch, productCategoryFilter]);
@@ -2655,10 +2704,11 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 bg-[#FF6B00] hover:bg-[#E05E00] text-white font-bold rounded-xl transition-all shadow-xs flex items-center gap-2 cursor-pointer"
+                  disabled={isSubmittingProduct}
+                  className="px-6 py-2.5 bg-[#FF6B00] hover:bg-[#E05E00] text-white font-bold rounded-xl transition-all shadow-xs flex items-center gap-2 cursor-pointer disabled:opacity-50"
                 >
                   <Check className="w-4 h-4" />
-                  <span>Save Product</span>
+                  <span>{isSubmittingProduct ? 'Saving to Supabase...' : 'Save Product'}</span>
                 </button>
               </div>
             </form>

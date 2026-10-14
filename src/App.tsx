@@ -284,7 +284,14 @@ export default function App() {
     });
 
     // Attempt initial remote fetch from Supabase
-    dataStorage.fetchRemoteData();
+    dataStorage.fetchRemoteData().then((remote) => {
+      if (remote) {
+        if (remote.products && remote.products.length > 0) setProducts(remote.products);
+        if (remote.categories && remote.categories.length > 0) setCategories(remote.categories);
+        if (remote.guides && remote.guides.length > 0) setGuides(remote.guides);
+        if (remote.settings) setSiteSettings(remote.settings);
+      }
+    });
 
     return () => {
       unsubscribe();

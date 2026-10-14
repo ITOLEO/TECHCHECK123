@@ -1347,6 +1347,21 @@ app.post('/api/products', async (req: Request, res: Response) => {
     return;
   }
 
+  // Prevent unique constraint violation on "products_slug_key" if slug is taken by a different product
+  try {
+    const { data: existingSlugRow } = await supabase
+      .from('products')
+      .select('id, slug')
+      .eq('slug', row.slug)
+      .maybeSingle();
+
+    if (existingSlugRow && existingSlugRow.id !== row.id) {
+      row.slug = `${row.slug}-${Math.random().toString(36).slice(2, 6)}`;
+    }
+  } catch (slugCheckErr) {
+    // Non-blocking
+  }
+
   try {
     const { data, error } = await supabase
       .from('products')

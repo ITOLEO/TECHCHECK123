@@ -270,6 +270,49 @@ export const dataStorage = {
         }
       }
 
+      // Direct Supabase Fallback: If any API endpoint fails or returns empty, fetch directly via client SDK
+      if (!result.products || result.products.length === 0) {
+        try {
+          const { supabase } = await import('../subabaseClient.js');
+          const { data: directProds, error: pErr } = await supabase
+            .from('products')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+          if (!pErr && Array.isArray(directProds) && directProds.length > 0) {
+            const mappedProds: Product[] = directProds.map((row: any) => ({
+              id: row.id,
+              slug: row.slug,
+              name: row.name || 'Untitled Product',
+              category: row.category || 'Accessories',
+              rating: Number(row.rating ?? 5.0),
+              reviewCount: Number(row.review_count ?? 0),
+              image: row.image || '',
+              gallery: Array.isArray(row.gallery) ? row.gallery : (row.image ? [row.image] : []),
+              badge: row.badge ?? '',
+              shortBenefit: row.short_benefit ?? '',
+              description: row.description ?? '',
+              benefits: Array.isArray(row.benefits) ? row.benefits : [],
+              highlights: Array.isArray(row.highlights) ? row.highlights : [],
+              specifications: typeof row.specifications === 'object' && row.specifications !== null ? row.specifications : {},
+              bestFor: row.best_for ?? '',
+              greatFor: Array.isArray(row.great_for) ? row.great_for : [],
+              setupConsiderations: Array.isArray(row.setup_considerations) ? row.setup_considerations : [],
+              verdict: row.verdict ?? '',
+              affiliateUrl: row.affiliate_url ?? '',
+              featured: Boolean(row.featured),
+              productType: row.product_type ?? (row.category || 'Gear'),
+              deskSizeCompatibility: row.desk_size_compatibility ?? 'All Desks',
+              status: row.status ?? 'published',
+            }));
+            result.products = mappedProds;
+            safeSetItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(mappedProds));
+          }
+        } catch (directErr) {
+          console.warn('Direct Supabase products fallback warning:', directErr);
+        }
+      }
+
       this.notifyListeners(result);
       return result;
     } catch (err) {

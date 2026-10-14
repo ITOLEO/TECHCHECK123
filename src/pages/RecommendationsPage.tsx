@@ -133,8 +133,8 @@ export const RecommendationsPage: React.FC<RecommendationsPageProps> = ({
 
         if (searchQuery.trim()) {
           const q = searchQuery.toLowerCase();
-          const matchName = p.name.toLowerCase().includes(q);
-          const matchBenefit = p.shortBenefit.toLowerCase().includes(q);
+          const matchName = (p.name || '').toLowerCase().includes(q);
+          const matchBenefit = (p.shortBenefit || '').toLowerCase().includes(q);
           const matchSpec = p.specifications
             ? Object.values(p.specifications).some((v) => typeof v === 'string' && v.toLowerCase().includes(q))
             : false;
