@@ -6,7 +6,7 @@ import { SafeImage } from '../components/SafeImage';
 import { analytics } from '../services/analytics';
 import { updateSEO, buildBreadcrumbSchema } from '../services/seo';
 
-import { categoryToSlug } from '../utils/slug';
+import { categoryToSlug, isModifiedClick } from '../utils/slug';
 
 interface CategoriesPageProps {
   categories: CategoryInfo[];
@@ -67,22 +67,21 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ categories, prod
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {categories.map((cat) => {
             const count = getCategoryCount(cat);
+            const slug = categoryToSlug(cat.slug || cat.name);
             return (
-              <motion.div
-                key={cat.id}
+              <motion.a
+                key={cat.id || cat.name}
+                href={`/categories/${slug}`}
                 whileHover={{ y: -5 }}
                 transition={{ duration: 0.2 }}
-                onClick={() => handleSelectCategory(cat)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
+                onClick={(e) => {
+                  if (!isModifiedClick(e)) {
                     e.preventDefault();
                     handleSelectCategory(cat);
                   }
                 }}
-                tabIndex={0}
-                role="button"
                 aria-label={`Browse ${cat.name} category with ${count} accessories`}
-                className="group bg-white dark:bg-[#16171C] rounded-3xl border border-[#E9E9E6] dark:border-[#272932] hover:border-[#FF6B00] dark:hover:border-[#FF6B00] shadow-xs hover:shadow-xl transition-all overflow-hidden cursor-pointer flex flex-col justify-between focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] h-full"
+                className="group bg-white dark:bg-[#16171C] rounded-3xl border border-[#E9E9E6] dark:border-[#272932] hover:border-[#FF6B00] dark:hover:border-[#FF6B00] shadow-xs hover:shadow-xl transition-all overflow-hidden cursor-pointer flex flex-col justify-between focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] h-full no-underline"
               >
                 <div className="relative aspect-16/10 overflow-hidden bg-neutral-100 dark:bg-[#1C1E25]">
                   <SafeImage
@@ -116,7 +115,7 @@ export const CategoriesPage: React.FC<CategoriesPageProps> = ({ categories, prod
                     {cat.description}
                   </p>
                 </div>
-              </motion.div>
+              </motion.a>
             );
           })}
         </div>

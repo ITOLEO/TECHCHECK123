@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ViewRoute, CategoryInfo } from '../types';
 import { useTheme } from '../services/theme';
 import { CATEGORIES as DEFAULT_CATEGORIES } from '../data/products';
-import { categoryToSlug } from '../utils/slug';
+import { categoryToSlug, isModifiedClick } from '../utils/slug';
 
 interface NavbarProps {
   currentRoute: ViewRoute;
@@ -212,35 +212,50 @@ export const Navbar: React.FC<NavbarProps> = ({
                         <FolderTree className="w-3.5 h-3.5 text-[#FF6B00]" />
                         <span>Hardware Categories</span>
                       </span>
-                      <button
-                        onClick={() => handleNavClick({ page: 'categories' })}
+                      <a
+                        href="/categories"
+                        onClick={(e) => {
+                          if (!isModifiedClick(e)) {
+                            e.preventDefault();
+                            handleNavClick({ page: 'categories' });
+                          }
+                        }}
                         className="text-xs font-bold text-[#FF6B00] hover:underline cursor-pointer flex items-center gap-1"
                       >
                         <span>View Taxonomy</span>
                         <ArrowRight className="w-3 h-3" />
-                      </button>
+                      </a>
                     </div>
 
                     <div className="grid grid-cols-2 gap-2">
-                      {categories.map((cat) => (
-                        <button
-                          key={cat.id || cat.name}
-                          onClick={() => handleCategorySelect(cat.name)}
-                          className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-neutral-50 dark:hover:bg-[#1D1F27] border border-transparent hover:border-neutral-200 dark:hover:border-neutral-800 transition-all text-left group cursor-pointer"
-                        >
-                          <div className="w-8 h-8 rounded-lg bg-orange-50 dark:bg-orange-950/40 border border-orange-200/80 dark:border-orange-800/80 flex items-center justify-center shrink-0 text-[#FF6B00] mt-0.5">
-                            <Layers className="w-4 h-4" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h4 className="text-xs font-bold text-[#111111] dark:text-neutral-100 group-hover:text-[#FF6B00] transition-colors truncate">
-                              {cat.name}
-                            </h4>
-                            <p className="text-[11px] text-neutral-500 dark:text-neutral-400 line-clamp-1 leading-normal">
-                              {cat.description}
-                            </p>
-                          </div>
-                        </button>
-                      ))}
+                      {categories.map((cat) => {
+                        const slug = categoryToSlug(cat.slug || cat.name);
+                        return (
+                          <a
+                            key={cat.id || cat.name}
+                            href={`/categories/${slug}`}
+                            onClick={(e) => {
+                              if (!isModifiedClick(e)) {
+                                e.preventDefault();
+                                handleCategorySelect(cat.slug || cat.name);
+                              }
+                            }}
+                            className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-neutral-50 dark:hover:bg-[#1D1F27] border border-transparent hover:border-neutral-200 dark:hover:border-neutral-800 transition-all text-left group cursor-pointer no-underline"
+                          >
+                            <div className="w-8 h-8 rounded-lg bg-orange-50 dark:bg-orange-950/40 border border-orange-200/80 dark:border-orange-800/80 flex items-center justify-center shrink-0 text-[#FF6B00] mt-0.5">
+                              <Layers className="w-4 h-4" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h4 className="text-xs font-bold text-[#111111] dark:text-neutral-100 group-hover:text-[#FF6B00] transition-colors truncate">
+                                {cat.name}
+                              </h4>
+                              <p className="text-[11px] text-neutral-500 dark:text-neutral-400 line-clamp-1 leading-normal">
+                                {cat.description}
+                              </p>
+                            </div>
+                          </a>
+                        );
+                      })}
                     </div>
 
                     {/* Bottom CTA Bar in Dropdown */}
@@ -248,12 +263,18 @@ export const Navbar: React.FC<NavbarProps> = ({
                       <span className="text-neutral-500 dark:text-neutral-400">
                         Curated for desks 80cm - 140cm
                       </span>
-                      <button
-                        onClick={() => handleNavClick({ page: 'categories' })}
-                        className="px-3 py-1.5 rounded-lg bg-[#111111] dark:bg-white text-white dark:text-[#111111] hover:bg-[#FF6B00] dark:hover:bg-[#FF6B00] dark:hover:text-white font-semibold text-[11px] transition-colors cursor-pointer"
+                      <a
+                        href="/categories"
+                        onClick={(e) => {
+                          if (!isModifiedClick(e)) {
+                            e.preventDefault();
+                            handleNavClick({ page: 'categories' });
+                          }
+                        }}
+                        className="px-3 py-1.5 rounded-lg bg-[#111111] dark:bg-white text-white dark:text-[#111111] hover:bg-[#FF6B00] dark:hover:bg-[#FF6B00] dark:hover:text-white font-semibold text-[11px] transition-colors cursor-pointer no-underline inline-block"
                       >
                         All Categories →
-                      </button>
+                      </a>
                     </div>
                   </motion.div>
                 )}
@@ -428,23 +449,38 @@ export const Navbar: React.FC<NavbarProps> = ({
 
               {mobileCategoriesOpen && (
                 <div className="pl-4 pr-2 py-1 space-y-1 bg-white/50 dark:bg-black/20 rounded-xl">
-                  {categories.map((cat) => (
-                    <button
-                      key={cat.id || cat.name}
-                      onClick={() => handleCategorySelect(cat.name)}
-                      className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-neutral-700 dark:text-neutral-300 hover:text-[#FF6B00] flex items-center justify-between cursor-pointer"
-                    >
-                      <span>{cat.name}</span>
-                      <ArrowRight className="w-3 h-3 text-neutral-400" />
-                    </button>
-                  ))}
-                  <button
-                    onClick={() => handleNavClick({ page: 'categories' })}
-                    className="w-full text-left px-3 py-2 rounded-lg text-xs font-bold text-[#FF6B00] hover:underline flex items-center justify-between cursor-pointer pt-1"
+                  {categories.map((cat) => {
+                    const slug = categoryToSlug(cat.slug || cat.name);
+                    return (
+                      <a
+                        key={cat.id || cat.name}
+                        href={`/categories/${slug}`}
+                        onClick={(e) => {
+                          if (!isModifiedClick(e)) {
+                            e.preventDefault();
+                            handleCategorySelect(cat.slug || cat.name);
+                          }
+                        }}
+                        className="w-full text-left px-3 py-2 rounded-lg text-xs font-semibold text-neutral-700 dark:text-neutral-300 hover:text-[#FF6B00] flex items-center justify-between cursor-pointer no-underline"
+                      >
+                        <span>{cat.name}</span>
+                        <ArrowRight className="w-3 h-3 text-neutral-400" />
+                      </a>
+                    );
+                  })}
+                  <a
+                    href="/categories"
+                    onClick={(e) => {
+                      if (!isModifiedClick(e)) {
+                        e.preventDefault();
+                        handleNavClick({ page: 'categories' });
+                      }
+                    }}
+                    className="w-full text-left px-3 py-2 rounded-lg text-xs font-bold text-[#FF6B00] hover:underline flex items-center justify-between cursor-pointer pt-1 no-underline"
                   >
                     <span>View All Categories</span>
                     <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
+                  </a>
                 </div>
               )}
             </div>

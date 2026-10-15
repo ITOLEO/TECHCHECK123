@@ -195,6 +195,7 @@ const AppContent: React.FC<AppContentProps> = ({
 
         {/* Footer */}
         <Footer
+          categories={categories}
           onNavigate={navigate}
           onOpenInfoModal={(type) => setInfoModalType(type)}
           onReplaySplash={() => setShowSplash(true)}

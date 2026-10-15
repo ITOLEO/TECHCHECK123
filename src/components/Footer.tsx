@@ -1,17 +1,24 @@
 import React from 'react';
 import { ShieldCheck, Sparkles, CheckCircle2, Lock } from 'lucide-react';
-import { ViewRoute, ProductCategory } from '../types';
-import { categoryToSlug } from '../utils/slug';
+import { ViewRoute, CategoryInfo } from '../types';
+import { CATEGORIES as DEFAULT_CATEGORIES } from '../data/products';
+import { categoryToSlug, isModifiedClick } from '../utils/slug';
 
 interface FooterProps {
+  categories?: CategoryInfo[];
   onNavigate: (route: ViewRoute) => void;
   onOpenInfoModal: (type: 'about' | 'disclosure' | 'contact') => void;
   onReplaySplash?: () => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenInfoModal, onReplaySplash }) => {
-  const handleCategoryClick = (category: ProductCategory) => {
-    onNavigate({ page: 'category-detail', slug: categoryToSlug(category) });
+export const Footer: React.FC<FooterProps> = ({
+  categories = DEFAULT_CATEGORIES,
+  onNavigate,
+  onOpenInfoModal,
+  onReplaySplash,
+}) => {
+  const handleCategoryClick = (categoryNameOrSlug: string) => {
+    onNavigate({ page: 'category-detail', slug: categoryToSlug(categoryNameOrSlug) });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -103,36 +110,60 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenInfoModal, onR
             </h3>
             <ul className="space-y-2.5 text-xs sm:text-sm">
               <li>
-                <button
-                  onClick={() => handleNavClick({ page: 'home' })}
-                  className="text-zinc-400 hover:text-[#FF6B00] transition-colors cursor-pointer"
+                <a
+                  href="/"
+                  onClick={(e) => {
+                    if (!isModifiedClick(e)) {
+                      e.preventDefault();
+                      handleNavClick({ page: 'home' });
+                    }
+                  }}
+                  className="text-zinc-400 hover:text-[#FF6B00] transition-colors cursor-pointer inline-block"
                 >
                   Home
-                </button>
+                </a>
               </li>
               <li>
-                <button
-                  onClick={() => handleNavClick({ page: 'recommendations' })}
-                  className="text-zinc-400 hover:text-[#FF6B00] transition-colors cursor-pointer"
+                <a
+                  href="/recommendations"
+                  onClick={(e) => {
+                    if (!isModifiedClick(e)) {
+                      e.preventDefault();
+                      handleNavClick({ page: 'recommendations' });
+                    }
+                  }}
+                  className="text-zinc-400 hover:text-[#FF6B00] transition-colors cursor-pointer inline-block"
                 >
                   Recommendations
-                </button>
+                </a>
               </li>
               <li>
-                <button
-                  onClick={() => handleNavClick({ page: 'categories' })}
-                  className="text-zinc-400 hover:text-[#FF6B00] transition-colors cursor-pointer"
+                <a
+                  href="/categories"
+                  onClick={(e) => {
+                    if (!isModifiedClick(e)) {
+                      e.preventDefault();
+                      handleNavClick({ page: 'categories' });
+                    }
+                  }}
+                  className="text-zinc-400 hover:text-[#FF6B00] transition-colors cursor-pointer inline-block"
                 >
                   Categories
-                </button>
+                </a>
               </li>
               <li>
-                <button
-                  onClick={() => handleNavClick({ page: 'guides' })}
-                  className="text-zinc-400 hover:text-[#FF6B00] transition-colors cursor-pointer"
+                <a
+                  href="/guides"
+                  onClick={(e) => {
+                    if (!isModifiedClick(e)) {
+                      e.preventDefault();
+                      handleNavClick({ page: 'guides' });
+                    }
+                  }}
+                  className="text-zinc-400 hover:text-[#FF6B00] transition-colors cursor-pointer inline-block"
                 >
                   Guides
-                </button>
+                </a>
               </li>
             </ul>
           </div>
@@ -143,16 +174,25 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenInfoModal, onR
               Categories
             </h3>
             <ul className="space-y-2.5 text-xs sm:text-sm">
-              {(['Desk Setup', 'Cable Management', 'Audio', 'Storage', 'Lighting', 'Ergonomics'] as ProductCategory[]).map((cat) => (
-                <li key={cat}>
-                  <button
-                    onClick={() => handleCategoryClick(cat)}
-                    className="text-zinc-400 hover:text-[#FF6B00] transition-colors cursor-pointer"
-                  >
-                    {cat}
-                  </button>
-                </li>
-              ))}
+              {categories.map((cat) => {
+                const slug = categoryToSlug(cat.slug || cat.name);
+                return (
+                  <li key={cat.id || cat.name}>
+                    <a
+                      href={`/categories/${slug}`}
+                      onClick={(e) => {
+                        if (!isModifiedClick(e)) {
+                          e.preventDefault();
+                          handleCategoryClick(cat.slug || cat.name);
+                        }
+                      }}
+                      className="text-zinc-400 hover:text-[#FF6B00] transition-colors cursor-pointer inline-block"
+                    >
+                      {cat.name}
+                    </a>
+                  </li>
+                );
+              })}
             </ul>
           </div>
 

@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { ArrowLeft, FolderTree, ArrowRight, Grid, AlertCircle, Search, X } from 'lucide-react';
 import { motion } from 'motion/react';
 import { CategoryInfo, Product, ViewRoute } from '../types';
-import { findCategoryBySlug, categoryToSlug } from '../utils/slug';
+import { findCategoryBySlug, categoryToSlug, isModifiedClick } from '../utils/slug';
 import { updateSEO, buildBreadcrumbSchema } from '../services/seo';
 import { analytics } from '../services/analytics';
 import { ProductCard } from '../components/ProductCard';
@@ -157,20 +157,32 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
-            <button
-              onClick={() => onNavigate({ page: 'categories' })}
-              className="px-5 py-2.5 rounded-xl bg-[#111111] dark:bg-white text-white dark:text-[#111111] text-xs font-bold hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors flex items-center justify-center gap-2 cursor-pointer"
+            <a
+              href="/categories"
+              onClick={(e) => {
+                if (!isModifiedClick(e)) {
+                  e.preventDefault();
+                  onNavigate({ page: 'categories' });
+                }
+              }}
+              className="px-5 py-2.5 rounded-xl bg-[#111111] dark:bg-white text-white dark:text-[#111111] text-xs font-bold hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors flex items-center justify-center gap-2 cursor-pointer no-underline"
             >
               <FolderTree className="w-4 h-4" />
               All Categories
-            </button>
-            <button
-              onClick={() => onNavigate({ page: 'recommendations' })}
-              className="px-5 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-700 text-[#111111] dark:text-neutral-200 text-xs font-bold hover:border-[#FF6B00] transition-colors flex items-center justify-center gap-2 cursor-pointer"
+            </a>
+            <a
+              href="/recommendations"
+              onClick={(e) => {
+                if (!isModifiedClick(e)) {
+                  e.preventDefault();
+                  onNavigate({ page: 'recommendations' });
+                }
+              }}
+              className="px-5 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-700 text-[#111111] dark:text-neutral-200 text-xs font-bold hover:border-[#FF6B00] transition-colors flex items-center justify-center gap-2 cursor-pointer no-underline"
             >
               All Products
               <ArrowRight className="w-4 h-4" />
-            </button>
+            </a>
           </div>
         </div>
       </div>
@@ -183,19 +195,31 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8">
       {/* Breadcrumb Navigation */}
       <nav aria-label="Breadcrumb" className="flex items-center text-xs text-neutral-500 dark:text-neutral-400">
-        <button
-          onClick={() => onNavigate({ page: 'home' })}
+        <a
+          href="/"
+          onClick={(e) => {
+            if (!isModifiedClick(e)) {
+              e.preventDefault();
+              onNavigate({ page: 'home' });
+            }
+          }}
           className="hover:text-[#FF6B00] transition-colors cursor-pointer"
         >
           Home
-        </button>
+        </a>
         <span className="mx-2 text-neutral-400 dark:text-neutral-600">/</span>
-        <button
-          onClick={() => onNavigate({ page: 'categories' })}
+        <a
+          href="/categories"
+          onClick={(e) => {
+            if (!isModifiedClick(e)) {
+              e.preventDefault();
+              onNavigate({ page: 'categories' });
+            }
+          }}
           className="hover:text-[#FF6B00] transition-colors cursor-pointer"
         >
           Categories
-        </button>
+        </a>
         <span className="mx-2 text-neutral-400 dark:text-neutral-600">/</span>
         <span className="text-[#111111] dark:text-neutral-200 font-bold truncate max-w-[200px]">
           {category.name}
@@ -229,25 +253,30 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
             const isAll = cat === 'All';
             const catSlug = isAll ? '' : categoryToSlug(cat);
             const active = !isAll && catSlug === cleanCategorySlug;
+            const targetHref = isAll ? '/recommendations' : `/categories/${catSlug}`;
 
             return (
-              <button
+              <a
                 key={cat}
-                onClick={() => {
-                  if (isAll) {
-                    onNavigate({ page: 'recommendations' });
-                  } else {
-                    onNavigate({ page: 'category-detail', slug: catSlug });
+                href={targetHref}
+                onClick={(e) => {
+                  if (!isModifiedClick(e)) {
+                    e.preventDefault();
+                    if (isAll) {
+                      onNavigate({ page: 'recommendations' });
+                    } else {
+                      onNavigate({ page: 'category-detail', slug: catSlug });
+                    }
                   }
                 }}
-                className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer no-underline ${
                   active
                     ? 'bg-[#111111] dark:bg-white text-white dark:text-[#111111] shadow-xs ring-2 ring-[#FF6B00]/50'
                     : 'bg-white dark:bg-[#16171C] text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-[#1D1F27] border border-neutral-200/80 dark:border-neutral-800'
                 }`}
               >
                 {cat}
-              </button>
+              </a>
             );
           })}
         </div>

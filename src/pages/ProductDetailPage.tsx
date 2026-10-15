@@ -5,7 +5,7 @@ import { Product, ViewRoute } from '../types';
 import { SafeImage } from '../components/SafeImage';
 import { analytics } from '../services/analytics';
 import { updateSEO, buildProductSchema, buildBreadcrumbSchema } from '../services/seo';
-import { categoryToSlug } from '../utils/slug';
+import { categoryToSlug, isModifiedClick } from '../utils/slug';
 
 interface ProductDetailPageProps {
   product?: Product | null;
@@ -86,26 +86,44 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-12">
       {/* Breadcrumb Navigation */}
       <nav className="flex items-center gap-2 text-xs text-neutral-500 dark:text-neutral-400" aria-label="Breadcrumb">
-        <button
-          onClick={() => onNavigate({ page: 'home' })}
+        <a
+          href="/"
+          onClick={(e) => {
+            if (!isModifiedClick(e)) {
+              e.preventDefault();
+              onNavigate({ page: 'home' });
+            }
+          }}
           className="hover:text-[#FF6B00] transition-colors cursor-pointer"
         >
           Home
-        </button>
+        </a>
         <ChevronRight className="w-3.5 h-3.5 text-neutral-400" />
-        <button
-          onClick={() => onNavigate({ page: 'recommendations' })}
+        <a
+          href="/recommendations"
+          onClick={(e) => {
+            if (!isModifiedClick(e)) {
+              e.preventDefault();
+              onNavigate({ page: 'recommendations' });
+            }
+          }}
           className="hover:text-[#FF6B00] transition-colors cursor-pointer"
         >
           Recommendations
-        </button>
+        </a>
         <ChevronRight className="w-3.5 h-3.5 text-neutral-400" />
-        <button
-          onClick={() => onNavigate({ page: 'category-detail', slug: categoryToSlug(product.category) })}
+        <a
+          href={`/categories/${categoryToSlug(product.category)}`}
+          onClick={(e) => {
+            if (!isModifiedClick(e)) {
+              e.preventDefault();
+              onNavigate({ page: 'category-detail', slug: categoryToSlug(product.category) });
+            }
+          }}
           className="hover:text-[#FF6B00] transition-colors cursor-pointer"
         >
           {product.category}
-        </button>
+        </a>
         <ChevronRight className="w-3.5 h-3.5 text-neutral-400" />
         <span className="text-[#111111] dark:text-neutral-200 font-semibold truncate max-w-[200px] sm:max-w-none">
           {product.name}

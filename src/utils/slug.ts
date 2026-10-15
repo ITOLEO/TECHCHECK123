@@ -33,3 +33,10 @@ export function findCategoryBySlug(
     return cSlug === target || cNameSlug === target;
   });
 }
+
+/**
+ * Checks if a mouse click has modifier keys (Cmd, Ctrl, Shift, Alt) or is not a primary left click.
+ */
+export function isModifiedClick(e: React.MouseEvent): boolean {
+  return Boolean(e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0);
+}

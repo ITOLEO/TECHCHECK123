@@ -4,7 +4,7 @@ import { motion } from 'motion/react';
 import { Product, ViewRoute } from '../types';
 import { SafeImage } from './SafeImage';
 import { analytics } from '../services/analytics';
-import { categoryToSlug } from '../utils/slug';
+import { categoryToSlug, isModifiedClick } from '../utils/slug';
 
 interface ProductCardProps {
   product: Product;
@@ -84,21 +84,24 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         <div className="flex-1 flex flex-col">
           {/* Category & Badge */}
           <div className="flex items-center justify-between gap-2 mb-2 min-h-[1.25rem]">
-            <button
-              type="button"
+            <a
+              href={`/categories/${categoryToSlug(product.category)}`}
               onClick={(e) => {
                 e.stopPropagation();
-                if (onSelectCategory) {
-                  onSelectCategory(product.category);
-                } else if (onNavigate) {
-                  onNavigate({ page: 'category-detail', slug: categoryToSlug(product.category) });
+                if (!isModifiedClick(e)) {
+                  e.preventDefault();
+                  if (onSelectCategory) {
+                    onSelectCategory(product.category);
+                  } else if (onNavigate) {
+                    onNavigate({ page: 'category-detail', slug: categoryToSlug(product.category) });
+                  }
                 }
               }}
               className="text-[11px] font-bold uppercase tracking-wider text-[#FF6B00] hover:underline cursor-pointer focus-visible:outline-none"
               title={`View all products in ${product.category}`}
             >
               {product.category}
-            </button>
+            </a>
             {product.badge ? (
               <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-neutral-100 dark:bg-[#252832] text-neutral-700 dark:text-neutral-300 border border-neutral-200/80 dark:border-neutral-700/80">
                 {product.badge}
