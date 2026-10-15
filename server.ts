@@ -109,65 +109,69 @@ app.get('/robots.txt', (req: Request, res: Response) => {
   res.send('User-agent: *\nAllow: /\nDisallow: /admintechcheck\nDisallow: /superadmin\nDisallow: /api/\n\nSitemap: https://techcheck.homes/sitemap.xml\n');
 });
 
+// XML Special Characters Escaper for Sitemap
+function escapeSitemapXml(unsafe: string): string {
+  return unsafe
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
+// Slug normalization helper (mirrors categoryToSlug in src/utils/slug.ts)
+function normalizeCategorySlug(categoryName: string): string {
+  if (!categoryName) return '';
+  return categoryName
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/[\s_]+/g, '-')
+    .replace(/--+/g, '-');
+}
+
 // Dynamic Sitemap Generator Helper
 async function buildDynamicSitemapXML(): Promise<string> {
   const BASE_URL = 'https://techcheck.homes';
   const seenUrls = new Set<string>();
 
-  let products: any[] = [];
-  let guides: any[] = [];
-  let categories: any[] = [];
+  let products: Array<{ slug: string; status?: string }> = [];
+  let guides: Array<{ slug: string; status?: string }> = [];
+  let categories: Array<{ slug: string; name: string }> = [];
 
-  // 1. Try Supabase
   const supabase = getSupabase();
   if (supabase) {
-    try {
-      const [pRes, gRes, cRes] = await Promise.all([
-        supabase.from('products').select('slug'),
-        supabase.from('guides').select('slug'),
-        supabase.from('categories').select('slug, name'),
-      ]);
-      if (!pRes.error && Array.isArray(pRes.data)) products = pRes.data;
-      if (!gRes.error && Array.isArray(gRes.data)) guides = gRes.data;
-      if (!cRes.error && Array.isArray(cRes.data)) categories = cRes.data;
-    } catch (e) {}
-  }
+    const [pRes, gRes, cRes] = await Promise.all([
+      supabase.from('products').select('slug, status'),
+      supabase.from('guides').select('slug, status'),
+      supabase.from('categories').select('slug, name'),
+    ]);
 
-  // 2. Fall back to local DB if Supabase returns nothing
-  const localDb = getLocalDb();
-  if (products.length === 0 && Array.isArray(localDb.products)) {
-    products = localDb.products;
-  }
-  if (guides.length === 0 && Array.isArray(localDb.guides)) {
-    guides = localDb.guides;
-  }
-  if (categories.length === 0 && Array.isArray(localDb.categories)) {
-    categories = localDb.categories;
-  }
+    if (pRes.error || gRes.error || cRes.error) {
+      const pErr = pRes.error ? pRes.error.message : '';
+      const gErr = gRes.error ? gRes.error.message : '';
+      const cErr = cRes.error ? cRes.error.message : '';
+      const combined = [pErr, gErr, cErr].filter(Boolean).join('; ');
+      console.error('[Sitemap Supabase Query Error]:', combined);
+      throw new Error(`Database query failed for sitemap: ${combined}`);
+    }
 
-  // Fallback default categories if empty
-  const defaultCategoryNames = [
-    'Desk Setup',
-    'Cable Management',
-    'Audio',
-    'Monitors',
-    'Lighting',
-    'Storage',
-    'Ergonomics',
-    'Gadgets',
-    'Adapter',
-    'Mouse',
-    'Network',
-    'Accessories',
-  ];
-  if (categories.length === 0) {
-    categories = defaultCategoryNames.map((n) => ({ name: n, slug: n.toLowerCase().replace(/[\s_]+/g, '-') }));
+    products = Array.isArray(pRes.data) ? pRes.data : [];
+    guides = Array.isArray(gRes.data) ? gRes.data : [];
+    categories = Array.isArray(cRes.data) ? cRes.data : [];
+  } else {
+    // Fall back to local DB ONLY if Supabase is completely unconfigured (offline development only)
+    console.warn('[Sitemap] Supabase client unconfigured; reading from local DB for local development');
+    const localDb = getLocalDb();
+    products = Array.isArray(localDb.products) ? localDb.products : [];
+    guides = Array.isArray(localDb.guides) ? localDb.guides : [];
+    categories = Array.isArray(localDb.categories) ? localDb.categories : [];
   }
 
   let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
   xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
 
-  // Core Pages
+  // 1. Core Pages
   const corePages = [
     { loc: `${BASE_URL}/`, changefreq: 'daily', priority: '1.0' },
     { loc: `${BASE_URL}/recommendations`, changefreq: 'daily', priority: '0.9' },
@@ -176,81 +180,104 @@ async function buildDynamicSitemapXML(): Promise<string> {
   ];
 
   xml += `  <!-- Core Pages -->\n`;
-  corePages.forEach((p) => {
-    seenUrls.add(p.loc);
-    xml += `  <url>\n    <loc>${p.loc}</loc>\n    <changefreq>${p.changefreq}</changefreq>\n    <priority>${p.priority}</priority>\n  </url>\n`;
-  });
+  for (const page of corePages) {
+    if (!seenUrls.has(page.loc)) {
+      seenUrls.add(page.loc);
+      xml += `  <url>\n    <loc>${escapeSitemapXml(page.loc)}</loc>\n    <changefreq>${page.changefreq}</changefreq>\n    <priority>${page.priority}</priority>\n  </url>\n`;
+    }
+  }
 
-  const catSlugHelper = (str: string) => str.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/[\s_]+/g, '-').replace(/--+/g, '-');
-
-  // Categories
+  // 2. Category Pages (Actual categories from database only, no fake defaults)
   xml += `\n  <!-- Category Pages -->\n`;
-  categories.forEach((cat) => {
+  for (const cat of categories) {
     const raw = cat?.slug || cat?.name || '';
     if (raw && typeof raw === 'string') {
-      const cleanSlug = catSlugHelper(raw);
+      const cleanSlug = normalizeCategorySlug(raw);
       if (cleanSlug) {
         const url = `${BASE_URL}/categories/${cleanSlug}`;
         if (!seenUrls.has(url)) {
           seenUrls.add(url);
-          xml += `  <url>\n    <loc>${url}</loc>\n    <changefreq>weekly</changefreq>\n    <priority>0.85</priority>\n  </url>\n`;
+          xml += `  <url>\n    <loc>${escapeSitemapXml(url)}</loc>\n    <changefreq>weekly</changefreq>\n    <priority>0.85</priority>\n  </url>\n`;
         }
       }
     }
-  });
+  }
 
-  const catSlugs = new Set(['audio', 'gadgets', 'monitors', 'network', 'adapter', 'mouse', 'lighting', 'accessories', 'desk-setup', 'cable-management', 'storage', 'ergonomics']);
-
-  // Products
+  // 3. Products (Published products only, actual slugs)
   xml += `\n  <!-- Products -->\n`;
-  products.forEach((prod) => {
-    if (prod?.slug && typeof prod.slug === 'string') {
-      const cleanSlug = prod.slug.trim();
-      if (cleanSlug && !catSlugs.has(cleanSlug.toLowerCase())) {
-        const url = `${BASE_URL}/recommendations/${cleanSlug}`;
-        if (!seenUrls.has(url)) {
-          seenUrls.add(url);
-          xml += `  <url>\n    <loc>${url}</loc>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>\n`;
-        }
+  for (const prod of products) {
+    const isPublished = !prod?.status || String(prod.status).toLowerCase() === 'published';
+    const rawSlug = prod?.slug && typeof prod.slug === 'string' ? prod.slug.trim() : '';
+    if (isPublished && rawSlug) {
+      const url = `${BASE_URL}/recommendations/${rawSlug}`;
+      if (!seenUrls.has(url)) {
+        seenUrls.add(url);
+        xml += `  <url>\n    <loc>${escapeSitemapXml(url)}</loc>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>\n`;
       }
     }
-  });
+  }
 
-  // Guides
+  // 4. Guides (Published guides only, actual slugs)
   xml += `\n  <!-- Guides -->\n`;
-  guides.forEach((guide) => {
-    if (guide?.slug && typeof guide.slug === 'string') {
-      const cleanSlug = guide.slug.trim();
-      if (cleanSlug) {
-        const url = `${BASE_URL}/guides/${cleanSlug}`;
-        if (!seenUrls.has(url)) {
-          seenUrls.add(url);
-          xml += `  <url>\n    <loc>${url}</loc>\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n  </url>\n`;
-        }
+  for (const guide of guides) {
+    const isPublished = !guide?.status || String(guide.status).toLowerCase() === 'published';
+    const rawSlug = guide?.slug && typeof guide.slug === 'string' ? guide.slug.trim() : '';
+    if (isPublished && rawSlug) {
+      const url = `${BASE_URL}/guides/${rawSlug}`;
+      if (!seenUrls.has(url)) {
+        seenUrls.add(url);
+        xml += `  <url>\n    <loc>${escapeSitemapXml(url)}</loc>\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n  </url>\n`;
       }
     }
-  });
+  }
 
   xml += `</urlset>\n`;
   return xml;
 }
 
-// Sitemap.xml
-app.get('/sitemap.xml', async (req: Request, res: Response) => {
+// Sitemap Request Handler
+async function handleSitemapRequest(req: Request, res: Response) {
   try {
     const xml = await buildDynamicSitemapXML();
     res.setHeader('Content-Type', 'application/xml; charset=utf-8');
-    res.send(xml);
-  } catch (err) {
-    const sitemapPath = path.join(process.cwd(), 'public', 'sitemap.xml');
-    if (fs.existsSync(sitemapPath)) {
-      res.setHeader('Content-Type', 'application/xml; charset=utf-8');
-      res.sendFile(sitemapPath);
-      return;
-    }
-    res.status(500).send('Error generating sitemap');
+    res.setHeader('Cache-Control', 'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400');
+    return res.status(200).send(xml);
+  } catch (err: any) {
+    console.error('[Sitemap Handler Error]:', err?.message || err);
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    return res.status(503).send('Service Unavailable: Unable to generate sitemap at this time.');
   }
+}
+
+// Sitemap interceptor middleware (covers direct access, Vercel rewrites, x-matched-path, query fallback)
+app.use((req: Request, res: Response, next) => {
+  const urlPath = (req.path || '').toLowerCase();
+  const rawUrl = (req.url || '').toLowerCase();
+  const matchedPath = ((req.headers['x-matched-path'] as string) || '').toLowerCase();
+  const vercelMatched = ((req.headers['x-vercel-matched-path'] as string) || '').toLowerCase();
+  const forwardedUri = ((req.headers['x-forwarded-uri'] as string) || '').toLowerCase();
+  const isSitemapQuery = req.query && (req.query.__sitemap === 'true' || req.query.sitemap === 'true');
+
+  if (
+    urlPath === '/sitemap.xml' ||
+    urlPath === '/api/sitemap.xml' ||
+    urlPath === '/api/sitemap' ||
+    rawUrl.startsWith('/sitemap.xml') ||
+    rawUrl.startsWith('/api/sitemap.xml') ||
+    matchedPath === '/sitemap.xml' ||
+    vercelMatched === '/sitemap.xml' ||
+    forwardedUri === '/sitemap.xml' ||
+    isSitemapQuery
+  ) {
+    return handleSitemapRequest(req, res);
+  }
+  next();
 });
+
+// Explicit sitemap routes
+app.get('/sitemap.xml', handleSitemapRequest);
+app.get('/api/sitemap.xml', handleSitemapRequest);
+app.get('/api/sitemap', handleSitemapRequest);
 
 // Image routes are registered after getSupabase() initialization below
 

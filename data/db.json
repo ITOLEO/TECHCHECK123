@@ -67,6 +67,382 @@
   ],
   "products": [
     {
+      "id": "prod-1792013015581-4dpa",
+      "slug": "anker-322-powerline-usb-c-to-usb-c-cable-3ft-0-9m-60w-fast-charging-braided-nylon-cable-a81f5",
+      "name": "Anker 322 PowerLine USB C to USB C Cable 3ft/0.9m 60W Fast Charging Braided Nylon Cable A81F5",
+      "category": "Accessories",
+      "rating": 5,
+      "reviewCount": 0,
+      "image": "https://eflfvugtdhvqkxahwmsh.supabase.co/storage/v1/object/public/product-images/sg-11134207-7rblq-lngzwmgd7boaef-1792012994251.webp",
+      "gallery": [
+        "https://eflfvugtdhvqkxahwmsh.supabase.co/storage/v1/object/public/product-images/sg-11134207-7rblq-lngzwmgd7boaef-1792012994251.webp"
+      ],
+      "badge": "Accessories",
+      "shortBenefit": "Durable braided USB-C cable with up to 60W fast charging",
+      "description": "",
+      "benefits": [
+        "The Anker 322 is a straightforward, well-built charging cable. The braided nylon holds up to daily bending, and the 60W rating covers phones, tablets and many power banks. The short 0.9 m length also keeps a small desk free of cable clutter."
+      ],
+      "highlights": [
+        "Product Highlights",
+        "- Up to 60W fast charging when paired with a USB Power Delivery charger",
+        "- Braided nylon build, tested for up to 10,000 bends",
+        "- USB-IF compliant for safe, reliable charging",
+        "- Compact 0.9 m length, handy for desks, bedside tables and power banks",
+        "- USB-C to USB-C connection for phones, tablets and more",
+        "- Data transfer up to 480 Mbps for everyday syncing"
+      ],
+      "specifications": {
+        "Length": "0.9 m (3 ft)",
+        "Charging": "Up to 60W (3A) with a compatible USB Power Delivery charger",
+        "Material": "Double-woven braided nylon",
+        "Warranty": "[ADD: warranty terms, seller listing states 18 months local warranty]",
+        "Connector": "USB-C to USB-C",
+        "Durability": "Tested for up to 10,000 bends (Anker lab test)",
+        "In the Box": "Cable, welcome guide (charger not included)",
+        "Price (SGD)": "[ADD: current price and date checked]",
+        "Certification": "USB-IF compliant",
+        "Compatibility": "Phones, tablets and other USB-C devices (some laptops charge at limited speeds)",
+        "Data Transfer": "Up to 480 Mbps"
+      },
+      "bestFor": "Anyone who needs a reliable everyday USB-C charging cable for phones and tablets",
+      "greatFor": [
+        "Fast charging phones and tablets",
+        "Pairing with a USB-C power adapter",
+        "Short, tidy runs on small desks and bedside tables",
+        "Daily carry in a bag",
+        "Replacing a worn or frayed cable"
+      ],
+      "setupConsiderations": [
+        "You need a USB-C power adapter, as USB-A chargers will not deliver fast charging",
+        "Data speed is up to 480 Mbps, so it is not ideal for fast SSD transfers",
+        "The listing makes no video output claim, so do not rely on it for external monitors",
+        "Some laptops will charge at limited speeds",
+        "At 0.9 m, check that it reaches from your charger to your device"
+      ],
+      "verdict": "The Anker 322 is a dependable charging-first cable. It is not the right pick for fast file transfers or connecting external displays, but for charging phones, tablets and accessories it does the job well in a durable, compact form.",
+      "affiliateUrl": "https://shopee.sg/product/17628187/23230950743?mmp_pid=an_14139310000&uls_trackid=56sjgjje00jc&utm_campaign=-&utm_content=128708-YGzLDwwpehnAW1p6vbIWLc0lqqChadQuFhdbRl1792011340-https%3A%2F%2Ftiktok.com%2F%40be.rrycow_-d800149d2f947ad4d64f34668f8b20f6-&utm_medium=affiliates&utm_source=an_14139310000&utm_term=fp8kpzvtjit7",
+      "featured": false,
+      "productType": "Audio",
+      "deskSizeCompatibility": "Universal",
+      "status": "published"
+    },
+    {
+      "id": "prod-1792011271955-pn3y",
+      "slug": "anker-powerport-iii-charger-20w-usb-c-charger-compact-travel-adapter-a2149",
+      "name": "Anker PowerPort III Charger 20W USB C Charger Compact Travel Adapter A2149",
+      "category": "Accessories",
+      "rating": 5,
+      "reviewCount": 0,
+      "image": "https://eflfvugtdhvqkxahwmsh.supabase.co/storage/v1/object/public/product-images/sg-11134207-82597-mtyuk1rwx15150-1792011184445.webp",
+      "gallery": [
+        "https://eflfvugtdhvqkxahwmsh.supabase.co/storage/v1/object/public/product-images/sg-11134207-82597-mtyuk1rwx15150-1792011184445.webp"
+      ],
+      "badge": "Accessories",
+      "shortBenefit": "Compact 20W USB-C charger with foldable plug for fast, safe everyday charging",
+      "description": "",
+      "benefits": [
+        "The Anker A2149 does one job well: fast, safe charging for phones, earbuds and tablets in a very small package. It keeps your desk or travel bag light, and the built-in protections make it a sensible everyday charger."
+      ],
+      "highlights": [
+        "Product Highlights",
+        "- 20W USB-C Power Delivery for fast charging phones, tablets and earbuds",
+        "- Charges up to 3x faster than an original 5W iPhone charger (based on Anker's 0 to 50% test)",
+        "- Compact cube with foldable plug, easy to slip into a bag or pocket",
+        "- Six built-in protections, including overvoltage, current regulation and short-circuit protection",
+        "- PowerIQ 3.0 for compatibility across phones, tablets and accessories",
+        "- Single USB-C port keeps your desk and travel kit simple"
+      ],
+      "specifications": {
+        "Input": "100-240V, 0.7A, 50-60Hz",
+        "Model": "A2149",
+        "Ports": "1x USB-C",
+        "Design": "Compact cube with foldable plug",
+        "Output": "20W max (5V 3A / 9V 2.22A), USB Power Delivery",
+        "Safety": "MultiProtect safety system (overvoltage protection, temperature control, current regulation)",
+        "Warranty": "[ADD: warranty terms from the seller you link]",
+        "Dimensions": "32.3 x 31.8 x 33 mm (excluding prongs)",
+        "In the Box": "Charger only (cable not included)",
+        "Technology": "PowerIQ 3.0",
+        "Price (SGD)": "[ADD: current price and date checked]",
+        "Compatibility": "iPhone (fast charging on iPhone 8 and later), Samsung Galaxy, Pixel, iPad, smartwatches, earbuds and other USB-C PD devices"
+      },
+      "bestFor": "Students and commuters who want a small, reliable fast charger for their phone",
+      "greatFor": [
+        "Fast charging phones, earbuds and smartwatches",
+        "Small desks and bedside tables",
+        "Travel and daily carry",
+        "Replacing a slow 5W charger"
+      ],
+      "setupConsiderations": [
+        "Charging cable is not included, so you need a USB-C cable that suits your device",
+        "Single port, so it charges one device at a time",
+        "20W is not enough for fast-charging most laptops",
+        "Check the plug type matches your sockets before buying",
+        "Actual charging speed depends on your device and cable"
+      ],
+      "verdict": "The A2149 is a simple, no-fuss 20W charger. It is not meant for laptops or charging several devices at once, but for phones, earbuds and tablets it covers everyday needs in a pocket-sized form.",
+      "affiliateUrl": "https://shopee.sg/product/17628187/13430999218?mmp_pid=an_14139310000&uls_trackid=56sjerag00jc&utm_campaign=-&utm_content=128708-xlzdyUqydUEEQVimgLOIkZ3P7urh1AzsmePtM21792010763-https%3A%2F%2Ftiktok.com%2F%40be.rrycow_-d800149d2f947ad4d64f34668f8b20f6-&utm_medium=affiliates&utm_source=an_14139310000&utm_term=fp8jcz6zn9ao",
+      "featured": false,
+      "productType": "Audio",
+      "deskSizeCompatibility": "Universal",
+      "status": "published"
+    },
+    {
+      "id": "prod-1792010199250-wwud",
+      "slug": "mall-inline-badgeasus-rog-ergo-monitor-arm-aas01-cable-management-ergonomic-supports-up-to-39-monitors-and-vesa-100-x-100mm",
+      "name": "mall inline badgeASUS ROG Ergo Monitor Arm AAS01 - Cable Management, Ergonomic, supports up to 39\" monitors and VESA 100 x 100mm",
+      "category": "Accessories",
+      "rating": 5,
+      "reviewCount": 0,
+      "image": "https://eflfvugtdhvqkxahwmsh.supabase.co/storage/v1/object/public/product-images/sg-11134207-7rdx1-lxuze52ev2au5f-1792010121458.webp",
+      "gallery": [
+        "https://eflfvugtdhvqkxahwmsh.supabase.co/storage/v1/object/public/product-images/sg-11134207-7rdx1-lxuze52ev2au5f-1792010121458.webp"
+      ],
+      "badge": "Accessories",
+      "shortBenefit": "Free up desk space and adjust your screen to the perfect position with built-in cable management",
+      "description": "",
+      "benefits": [
+        "The ROG Ergo Monitor Arm AAS01 gives you smooth, tool-free positioning thanks to its spring-assisted arm, and it clears the space under your monitor. The integrated cable channels help keep the desk tidy, which matters most on a small desk where every centimetre counts."
+      ],
+      "highlights": [
+        "Product Highlights",
+        "- Frees up desk space by lifting your monitor off the desk",
+        "- Full range of motion: height, tilt, swivel, pivot and rotation adjustments",
+        "- Mechanical spring system for smooth, effortless repositioning",
+        "- Integrated cable management for a neater desk",
+        "- Fits VESA 100 x 100 mm monitors, flat or curved",
+        "- Tested for durability with a 10,000-cycle range-of-motion test"
+      ],
+      "specifications": {
+        "Tilt": "+80° to -25°",
+        "Color": "Black",
+        "Swivel": "+90° to -90°",
+        "Mounting": "Desk clamp, fits desks 10 to 80 mm thick",
+        "Warranty": "[ADD: Singapore warranty terms]",
+        "Mechanism": "Mechanical spring system",
+        "Dimensions": "57.8 x 65.6 x 15.4 cm",
+        "Net Weight": "4.5 kg",
+        "VESA Mount": "100 x 100 mm",
+        "Price (SGD)": "[ADD: current price and date checked]",
+        "Monitor Size": "Recommended up to 34\" (up to 39\" within the weight limit)",
+        "Height Adjust": "32 cm lift",
+        "Max Extension": "63.72 cm",
+        "Durability Test": "10,000-cycle range-of-motion test",
+        "Weight Capacity": "3 to 11.5 kg (flat), 3 to 8.5 kg (curved)",
+        "Cable Management": "Integrated channels",
+        "Pivot / Pan / Rotation": "360°"
+      },
+      "bestFor": "Gamers and desk workers with small desks who want a cleaner, more ergonomic setup",
+      "greatFor": [
+        "Small desks that need the space under the monitor",
+        "Curved gaming monitors within the 8.5 kg limit",
+        "Setups where the monitor is shared between gaming and study",
+        "Neater desks with built-in cable management"
+      ],
+      "setupConsiderations": [
+        "Your monitor must support VESA 100 x 100 mm mounting",
+        "Check your monitor's weight against the limit (3 to 11.5 kg flat, 3 to 8.5 kg curved)",
+        "Clamp fits desks 10 to 80 mm thick, so measure your desk first",
+        "Do not hang headphones or other items on the arm",
+        "Check that your desk surface can handle a clamp"
+      ],
+      "verdict": "The AAS01 is a premium monitor arm that makes the most sense when desk space and positioning flexibility matter to you. It is more than you need if you just want to raise a monitor a few centimetres, but it handles curved and larger screens well within its weight limits.",
+      "affiliateUrl": "https://shopee.sg/product/41821807/26105643962?mmp_pid=an_14139310000&uls_trackid=56sjbuaa00lk&utm_campaign=-&utm_content=128708-3QYpouC6TB10ikwjw9OBog3nTfKWrxXs3azVwC1792009810-https%3A%2F%2Ftiktok.com%2F%40be.rrycow_-d800149d2f947ad4d64f34668f8b20f6-&utm_medium=affiliates&utm_source=an_14139310000&utm_term=fp8h4xcz5izb",
+      "featured": false,
+      "productType": "Audio",
+      "deskSizeCompatibility": "Universal",
+      "status": "published"
+    },
+    {
+      "id": "prod-1792009668632-bjgy",
+      "slug": "asus-rog-azoth-75-wireless-custom-gaming-keyboard-3-layer-dampening-hot-swappable-pre-lubed-switches-stabilizers",
+      "name": "ASUS ROG Azoth 75% Wireless Custom Gaming Keyboard - 3 Layer Dampening, Hot Swappable, Pre-lubed switches & stabilizers",
+      "category": "Accessories",
+      "rating": 5,
+      "reviewCount": 0,
+      "image": "https://eflfvugtdhvqkxahwmsh.supabase.co/storage/v1/object/public/product-images/sg-11134207-7rbl6-lnms06ljfs149a-1792009568546.webp",
+      "gallery": [
+        "https://eflfvugtdhvqkxahwmsh.supabase.co/storage/v1/object/public/product-images/sg-11134207-7rbl6-lnms06ljfs149a-1792009568546.webp"
+      ],
+      "badge": "Accessories",
+      "shortBenefit": "Compact, customizable 75% wireless keyboard with a premium gasket-mount typing feel",
+      "description": "",
+      "benefits": [
+        "The ROG Azoth brings enthusiast-grade features like gasket mount, hot-swappable switches and pre-lubed stabilizers in a ready-to-use package. You get wired, 2.4 GHz and Bluetooth in one board, and the 75% layout keeps your desk tidy without losing the keys most people use daily."
+      ],
+      "highlights": [
+        "- Gasket-mount design with three-layer dampening for a softer, more consistent typing feel",
+        "- Hot-swappable, pre-lubed ROG NX switches, so you can swap switches without soldering",
+        "- Pre-lubed stabilizers and PBT doubleshot keycaps for a premium feel out of the box",
+        "- Tri-mode connectivity: 2.4 GHz, Bluetooth 5.1 or wired USB-C",
+        "- 2\" OLED display and control knob for quick adjustments and status info",
+        "- Compact 75% layout that saves desk space while keeping the arrow keys and function row"
+      ],
+      "specifications": {
+        "Weight": "1.19 kg",
+        "Battery": "2,000+ hours in 2.4 GHz mode (OLED and RGB off)",
+        "Display": "2\" OLED panel with three-way control knob",
+        "Keycaps": "ROG PBT doubleshot",
+        "Lighting": "RGB",
+        "Switches": "Hot-swappable, pre-lubed linear ROG NX switches",
+        "Warranty": "[ADD: Singapore warranty terms]",
+        "Dimensions": "326 x 136 x 40 mm",
+        "Ergonomics": "Three tilt positions",
+        "Form Factor": "75% compact layout",
+        "Price (SGD)": "[ADD: current price and date checked]",
+        "Stabilizers": "Pre-lubed ROG stabilizers",
+        "Connectivity": "Tri-mode: 2.4 GHz (ROG SpeedNova), Bluetooth 5.1, wired USB-C",
+        "Construction": "Gasket mount, three-layer dampening foam, metal top cover",
+        "Compatibility": "Windows and macOS",
+        "Wireless Range": "Up to 10 m"
+      },
+      "bestFor": "Gamers who want a compact, premium keyboard they can customize without building one from scratch",
+      "greatFor": [
+        "Small desks and compact setups",
+        "Gamers who like swapping switches and tuning the feel",
+        "Switching between PC, laptop and phone with Bluetooth",
+        "Clean, wireless desk setups"
+      ],
+      "setupConsiderations": [
+        "Check that the keyboard layout matches what you want (US, UK and other layouts exist)",
+        "Switch type varies by listing (NX Red or NX Snow), so confirm before buying",
+        "The 2,000+ hour battery figure applies only with OLED and RGB off",
+        "Box contents vary by region, so check whether the lube kit is included",
+        "Premium-priced, so compare the current listing before buying"
+      ],
+      "verdict": "The ROG Azoth is a premium pick that rewards people who care about typing feel and tinkering. It is overkill if you just need a basic keyboard, but it is a strong choice if you want a compact board with enthusiast features out of the box.",
+      "affiliateUrl": "https://shopee.sg/product/41821807/22624240255?mmp_pid=an_14139310000&uls_trackid=56sjau4700j4&utm_campaign=-&utm_content=128708-pLOtgeABBLO4fTgR7Onlf4SjKyfZo1DXyrxG0H1792009481-https%3A%2F%2Ftiktok.com%2F%40be.rrycow_-d800149d2f947ad4d64f34668f8b20f6-&utm_medium=affiliates&utm_source=an_14139310000&utm_term=fp8gcmeetm43",
+      "featured": false,
+      "productType": "Audio",
+      "deskSizeCompatibility": "Universal",
+      "status": "published"
+    },
+    {
+      "id": "prod-1792009367189-t45x",
+      "slug": "tp-link-5g-ax1800-wireless-dual-band-gigabit-easymesh-router-archer-nx200-nx500-nx505",
+      "name": "TP-Link 5G AX1800 Wireless Dual-Band Gigabit EasyMesh Router Archer NX200 NX500 NX505",
+      "category": "Network",
+      "rating": 5,
+      "reviewCount": 0,
+      "image": "https://eflfvugtdhvqkxahwmsh.supabase.co/storage/v1/object/public/product-images/sg-11134207-825zv-mloa4750bqpu97-1792009196478.webp",
+      "gallery": [
+        "https://eflfvugtdhvqkxahwmsh.supabase.co/storage/v1/object/public/product-images/sg-11134207-825zv-mloa4750bqpu97-1792009196478.webp"
+      ],
+      "badge": "Network",
+      "shortBenefit": "Plug-and-play 5G Wi-Fi 6 for small homes, no fibre installation needed",
+      "description": "",
+      "benefits": [
+        "The NX200 covers the essentials at the entry level: SIM plug and play, Wi-Fi 6 and a Gigabit port for connecting fibre later. If you live alone or share a flat with one other person, you get a working setup without paying for speed you will not use."
+      ],
+      "highlights": [
+        "Product Highlights",
+        "- Entry model in TP-Link's 5G router lineup, with Wi-Fi 6 (AX1800)",
+        "- Plug and play: insert a SIM card and get online without a separate modem",
+        "- 5G with 4G fallback where 5G is not available",
+        "- Gigabit WAN/LAN port lets it work as a normal router with fibre, cable or DSL",
+        "- EasyMesh compatible for adding extenders and covering dead zones",
+        "- Set up in minutes with the Tether app"
+      ],
+      "specifications": {
+        "SIM": "1x Nano SIM slot",
+        "Mesh": "EasyMesh compatible",
+        "Ports": "1x Gigabit LAN/WAN, 2x Gigabit LAN",
+        "Power": "12V 2A adapter",
+        "Wi-Fi": "Wi-Fi 6 dual-band, 1201 Mbps (5 GHz) + 574 Mbps (2.4 GHz)",
+        "5G Bands": "N1, N3, N5, N7, N8, N20, N28, N38, N40, N41, N77, N78",
+        "Antennas": "8 internal 5G/LTE, 2 internal Wi-Fi, 2x external antenna ports (SMA)",
+        "Warranty": "3 years (confirm on listing)",
+        "In the Box": "Router, power adapter, network cable",
+        "Management": "Tether app, web interface, TP-Link Cloud",
+        "Price (SGD)": "[ADD: current price and date checked]",
+        "Mobile Network": "5G with 4G fallback, up to 4.67 Gbps (best case)"
+      },
+      "bestFor": "Renters and small households who want quick 5G Wi-Fi without paying for extra speed they will not use",
+      "greatFor": [
+        "Rented rooms and studio flats",
+        "One or two people streaming, working and video calling",
+        "Temporary Wi-Fi while waiting for fibre",
+        "Backup line alongside a fibre connection"
+      ],
+      "setupConsiderations": [
+        "SIM card is not included, so get a data plan first",
+        "Wi-Fi tops out at AX1800, lower than the NX500 and NX505",
+        "Check that your telco's 5G bands match the router",
+        "Test your 5G signal at home before buying"
+      ],
+      "verdict": "The Archer NX200 covers the essentials: plug-and-play 5G, Wi-Fi 6 and a Gigabit port for fibre later. It has the slowest Wi-Fi of the three, but for one or two people streaming and working, that is usually enough.",
+      "affiliateUrl": "https://shopee.sg/product/47414452/29028132201?mmp_pid=an_14139310000&uls_trackid=56ru3qd500ka&utm_campaign=-&utm_content=128708-1puvAesbC0OFjSrM6HyhBj9k2keLBFMCfHpzlV1791786950-https%3A%2F%2Ftiktok.com%2F%40be.rrycow_-d800149d2f947ad4d64f34668f8b20f6-&utm_medium=affiliates&utm_source=an_14139310000&utm_term=fos3p1pcp42b",
+      "featured": false,
+      "productType": "Audio",
+      "deskSizeCompatibility": "Universal",
+      "status": "published"
+    },
+    {
+      "id": "prod-1792008116601-rspk",
+      "slug": "asus-rog-crosshair-x870e-hero-amd-x870e-am5-atx-motherboard-advanced-ai-pc-ready-18-2-2-power-stages-ddr5-pcie-5-0",
+      "name": "ASUS ROG Crosshair X870E Hero AMD X870E AM5 ATX Motherboard - Advanced AI PC Ready, 18+2+2 Power Stages, DDR5, PCIe 5.0",
+      "category": "Gadgets",
+      "rating": 5,
+      "reviewCount": 0,
+      "image": "https://eflfvugtdhvqkxahwmsh.supabase.co/storage/v1/object/public/product-images/sg-11134207-7ren7-m290d6wa51g5e0-1792008704748.webp",
+      "gallery": [
+        "https://eflfvugtdhvqkxahwmsh.supabase.co/storage/v1/object/public/product-images/sg-11134207-7ren7-m290d6wa51g5e0-1792008704748.webp"
+      ],
+      "badge": "Gadgets",
+      "shortBenefit": "",
+      "description": "",
+      "benefits": [
+        "The ROG Crosshair X870E Hero is a flagship AM5 motherboard built for a no-compromise gaming PC. With full support for Ryzen 9000, 8000 and 7000 series, a powerful 18+2+2 power stage design, massive cooling, Wi-Fi 7, USB4 and five M.2 slots, it's ready to handle whatever you throw at it for years to come. Installing a next-gen GPU is also easier thanks to the PCIe 5.0 Q-Release Slim slot."
+      ],
+      "highlights": [
+        "Product Highlights",
+        "- AM5 flagship board for Ryzen 9000, 8000 & 7000 Series",
+        "- 18+2+2 power stages (110A) for stable, high-end performance",
+        "- 5x M.2 slots, including 3x PCIe 5.0",
+        "- Wi-Fi 7 + 5GbE & 2.5GbE LAN",
+        "- Dual USB4 ports + front-panel USB 20Gbps with up to 60W charging",
+        "- PCIe 5.0 x16 with Q-Release Slim for easier GPU installation",
+        "- ROG SupremeFX audio with ESS Quad DAC",
+        "- Polymo Lighting II + Aura Sync RGB"
+      ],
+      "specifications": {
+        "USB": "2x USB4 Type-C, front-panel USB 20Gbps with up to 60W charging",
+        "Audio": "ROG SupremeFX ALC4082 + ESS ES9219 Quad DAC",
+        "Extras": "1-year AIDA64 Extreme, Adobe Creative Cloud trial",
+        "Memory": "4x DDR5 DIMM, dual channel, up to 8200+ MT/s (OC) on Ryzen 9000",
+        "Cooling": "Large VRM & M.2 heatsinks with L-shaped heatpipe",
+        "Storage": "5x M.2 (3x PCIe 5.0, 2x PCIe 4.0), 4x SATA",
+        "Lighting": "Polymo Lighting II, Aura Sync, 3x Gen 2 ARGB headers",
+        "Expansion": "2x PCIe 5.0 x16 (SafeSlot, Q-Release Slim)",
+        "Networking": "Wi-Fi 7, Bluetooth, 5GbE + 2.5GbE LAN",
+        "CPU Support": "Ryzen 9000, 8000 & 7000 Series",
+        "Form Factor": "ATX",
+        "Power Stages": "18+2+2 (110A)",
+        "Socket / Chipset": "AM5 / AMD X870E"
+      },
+      "bestFor": "Enthusiast builders putting together a high-end Ryzen PC for gaming and content creation",
+      "greatFor": [
+        "High-end Ryzen 9000, 8000 & 7000 builds",
+        "Storage-heavy setups with 5x M.2 slots",
+        "Overclocking and memory tuning",
+        "Fast peripherals and charging via USB4 and USB 20Gbps",
+        "Next-gen GPU upgrades with PCIe 5.0"
+      ],
+      "setupConsiderations": [
+        "Full ATX board, so make sure your case supports ATX",
+        "60W front-panel charging requires the 8-pin PCIe power cable connected",
+        "DDR5 memory only, no DDR4 support",
+        "Premium-priced, so check the current listing before buying"
+      ],
+      "verdict": "The ROG Crosshair X870E Hero is a no-compromise AM5 flagship with strong power delivery, Wi-Fi 7, USB4 and five M.2 slots. It's overkill for most builds, but a smart pick if you want a platform that stays relevant for years.",
+      "affiliateUrl": "https://shopee.sg/product/41821807/26263769394?mmp_pid=an_14139310000&uls_trackid=56silm0i00ka&utm_campaign=-&utm_content=128708-csYSMSrhMR9ejmz3qc1y7YAWUyac3JlNHsSVsl1792002518-https%3A%2F%2Ftiktok.com%2F%40be.rrycow_-d800149d2f947ad4d64f34668f8b20f6-&utm_medium=affiliates&utm_source=an_14139310000&utm_term=fp7yzge61mcb",
+      "featured": false,
+      "productType": "Audio",
+      "deskSizeCompatibility": "Universal",
+      "status": "published"
+    },
+    {
       "id": "prod-1790271451464",
       "slug": "3424234",
       "name": "TP-Link 1300Mbps Mini Size USB 2in1 Nano Design Portable Wi-Fi Bluetooth Adapter BT 4.2 Dual Band",
@@ -523,6 +899,219 @@
   ],
   "guides": [
     {
+      "id": "guide-1792006225431",
+      "slug": "can-a-5g-wi-fi-6-router-replace-fibre-broadband-at-home-in-singapore-tp-link-archer-nx500-guide",
+      "title": "Can a 5G Wi-Fi 6 Router Replace Fibre Broadband at Home in Singapore? TP-Link Archer NX500 Guide",
+      "category": "Recommendation",
+      "readTime": "7 min read",
+      "publishDate": "Oct 12, 2026",
+      "excerpt": "",
+      "image": "https://eflfvugtdhvqkxahwmsh.supabase.co/storage/v1/object/public/article-images/guide-can-a-5g-wi-fi-6-router-replace-fibre-broadband-at-home-in-singapore-tp-link-archer-nx500-guide-1792006226576-gkyi1.jpeg",
+      "featured": false,
+      "author": {
+        "name": "Adys - TechCheck",
+        "role": "Marketing Specialist",
+        "avatar": ""
+      },
+      "intro": "",
+      "steps": [
+        {
+          "id": "guide-1792006225431-step-01",
+          "text": "",
+          "image": "",
+          "title": "Recommended Hardware",
+          "number": "01",
+          "caption": "Recommended Hardware",
+          "image_url": "",
+          "recommendedProductSlug": "tp-link-5g-ax1800-wireless-dual-band-gigabit-easymesh-router-archer-nx200-nx500-nx505"
+        }
+      ],
+      "callout": "",
+      "summary": "",
+      "layoutFormat": "document",
+      "showContentImages": false,
+      "content": "Just moved in and still waiting for fibre?\n\nPicture this: you collect the keys to a rented room or a new flat, the boxes are still unpacked, and you need Wi-Fi tonight for work calls and Netflix. Waiting for a fibre installation slot is not always an option.\n\nThat is the gap a 5G router fills. Pop in a Nano SIM card, plug in the power and your home has Wi-Fi 6. The TP-Link Archer NX500 is one such router, and it also works as a normal router for a fibre line later.\n\nSo can it replace fibre? For many small households, yes. For heavy, always-on use, fibre still wins. This guide shows where each fits, what the NX500 offers and what to check before you buy.\n\n> Disclosure: this page contains affiliate links. If you buy through them, we may earn a commission at no extra cost to you. It does not change our advice.\n\nA. When a 5G router makes sense in Singapore\n\nA 5G router suits you when speed of setup and flexibility matter more than a fixed line.\n\n- You rent, or you move often. There is no installation appointment, and you can carry the router to your next home.\n- You are on a short lease or a flexible plan. TP-Link itself points to short rentals and temporary spaces, where long broadband contracts are a headache.\n- You are waiting for fibre. Use the SIM card now, then connect fibre through the same router later.\n- You want a backup line. When the NX500 runs as a normal router on fibre, TP-Link says its 5G or 4G connection can act as a backup if the main line drops.\n- Your household is small. One or two people streaming, working and video calling will usually be fine, as long as your telco signal is good at home.\n\nTP-Link quotes download speeds of up to 4.67 Gbps on 5G. That is a best-case figure, not a promise. Your real speed depends on your telco plan, network congestion and signal at your address.\n\nB. When fibre is still the better choice\n\nFibre is the safer pick when your household leans hard on the connection.\n\n- Many users at once. A family with several people streaming, gaming and working at the same time shares one mobile signal, which can slow down at busy hours.\n- Heavy downloads and uploads. Large game updates, cloud backups and video uploads can hit data limits on a mobile plan. Check what your plan allows.\n- Latency-sensitive gaming. A wired fibre line generally gives steadier response times than a mobile connection.\n- Weak indoor signal. 5G signal can drop inside thick walls, lower floors or at the far end of a flat. Test it at your address before you commit.\n\nIf any of these describe you, treat the 5G router as a backup or a stop-gap, and use its Gigabit WAN/LAN port to connect fibre as your main line.\n\nC. What the TP-Link Archer NX500 offers\n\nAccording to the TP-Link Singapore product page, the Archer NX500 is a 5G AX3000 dual-band Wi-Fi 6 router. Its main features are:\n\n- Wi-Fi 6 AX3000: up to 2402 Mbps on the 5 GHz band and 574 Mbps on 2.4 GHz. These are maximum rates shared across your devices.\n- 5G with 4G fallback: it uses a Nano SIM card and falls back to 4G where 5G is not available.\n- SIM plug and play: insert your SIM and you are online without a separate modem.\n- EasyMesh compatibility: add another EasyMesh router or range extender to cover dead zones, with one Wi-Fi name and smooth roaming around the home.\n- Gigabit WAN/LAN port: lets it work as a normal router with a cable, fibre or DSL modem, with 5G as a backup line.\n- Tether app: set up and manage the router from your phone, including parental controls, access control and automatic firmware updates.\n\nIt also carries Singapore's Cybersecurity Label. The CSA label register lists the Archer NX500 at Level 1, valid until 30 June 2028.\n\nD. Archer NX500 specs in brief\n\nThese specs come from the TP-Link Singapore specifications. Confirm them on the seller's listing.\n\n- Wi-Fi: dual-band Wi-Fi 6, 574 Mbps (2.4 GHz) and 2402 Mbps (5 GHz)\n- Mobile network: 5G with 4G LTE fallback, one Nano SIM slot\n- 5G bands: N1, N3, N5, N7, N8, N20, N28, N38, N40, N41, N77 and N78\n- Ports: 1 x Gigabit LAN/WAN, 2 x Gigabit LAN, 2 x external SMA-F antenna connectors\n- Antennas: 8 internal 5G/LTE antennas and 3 internal Wi-Fi antennas\n- Size: 99 x 99 x 190 mm\n- Power: 12V 2A adapter\n- Security and tools: guest networks, parental controls, QoS, firewall, VPN (PPTP, IPSec, OpenVPN)\n- In the box: router, power adapter, Ethernet cable, quick installation guide\n- Price (SGD): [ADD: current price and date checked]\n- Warranty: [ADD: Singapore warranty terms, listing states 3 years]\n\nE. Setting it up in four steps\n\nTP-Link says you can set up the NX500 in minutes. The box does not list a SIM card, so get a data SIM from your telco first.\n\n1. Insert the Nano SIM. Put a Nano SIM card with an active data plan into the SIM slot.\n2. Choose a good spot. Place the router near a window or high spot where your phone shows strong signal, then plug in the power adapter.\n3. Set up with Tether. Open the Tether app or the web interface, follow the prompts and set your Wi-Fi name and password.\n4. Add extras if needed. Connect a fibre modem to the Gigabit WAN/LAN port later, or add an EasyMesh extender to cover dead zones.\n\nIf signal is weak indoors, the router has two SMA-F connectors for external antennas, which TP-Link lists under its interfaces.\n\nF. What to check before you buy in Singapore\n\nCheck these five points, because the router is only half of a 5G setup.\n\n- Your SIM plan: choose a data plan that suits your usage, and read the terms on data limits and any slowdown after a threshold.\n- 5G bands: compare the bands listed in the specs with the bands your telco uses, so the router can connect to its 5G network.\n- Signal at your address: test 5G coverage inside your home before you buy, for example with your phone on the same SIM.\n- Price in SGD: compare the router price across sellers and note the date you checked.\n- Warranty: the seller listing states 3 years. Confirm the terms and how to claim.\n\nYou can see current listings on the [TP-Link Flagship Store](ADD_AFFILIATE_LINK).\n\nG. Verdict: is a 5G router like the Archer NX500 right for you?\n\nChoose it if you rent, move often, are waiting for fibre, or want a backup line, and your household is small to medium. It gives you fast setup, Wi-Fi 6 and a Gigabit port for fibre later.\n\nSkip it as your only connection if you have a big household, heavy downloads, competitive gaming or weak 5G signal at home. In that case, use fibre as the main line and keep the NX500 as a backup.\n\nBefore you check out, confirm the 5G bands, your SIM plan, the final SGD price and the warranty.\n\nH. Frequently asked questions\n\n1. Can a 5G router replace fibre broadband?\n\nFor small households with good 5G signal, often yes. For large households, heavy downloads or competitive gaming, fibre is usually the safer main connection.\n\n2. Do I need a separate modem for the Archer NX500?\n\nNo. You insert a Nano SIM card and the router connects to the mobile network itself. It also has a Gigabit WAN/LAN port for a cable, fibre or DSL modem.\n\n3. Does the Archer NX500 support EasyMesh?\n\nYes. TP-Link says it works with other EasyMesh products to form a mesh network with a single Wi-Fi name.\n\n4. Is the Archer NX500 Wi-Fi 6?\n\nYes. It is an AX3000 dual-band router, with up to 2402 Mbps on 5 GHz and 574 Mbps on 2.4 GHz.\n\n5. Does it come with a SIM card?\n\nNo. The package lists the router, power adapter, Ethernet cable and quick installation guide, so you need to get a SIM card from your telco.\n\nI. Sources\n\n- Archer NX500 product page, TP-Link Singapore: features, ports, 5G bands, wireless specs and package contents.\n- Archer NX500 Cybersecurity Label entry, Cyber Security Agency of Singapore: label level and validity dates.\n\nSpecifications and prices vary by region and seller. Confirm them on the seller's page before you buy.",
+      "hideStepNumbers": false
+    },
+    {
+      "id": "guide-1792005928626",
+      "slug": "usb-c-explained-why-not-every-charging-cable-works-the-same-way",
+      "title": "USB-C Explained: Why Not Every Charging Cable Works the Same Way",
+      "category": "Tech Explained",
+      "readTime": "5 min read",
+      "publishDate": "Oct 15, 2026",
+      "excerpt": "",
+      "image": "https://eflfvugtdhvqkxahwmsh.supabase.co/storage/v1/object/public/article-images/guide-usb-c-explained-why-not-every-charging-cable-works-the-same-way-1792005929388-gxynj.jpeg",
+      "featured": false,
+      "author": {
+        "name": "TechCheck Editorial",
+        "role": "Setup Specialist",
+        "avatar": ""
+      },
+      "intro": "",
+      "steps": [
+        {
+          "id": "guide-1792005928626-step-01",
+          "text": "They may look identical, but the differences could affect how quickly you charge, transfer files, and connect your devices.\n\nEver bought a USB-C cable online, only to realise it doesn't charge your laptop as quickly as expected? Or plugged your phone into a USB-C hub and wondered why the external display wouldn't work?\n\nYou're not alone.\n\nUSB-C has become common across smartphones, tablets, laptops, chargers, and other tech accessories. It's convenient because one connector can support several different functions. But here's the catch: having a USB-C connector doesn't mean a cable supports every USB-C feature.\n\nBefore you buy your next cable or charger on Shopee Singapore, here's what you should know.",
+          "image": "",
+          "title": "Step 01",
+          "number": "01",
+          "caption": "Step 01",
+          "image_url": "",
+          "recommendedProductSlug": ""
+        },
+        {
+          "id": "guide-1792005928626-step-02",
+          "text": "A. First Things First: What Is USB-C?\n\nUSB-C refers to the physical connector found at the end of a cable or on a device. It's small, oval-shaped, and reversible, which means you can plug it in either way.\n\nDepending on the device and cable, USB-C can support charging, data transfer, and video output.\n\nHowever, these capabilities depend on the specifications of the cable, connected devices, and accessories. Two cables that look almost identical may offer very different performance.\n\nThink of USB-C as the shape of the plug, not a guarantee of everything the cable can do.",
+          "image": "",
+          "title": "Step 02",
+          "number": "02",
+          "caption": "Step 02",
+          "image_url": "",
+          "recommendedProductSlug": ""
+        },
+        {
+          "id": "guide-1792005928626-step-03",
+          "text": "B. Charging Speed: Why Your Cable Matters\n\nHave you ever noticed that one cable charges your device faster than another?\n\nCharging speed depends on several factors, including the charger's power output, the cable's capabilities, your device's charging limits, and the charging protocol being used.\n\nUSB Power Delivery (USB PD), for example, is a charging standard that can allow compatible devices and chargers to negotiate suitable power levels.\n\nSome cables support higher power levels than others. Certain higher-power configurations also require appropriate cable capabilities, such as electronic marking.\n\nSo, even if a charger advertises high wattage, you won't necessarily get that full output with every cable or device.\n\n> TechCheck tip: Check the maximum supported wattage of the charger, cable, and device before buying. Your actual charging speed depends on the combination of all three.\n",
+          "image": "",
+          "title": "Step 03",
+          "number": "03",
+          "image_url": "",
+          "recommendedProductSlug": ""
+        },
+        {
+          "id": "guide-1792005928626-step-04",
+          "text": "C. Data Transfer: Not All USB-C Cables Are Equally Fast\n\nUSB-C cables can support different data-transfer speeds.\n\nSome are designed primarily for charging and offer relatively basic data performance. Others support faster USB data standards, which can be useful when transferring large files between devices.\n\nIf you regularly move videos, photos, or project files between your laptop and an external SSD, the cable's data specifications matter.\n\nA cable with a USB-C connector doesn't automatically support the fastest available transfer speeds.\n\n> TechCheck tip: Look for the stated USB data standard and transfer speed in the product specifications. Don't rely on the connector shape or a vague description such as \"high speed.\"",
+          "image": "",
+          "title": "Step 04",
+          "number": "04",
+          "image_url": "",
+          "recommendedProductSlug": ""
+        },
+        {
+          "id": "guide-1792005928626-step-05",
+          "text": "D. Can Every USB-C Cable Connect to a Monitor?\n\nNo — and this is one of the most common sources of confusion.\n\nSome USB-C connections support video output through DisplayPort Alternate Mode or other compatible display technologies. Others may support charging and data transfer without supporting video output.\n\nYour laptop, cable, hub, and monitor must all support the required functionality.\n\nFor example, buying a USB-C hub with an HDMI port won't guarantee that it can display an image from every laptop. The laptop's USB-C port must also support a compatible video-output feature.\n\n> TechCheck tip: If you plan to connect your laptop to an external monitor, check your laptop's port specifications and the hub's display requirements before purchasing.",
+          "image": "",
+          "title": "Step 05",
+          "number": "05",
+          "image_url": "",
+          "recommendedProductSlug": ""
+        },
+        {
+          "id": "guide-1792005928626-step-06",
+          "text": "E. USB-C vs. Thunderbolt: What's the Difference?\n\nYou may have seen cables and ports labelled Thunderbolt, especially on laptops and high-performance accessories.\n\nUSB-C describes the connector, while Thunderbolt is a connectivity technology that uses the USB-C connector on many modern devices.\n\nDepending on the supported version and hardware, Thunderbolt can offer combinations of high-speed data, display connectivity, and docking capabilities.\n\nHowever, not every USB-C port supports Thunderbolt, and not every USB-C cable supports Thunderbolt performance.\n\nIf you're buying a docking station or connecting high-performance storage, compatibility matters more than appearance.",
+          "image": "",
+          "title": "Step 06",
+          "number": "06",
+          "image_url": "",
+          "recommendedProductSlug": ""
+        },
+        {
+          "id": "guide-1792005928626-step-07",
+          "text": "F. What Should You Check Before Buying a USB-C Cable?\n\nBefore adding a cable to your Shopee Singapore cart, consider these questions:\n\n- What device are you using? A phone, tablet, laptop, and external SSD may have different requirements.\n- Do you need fast charging? Check the device's supported charging standard and power requirements.\n- Will you transfer large files? Look for the data-transfer speed rather than assuming every USB-C cable is equally fast.\n- Do you need video output? Verify that the cable and connected devices support the required display functionality.\n- How long should the cable be? Choose a suitable length for your desk or travel setup, while considering any performance limitations stated by the manufacturer.\n- Is the listing trustworthy? Check the product specifications, seller details, warranty terms, and relevant user reviews.",
+          "image": "",
+          "title": "Step 07",
+          "number": "07",
+          "image_url": "",
+          "recommendedProductSlug": ""
+        },
+        {
+          "id": "guide-1792005928626-step-08",
+          "text": "G. Is an Expensive USB-C Cable Always Better?\n\nNot necessarily.\n\nA basic cable may be perfectly suitable for charging a phone at the power level it supports. Spending more makes sense when you need specific capabilities, such as higher-power charging, faster data transfer, or certified support for a particular connectivity standard.\n\nThe goal is to match the cable to your needs, not automatically choose the most expensive option.\n\nFor everyday charging, a suitable cable from a reputable manufacturer may be all you need. For laptop docking, external displays, or high-speed storage, checking the technical specifications becomes much more important.\n",
+          "image": "",
+          "title": "Step 08",
+          "number": "08",
+          "image_url": "",
+          "recommendedProductSlug": ""
+        },
+        {
+          "id": "guide-1792005928626-step-09",
+          "text": "H. The TechCheck Takeaway\n\nUSB-C makes connecting devices more convenient, but the connector alone doesn't tell you everything about a cable's capabilities.\n\nCharging speed, data transfer, and display support can vary significantly between products. Understanding these differences can help you avoid incompatible accessories and spend your money more wisely.\n\nNext time you're shopping for a USB-C cable, look beyond the product photos. Check the specifications, make sure your devices are compatible, and buy according to what you actually need.\n\nSame connector. Different capabilities. Shop smarter.\n\nAt TechCheck, we're here to make everyday tech easier to understand, so you can make more informed buying decisions.\n\n> Disclosure: TechCheck may earn a commission from qualifying purchases made through affiliate links. Product recommendations should prioritise compatibility, specifications, and value.",
+          "image": "",
+          "title": "Step 09",
+          "number": "09",
+          "image_url": "",
+          "recommendedProductSlug": "anker-322-powerline-usb-c-to-usb-c-cable-3ft-0-9m-60w-fast-charging-braided-nylon-cable-a81f5"
+        }
+      ],
+      "callout": "",
+      "summary": "",
+      "layoutFormat": "steps",
+      "showContentImages": false,
+      "content": "",
+      "hideStepNumbers": true
+    },
+    {
+      "id": "guide-1792005608022",
+      "slug": "is-your-desk-setup-actually-worth-the-money-",
+      "title": "Is Your Desk Setup Actually Worth the Money?",
+      "category": "Setup Advice",
+      "readTime": "8 min read",
+      "publishDate": "Oct 14, 2026",
+      "excerpt": "",
+      "image": "https://eflfvugtdhvqkxahwmsh.supabase.co/storage/v1/object/public/article-images/guide-is-your-desk-setup-actually-worth-the-money--1792005609636-sm9oy.jpeg",
+      "featured": false,
+      "author": {
+        "name": "Grace - TechCheck",
+        "role": "Setup Specialist",
+        "avatar": ""
+      },
+      "intro": "",
+      "steps": [
+        {
+          "id": "guide-1792005608022-step-01",
+          "text": "",
+          "image": "",
+          "title": "Recommended Hardware",
+          "number": "01",
+          "caption": "Recommended Hardware",
+          "image_url": "",
+          "recommendedProductSlug": "mall-inline-badgeasus-rog-ergo-monitor-arm-aas01-cable-management-ergonomic-supports-up-to-39-monitors-and-vesa-100-x-100mm"
+        }
+      ],
+      "callout": "",
+      "summary": "",
+      "layoutFormat": "document",
+      "showContentImages": false,
+      "content": "Before you spend another dollar on your setup, here's what to consider.\n\nIt's easy to get carried away when browsing tech products online. One minute, you're looking for a new mouse. The next, you're watching desk setup videos, adding RGB lights to your cart, and wondering whether you need a mechanical keyboard after all.\n\nAnd honestly, we get it. A good-looking setup can make studying, working, or gaming feel a little more enjoyable.\n\nBut here's the real question: Are you paying for better performance, or just a better-looking desk?\n\nFor students, young professionals, and anyone working with limited space in Singapore, knowing where to spend your money matters. You don't need to own every trending gadget to create a setup that works for you.\n\nA. The Difference Between Looking Good and Working Well\n\nAesthetic desk setups are everywhere on social media. Think matching peripherals, warm lighting, clean cable management, and perfectly arranged accessories.\n\nThere's nothing wrong with wanting your desk to look good. Your environment can influence how you feel about spending time there.\n\nThe problem starts when appearance becomes the only thing driving your purchases.\n\nA premium keyboard might look fantastic, but it isn't automatically more comfortable. An expensive desk lamp won't necessarily help if it's poorly positioned. And a monitor arm isn't much use if your existing monitor and desk aren't compatible with it.\n\nInstead of asking whether a product looks impressive, ask what it actually improves.\n\nDoes it make your daily tasks easier? Does it solve a problem? Will you use it regularly?\n\nIf the answer is yes, it might be worth the investment.\n\nB. Where Spending More Can Make Sense\n\nSome upgrades genuinely improve your everyday experience.\n\n1. Comfort and ergonomics\n\nIf you spend hours studying, working, or gaming, a comfortable mouse, a suitable chair, and a well-positioned screen may be more valuable than decorative accessories.\n\n2. Reliability\n\nA product that performs consistently and comes with appropriate warranty support can be worth paying more for, especially if you depend on it every day.\n\n3. Features you actually use\n\nExtra connectivity, adjustable settings, better battery life, or specific performance capabilities can justify a higher price when they match your needs.\n\nThe key is to pay for useful improvements rather than specifications you will never notice.\n\nC. When the Budget Option Is Enough\n\nNot every accessory needs to be premium.\n\nA basic cable organiser can keep your desk tidy without an expensive cable management system. An affordable laptop stand may serve your needs just as well as a designer alternative. And if you mainly use your keyboard for assignments and everyday browsing, you might not need a high-end mechanical model.\n\nThe same principle applies when shopping on Shopee Singapore.\n\nCompare specifications, dimensions, seller information, warranty terms, and genuine user feedback before deciding. A lower price can be a great deal, provided the product meets your requirements.\n\nRemember, the goal isn't to buy the cheapest product available. It's to find the best fit for your needs and budget.\n\nD. The Singapore Factor: Space Is Part of the Equation\n\nWhen you're living in an HDB flat, a BTO, a condo, or a shared room, your desk might need to serve several purposes.\n\nIt could be your study corner during the day, your work-from-home station in the afternoon, and your gaming setup at night.\n\nThat means every accessory should earn its place.\n\nA compact keyboard may be more practical than a full-sized model if desk space is limited. A multifunctional charger may reduce the number of adapters you carry. And a monitor arm might be worthwhile if it frees up valuable desktop space and suits your equipment.\n\nBefore buying something new, consider not just its price but also the space it occupies and the problems it solves.\n\nE. Try This Before Your Next Checkout\n\nBefore adding another product to your cart, take a moment to think about your current setup.\n\nWhat annoys you most about it? Is your desk too cluttered? Are you constantly running out of ports? Is your lighting uncomfortable? Or do you simply want your workspace to look more cohesive?\n\nIdentify the problem first, then look for a solution.\n\nYou might discover that a small, inexpensive upgrade is all you need. You might also realise that spending more on one essential item makes more sense than buying several accessories at once.\n\nEither way, you'll be making a more informed decision.\n\nF. The TechCheck Takeaway\n\nA great setup isn't defined by how much it costs.\n\nIt's defined by how well it works for you.\n\nWhether you're building a gaming corner, upgrading your study desk, or creating a more functional workspace at home, the best purchases are the ones that balance usefulness, quality, and value.\n\nAt TechCheck, we believe in making tech choices with a little more thought and a little less hype.\n\nBuy what improves your setup, not just what completes the aesthetic.\n\n> Disclosure: TechCheck may earn a commission from qualifying purchases made through affiliate links. Our goal is to help readers make informed purchasing decisions based on their needs, product suitability, and value.",
+      "hideStepNumbers": false
+    },
+    {
+      "id": "guide-1792005099845",
+      "slug": "how-to-build-a-compact-gaming-setup-in-singapore-7-smart-tips-for-small-spaces",
+      "title": "How to Build a Compact Gaming Setup in Singapore: 7 Smart Tips for Small Spaces",
+      "category": "Setup Advice",
+      "readTime": "8 min read",
+      "publishDate": "Oct 13, 2026",
+      "excerpt": "",
+      "image": "https://eflfvugtdhvqkxahwmsh.supabase.co/storage/v1/object/public/article-images/guide-how-to-build-a-compact-gaming-setup-in-singapore-7-smart-tips-for-small-spaces-1792005424929-libd7.jpeg",
+      "featured": false,
+      "author": {
+        "name": "Grace - TechCheck",
+        "role": "Setup Specialist",
+        "avatar": ""
+      },
+      "intro": "",
+      "steps": [
+        {
+          "id": "guide-1792005099845-step-01",
+          "text": "",
+          "image": "",
+          "title": "Recommended Hardware",
+          "number": "01",
+          "caption": "Recommended Hardware",
+          "image_url": "",
+          "recommendedProductSlug": "asus-rog-azoth-75-wireless-custom-gaming-keyboard-3-layer-dampening-hot-swappable-pre-lubed-switches-stabilizers"
+        }
+      ],
+      "callout": "",
+      "summary": "",
+      "layoutFormat": "document",
+      "showContentImages": false,
+      "content": "Small room? No problem. Here's how to create a clean, comfortable gaming setup without taking up your whole bedroom.\n\nLiving in Singapore often means making the most of limited space. Whether you're staying in an HDB flat, a BTO, a condo, or a shared room, setting up your dream gaming corner can be a bit of a challenge.\n\nYou want a decent monitor, a comfortable keyboard, good lighting, and maybe a few gaming accessories. But before you know it, your desk is full and there's barely any room left for anything else.\n\nThe good news? You don't need a huge room or an expensive setup to make it work.\n\nWith the right gear and a little planning, you can build a gaming setup that's practical, comfortable, and easy on the eyes. Here are seven ways to get started.\n\nA. Make the Most of Your Desk Space\n\nBefore buying new gadgets, start with the desk you already have.\n\nMeasure your desk's width and depth, then think about what you actually need on it. Your monitor, keyboard, mouse, and perhaps a desk lamp should be the priorities.\n\nIf you're working with a compact desk in your bedroom, avoid filling every corner with accessories. Keeping a bit of free space makes your setup feel less cramped and gives you more room to move.\n\n> TechCheck tip: Measure first, shop later. Check product dimensions carefully before ordering online so you don't end up with something that doesn't fit.\n\nB. Switch to a Compact Keyboard and Wireless Mouse\n\nA full-sized keyboard can take up quite a bit of space, especially if you need extra room for gaming.\n\nConsider a 65% or 75% mechanical keyboard. These layouts retain many useful keys while taking up less desk space than a traditional full-sized keyboard.\n\nPair it with a wireless mouse to reduce cable clutter and keep your desk looking neat.\n\nOf course, the best choice depends on how you use your setup. If you regularly work on assignments or need a number pad, a larger keyboard might still make more sense.\n\n> TechCheck tip: Look for a keyboard that suits both your gaming and everyday needs. There's no point saving desk space if the layout makes typing a hassle.\n\nC. Consider a Monitor Arm\n\nA monitor arm can be a game-changer for small desks.\n\nInstead of using a bulky monitor stand, you can mount your screen to the desk and free up some space underneath. Many monitor arms also let you adjust the screen's height, angle, and position.\n\nThis can be especially useful if your desk doubles as your study or work area.\n\nBefore buying one, check whether your monitor supports VESA mounting and whether your desk can accommodate the clamp. If you're renting or using a desk with a delicate surface, make sure the mounting method is suitable.\n\n> TechCheck tip: Don't want to spend extra? A compact monitor riser can also help organise the space beneath your screen.\n\nD. Tidy Up Those Cables\n\nNothing makes a small desk look messy faster than a tangle of cables.\n\nLuckily, you don't need a major renovation to sort things out. Cable clips, reusable ties, and under-desk cable trays can help keep wires organised and out of sight.\n\nYou can find plenty of affordable options on Shopee Singapore. Just check the dimensions and installation method before placing your order.\n\nA cleaner cable arrangement also makes it easier to unplug devices and maintain your setup.\n\n> TechCheck tip: Group cables by device and keep power connections accessible. Avoid overloading power strips or running cables where they could become a tripping hazard.\n\nE. Get Better Lighting Without Cluttering Your Desk\n\nGood lighting can make your gaming corner feel more inviting, especially if your bedroom doesn't get much natural light.\n\nA slim desk lamp is a practical option if you also use the space for studying. If your desk is particularly small, consider a monitor light bar that is compatible with your screen.\n\nWant some RGB vibes? A subtle LED strip behind your monitor can add ambience without taking up much desk space.\n\nJust remember that decorative lighting isn't a substitute for comfortable task lighting when you're reading or working.\n\n> TechCheck tip: Choose adjustable brightness so you can switch between focused study sessions and relaxed gaming at night.\n\nF. Add a USB Hub Only If You Need One\n\nBetween your mouse, keyboard, headset, webcam, and external storage, it's easy to run out of USB ports.\n\nA USB hub can help you connect multiple devices without constantly swapping cables. It's especially handy if you're using a laptop as your main gaming or study machine.\n\nHowever, not every hub offers the same features. Check its connection type, data-transfer speeds, power requirements, and compatibility with your devices.\n\nIf you regularly connect power-hungry devices, make sure the hub is designed to support them.\n\n> TechCheck tip: Count the devices you actually use before buying. You don't need a 10-port hub if a simple four-port one does the job.\n\nG. Set a Budget Before You Shop\n\nIt's easy to get carried away when browsing gaming accessories online. One minute you're looking for a mouse, and the next your cart is full of RGB lights, desk mats, and gadgets you didn't plan to buy.\n\nStart with the essentials and set a budget in Singapore dollars.\n\nHere's an illustrative starting point for a basic accessory upgrade:\n\n- Compact keyboard: S30–S80\n- Wireless mouse: S15–S50\n- Desk lamp: S15–S40\n- Cable management accessories: S5–S20\n- USB hub: S10–S35\n\nThese are indicative budget ranges, not verified current prices. Actual costs vary depending on the brand, specifications, promotions, and seller.\n\nYou don't need to buy everything at once. Upgrade the items that solve your biggest problems first, then add extras when your budget allows.\n\n> TechCheck tip: Compare specifications, reviews, warranty coverage, and seller details before checking out. A cheaper listing isn't always the better deal.\n\nH. Bonus: Make Your Setup Work for More Than Gaming\n\nIn Singapore, your bedroom desk might have to do double or even triple duty. It could be where you game, attend online classes, finish assignments, and work from home.\n\nThat's why flexibility matters.\n\nChoose accessories that serve more than one purpose, keep frequently used items within reach, and store less-used equipment elsewhere. A tidy desk is easier to switch from study mode to gaming mode without having to rearrange everything.\n\nI. Final Thoughts: Small Space, Serious Setup\n\nYou don't need a massive bedroom to enjoy a good gaming setup.\n\nA compact keyboard, a well-positioned monitor, organised cables, and sensible lighting can make a noticeable difference. The key is to choose products that fit your space, your routine, and your budget.\n\nBefore adding another gadget to your cart, ask yourself: Will this actually make my setup better?\n\nAt TechCheck, we're all about helping you find practical tech that makes sense for your space and your wallet.\n\nSmall space. Serious setup.\n\nExplore our tech picks and look for suitable options on Shopee Singapore.\n\n> Disclosure: TechCheck may earn a commission from qualifying purchases made through affiliate links. Product recommendations should be based on suitability, specifications, and value.",
+      "hideStepNumbers": false
+    },
+    {
       "id": "guide-1792003923742",
       "slug": "is-the-rog-crosshair-x870e-hero-worth-buying-in-singapore-specs-wifi-7-and-who-it-suits",
       "title": "Is the ROG Crosshair X870E Hero Worth Buying in Singapore? Specs, WiFi 7 and Who It Suits",
@@ -530,20 +1119,31 @@
       "readTime": "7 min read",
       "publishDate": "Oct 10, 2026",
       "excerpt": "",
-      "image": "https://eflfvugtdhvqkxahwmsh.supabase.co/storage/v1/object/public/article-images/guide-is-the-rog-crosshair-x870e-hero-worth-buying-in-singapore-specs-wifi-7-and-who-it-suits-1792004187314-lg5ja.jpeg",
+      "image": "https://eflfvugtdhvqkxahwmsh.supabase.co/storage/v1/object/public/article-images/guide-is-the-rog-crosshair-x870e-hero-worth-buying-in-singapore-specs-wifi-7-and-who-it-suits-1792004464910-ezw9o.jpeg",
       "featured": false,
       "author": {
-        "name": "@Adys - TechCheck",
+        "name": "Adys - TechCheck",
         "role": "Marketing Specialist",
         "avatar": ""
       },
       "intro": "",
-      "steps": [],
+      "steps": [
+        {
+          "id": "guide-1792003923742-step-01",
+          "text": "",
+          "image": "",
+          "title": "Recommended Hardware",
+          "number": "01",
+          "caption": "Recommended Hardware",
+          "image_url": "",
+          "recommendedProductSlug": "asus-rog-crosshair-x870e-hero-amd-x870e-am5-atx-motherboard-advanced-ai-pc-ready-18-2-2-power-stages-ddr5-pcie-5-0"
+        }
+      ],
       "callout": "",
       "summary": "",
       "layoutFormat": "document",
       "showContentImages": false,
-      "content": "\n",
+      "content": "A. Is the ROG Crosshair X870E Hero worth it? The short answer\n\nYes, if you are building a high-end AMD Ryzen PC and will use what you pay for. The ROG Crosshair X870E Hero is a flagship AM5 board with 18+2+2 power stages, five M.2 slots, two USB4 ports, Wi-Fi 7 and dual Ethernet (2.5Gb and 5Gb).\n\n- Buy it if you plan to pair it with a top Ryzen 9000 chip and a high-end graphics card, want several fast PCIe 5.0 SSDs, or like to overclock and tune.\n- Skip it if you are building a mid-range PC. You will not use most of its extras, and a lower-tier X870 or B850 board is enough.\n- Check before you buy: the board's PCIe 5.0 features depend on the CPU. With Ryzen 8000 chips, ASUS lists reduced PCIe and M.2 support.\n\nThis guide explains each feature in plain terms, lists verified specs and gives a compatibility checklist for Singapore buyers.\n\n> Disclosure: this page contains affiliate links. If you buy through them, we may earn a commission at no extra cost to you. It does not change our advice.\n\nB. Key features and what they mean for you\n\nAccording to the ASUS ROG Singapore page, these features matter most.\n\n- 18+2+2 power stages: 18 stages for the CPU cores (110A each), 2 for the SoC (110A) and 2 for other circuits (80A), with dual 8-pin CPU power. This gives steady power for high-end Ryzen chips, with room to overclock.\n- DDR5 memory: 4 slots, up to 256GB, with EXPO and ASUS AEMP profiles. You get fast, high-capacity memory for gaming and heavy work.\n- Five M.2 slots: three PCIe 5.0 x4 and two PCIe 4.0 x4, all with heatsinks. You can fit several fast SSDs without an add-in card.\n- Two PCIe 5.0 x16 slots: reinforced SafeSlots with PCIe Slot Q-Release Slim. They are ready for next-generation graphics cards and make card removal easier.\n- Wi-Fi 7 and dual Ethernet: 2x2 Wi-Fi 7, Bluetooth 5.4, Intel 2.5Gb and Realtek 5Gb LAN. You get fast wireless plus wired options for gaming and file transfers.\n- Two USB4 ports: 40Gbps Type-C ports on the rear panel, good for fast external drives and display output.\n- Front USB-C 20Gbps: two connectors, one with Quick Charge 4+ up to 60W, for fast phone charging from the case front panel.\n- AI tuning tools: AI Overclocking, AI Cooling II, AI Networking II and AI Cache Boost offer one-click tuning for speed, fan noise and network use.\n- Easy-build extras: M.2 Q-Latch, Q-Code, Q-LED, a Start button and BIOS FlashBack make building and troubleshooting simpler.\n\nThe audio side uses a ROG SupremeFX ALC4082 codec with an ESS ES9219 Quad DAC, and the I/O cover has Polymo Lighting II RGB with three addressable Gen 2 headers.\n\nC. ROG Crosshair X870E Hero specs at a glance\n\nSpecs below come from the ASUS ROG Singapore tech specs page. Confirm them on the seller's listing before you buy.\n\n- Socket and CPU: AMD AM5, Ryzen 9000, 8000 and 7000 Series\n- Chipset and size: AMD X870E, ATX form factor (30.5 x 24.4 cm)\n- Memory: 4 x DDR5 DIMM, up to 256GB, dual channel, EXPO and AEMP. Up to 8200+ MT/s (OC) with Ryzen 9000\n- Expansion: 2 x PCIe 5.0 x16 (x16, x8/x8 or x8/x4/x4) with Ryzen 9000 and 7000\n- Storage: 5 x M.2 (3 x PCIe 5.0 x4, 2 x PCIe 4.0 x4), 1 x SlimSAS, 4 x SATA 6Gb/s\n- Networking: Wi-Fi 7 (2x2), Bluetooth 5.4, Intel 2.5Gb and Realtek 5Gb Ethernet\n- Rear USB: 2 x USB4 (40Gbps) Type-C and 8 x USB 10Gbps (6 Type-A, 2 Type-C)\n- Front USB: 2 x USB 20Gbps Type-C connectors, 2 x USB 5Gbps headers and 2 x USB 2.0 headers\n- Video output: 1 x HDMI, plus display output over the USB4 ports\n- Audio: ROG SupremeFX ALC4082, ESS ES9219 Quad DAC and optical S/PDIF out\n- Power connectors: 24-pin, 2 x 8-pin CPU and 1 x 8-pin PCIe\n- Fan headers: 2 x CPU, 4 x chassis, 1 x AIO pump and 1 x W_PUMP+\n- Price (SGD): [ADD: current price and date checked]\n- Warranty: [ADD: Singapore warranty terms]\n\nD. Who should buy the ROG Crosshair X870E Hero?\n\nIt suits three kinds of buyer best.\n\n- High-end gamers. Pair it with a top Ryzen 9000 chip and a powerful graphics card, and the two PCIe 5.0 x16 slots and strong power delivery leave room to upgrade later.\n- Creators and heavy multitaskers. Five M.2 slots, 256GB of DDR5 support and fast USB4 ports help with large projects, many drives and quick file transfers.\n- Overclockers and tinkerers. ASUS adds overclocking tools such as Dynamic OC Switcher, Core Flex and an asynchronous clock, plus Start and ReTry buttons for testing.\n\nIf you are building a mid-range PC, you will pay for features you will not use. ASUS also sells other X870 and B850 boards, such as the ROG Strix X870-F Gaming WiFi and ROG Strix B850-E Gaming WiFi, so compare their prices and features first.\n\nE. Compatibility checklist before you buy\n\nCheck these seven points so every part of your build works together.\n\n- CPU: AM5 Ryzen 9000, 8000 or 7000. Check the CPU support list on the ASUS support site.\n- Ryzen 8000 limits: ASUS lists PCIe 4.0 slots and no support for M.2_2 and M.2_3 with Ryzen 8000, so you lose the PCIe 5.0 benefits.\n- Memory: DDR5 only, up to 4 modules and 256GB. Maximum speeds depend on the CPU.\n- Case: the board is ATX, 30.5 x 24.4 cm, so make sure your case supports ATX.\n- Power supply: you need a 24-pin cable, two 8-pin CPU cables and an 8-pin PCIe cable. The PCIe cable is required for 60W front USB-C charging.\n- Operating system: Wi-Fi 7 needs Windows 11 24H2 or later for full function. ASUS lists no Wi-Fi driver for Windows 10.\n- Extras: the SlimSAS cable for PCIe 4.0 x4 storage is sold separately.\n\nF. Pros and cons\n\n1. Pros\n\n- Strong 18+2+2 power stage design for high-end Ryzen chips\n- Five M.2 slots, three of them PCIe 5.0, with heatsinks\n- Two USB4 ports, Wi-Fi 7 and both 2.5Gb and 5Gb Ethernet\n- Easy-build touches such as Q-Latch, Q-Release Slim, Q-Code and BIOS FlashBack\n- Supports up to 256GB of DDR5 memory\n\n2. Cons\n\n- Priced as a flagship, so it is more than most builds need\n- Only one HDMI port on the back panel\n- Reduced PCIe and M.2 support when used with Ryzen 8000 chips\n- Full 60W front USB-C charging needs an extra PCIe power cable\n- Wi-Fi 7 needs Windows 11 24H2 or later\n\nG. Before you buy in Singapore\n\nCheck these five points on the exact listing.\n\n- Price in SGD: compare the current price across sellers and note the date you checked.\n- Warranty: confirm the Singapore warranty length, what it covers and how to claim.\n- BIOS version: a newer Ryzen chip may need a BIOS update. BIOS FlashBack lets you update from a USB stick without a CPU or memory installed, according to ASUS.\n- Wi-Fi 6GHz rules: ASUS notes that 6GHz bandwidth rules vary by country, so full 320MHz channels may not be available everywhere.\n- Version of the board: ASUS also lists a separate ROG Crosshair X870E Hero BTF model, so make sure you are buying the standard Hero shown here.\n\nYou can see current listings on the [ASUS ROG Singapore store page](ADD_AFFILIATE_LINK).\n\nH. Verdict: should you buy the ROG Crosshair X870E Hero?\n\nBuy it if you are building a high-end Ryzen PC, want several PCIe 5.0 SSDs, fast USB4 and networking, and plan to keep the board through future CPU and GPU upgrades.\n\nSkip it if you are on a tight budget, building a mid-range system, or pairing it with a Ryzen 8000 chip. You would pay for features the board cannot fully use.\n\nBefore you check out, confirm the CPU support list, the final SGD price and the Singapore warranty on the listing.\n\nI. Frequently asked questions\n\n1. Which CPUs work with the ROG Crosshair X870E Hero?\n\nIt uses the AMD AM5 socket and supports Ryzen 9000, 8000 and 7000 Series desktop processors. Check the CPU support list on the ASUS support site for your exact chip.\n\n2. Does the ROG Crosshair X870E Hero have Wi-Fi 7?\n\nYes. It has onboard 2x2 Wi-Fi 7 and Bluetooth 5.4. For full Wi-Fi 7 function you need Windows 11 24H2 or later.\n\n3. How many M.2 SSDs can it hold?\n\nFive. Three are PCIe 5.0 x4 slots and two are PCIe 4.0 x4 slots. With Ryzen 8000 chips, ASUS lists reduced support for two of the PCIe 5.0 slots.\n\n4. Does it support DDR4 memory?\n\nNo. It supports DDR5 only, with four slots and up to 256GB.\n\n5. Is the ROG Crosshair X870E Hero worth it for a gaming PC?\n\nIt is worth it for a high-end build that will use its extra storage, USB4 and power delivery. For a mid-range gaming PC, a cheaper X870 or B850 board is usually enough.\n\nJ. Sources\n\n- ROG Crosshair X870E Hero features, ASUS ROG Singapore: power stages, AI tools, connectivity and DIY features.\n- ROG Crosshair X870E Hero tech specs, ASUS ROG Singapore: CPU support, memory, storage, USB, networking and form factor.\n\nSpecifications and prices vary by region and configuration. Confirm them on the seller's page before you buy.",
       "hideStepNumbers": true
     },
     {
@@ -557,8 +1157,8 @@
       "image": "https://eflfvugtdhvqkxahwmsh.supabase.co/storage/v1/object/public/article-images/guide-monitor-light-bar-vs-desk-lamp-1792001141695-qscrv.jpeg",
       "featured": false,
       "author": {
-        "name": "TechCheck Editorial Team",
-        "role": "Ergonomic Lighting Analyst",
+        "name": "Leo - TechCheck",
+        "role": "Gaming Setup Editor",
         "avatar": "/acer-creator.png"
       },
       "intro": "Proper lighting prevents eye strain during prolonged screen time, but traditional swing-arm lamps and clamp lights carry bulky bases or intrusive horizontal arms that collide with monitor bezels on small desks.",
@@ -609,11 +1209,11 @@
       "readTime": "5 min read",
       "publishDate": "February 2026",
       "excerpt": "Learn how to route power bricks, monitor cables, and USB peripherals using hidden under-desk channels for a distraction-free workspace.",
-      "image": "https://eflfvugtdhvqkxahwmsh.supabase.co/storage/v1/object/public/article-images/guide-under-desk-cable-routing-blueprint-1792001793807-uunk1.jpeg",
+      "image": "https://eflfvugtdhvqkxahwmsh.supabase.co/storage/v1/object/public/article-images/guide-under-desk-cable-routing-blueprint-1792006288078-eiaao.jpeg",
       "featured": true,
       "author": {
-        "name": "TechCheck Editorial Team",
-        "role": "Hardware Infrastructure",
+        "name": "Leo - TechCheck",
+        "role": "Gaming Setup Editor",
         "avatar": "/powerpac.png"
       },
       "intro": "Cables dangling behind a compact desk make small rooms feel visually chaotic and restrict legroom. Because compact desks have less surface area, a clean under-desk routing plan is essential for clean aesthetics and safe airflow.",
@@ -667,12 +1267,23 @@
       "image": "https://eflfvugtdhvqkxahwmsh.supabase.co/storage/v1/object/public/article-images/guide-tiny-room-big-setup-how-to-fit-a-full-gaming-station-in-an-hdb-bedroom-1792001806847-q5v5z.jpeg",
       "featured": false,
       "author": {
-        "name": "TechCheck Editorial",
-        "role": "Setup Specialist",
+        "name": "Leo - TechCheck",
+        "role": "Gaming Setup Editor",
         "avatar": ""
       },
       "intro": "",
-      "steps": [],
+      "steps": [
+        {
+          "id": "guide-1791525231853-step-01",
+          "text": "",
+          "image": "",
+          "title": "Recommended Hardware",
+          "number": "01",
+          "caption": "Recommended Hardware",
+          "image_url": "",
+          "recommendedProductSlug": "powerpac-usb-led-desk-lamp-children-learning-table-lamp-pp1306-"
+        }
+      ],
       "callout": "",
       "summary": "",
       "layoutFormat": "document",
@@ -688,12 +1299,12 @@
       "readTime": "6 min read",
       "publishDate": "March 2026",
       "excerpt": "A step-by-step spatial blueprint for fitting a 27-inch display, PC, and peripherals on a compact 100cm tabletop without feeling cramped.",
-      "image": "/uploads/57e276bc-28c2-47a2-9527-d4623af02f4f-1791653598851.png",
+      "image": "https://eflfvugtdhvqkxahwmsh.supabase.co/storage/v1/object/public/article-images/guide-how-to-optimize-a-100cm-small-gaming-desk-1792004944844-vi0h7.jpeg",
       "featured": true,
       "author": {
-        "name": "TechCheck Editorial Team",
-        "role": "Setup Ergonomics Specialist",
-        "avatar": "/acer-nitro.png"
+        "name": "Leo - TechCheck",
+        "role": "Gaming Setup Editor",
+        "avatar": "data:image/jpeg;base64,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"
       },
       "intro": "A 100cm desk is one of the most common dimensions in modern Singapore HDB flats and compact apartments. While many gamers assume a small tabletop restricts hardware choices, strategic vertical mounting and intentional peripheral footprints can reclaim over 60% of usable surface space.",
       "steps": [
