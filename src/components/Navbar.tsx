@@ -168,8 +168,6 @@ export const Navbar: React.FC<NavbarProps> = ({
             <div
               className="relative"
               ref={categoriesDropdownRef}
-              onMouseEnter={() => setCategoriesDropdownOpen(true)}
-              onMouseLeave={() => setCategoriesDropdownOpen(false)}
             >
               <button
                 id="nav-link-categories-dropdown"
