@@ -105,17 +105,24 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
   onUpdateSettings,
   onNavigate,
 }) => {
-  // Authentication state
-  const initialAuth = dataStorage.isAdminAuthenticated();
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(initialAuth);
+  // Authentication state is strictly ephemeral in-memory: always starts unauthenticated on entry
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
   // Splash & Loading state before reaching password verification
-  const [showSplashLoading, setShowSplashLoading] = useState<boolean>(!initialAuth);
+  const [showSplashLoading, setShowSplashLoading] = useState<boolean>(true);
   const [splashProgress, setSplashProgress] = useState<number>(0);
   const [splashStatusText, setSplashStatusText] = useState<string>('Initializing superadmin gateway...');
 
   const [loginPasscode, setLoginPasscode] = useState('');
   const [loginError, setLoginError] = useState('');
+
+  // Clear any legacy storage and ensure session is cleared when navigating away/unmounting
+  useEffect(() => {
+    dataStorage.clearLegacyAuthStorage();
+    return () => {
+      dataStorage.clearAdminSession();
+    };
+  }, []);
 
   // Run the splash screen / loading screen sequence
   useEffect(() => {
@@ -217,6 +224,11 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
   const [inputSupabaseKey, setInputSupabaseKey] = useState('');
   const [isSavingSupabaseConfig, setIsSavingSupabaseConfig] = useState(false);
   const [showConfigForm, setShowConfigForm] = useState(false);
+
+  // Dedicated state for intentional passcode updates
+  const [newPasscodeField, setNewPasscodeField] = useState('');
+  const [isUpdatingPasscode, setIsUpdatingPasscode] = useState(false);
+  const [passcodeUpdateError, setPasscodeUpdateError] = useState<string | null>(null);
 
   React.useEffect(() => {
     if (isAuthenticated) {
@@ -342,13 +354,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
       });
 
       if (res.ok) {
-        dataStorage.setAdminAuthenticated(true);
-        sessionStorage.setItem('techcheck_developer_mode', 'true');
-        localStorage.setItem('techcheck_developer_mode', 'true');
-        sessionStorage.setItem('techcheck_admin_passcode', cleanInput);
-        localStorage.setItem('techcheck_admin_passcode', cleanInput);
-        sessionStorage.removeItem('techcheck_visual_mode');
-        localStorage.removeItem('techcheck_visual_mode');
+        dataStorage.setAdminSession(cleanInput);
         setIsAuthenticated(true);
         setLoginError('');
         showToast('Successfully logged in to Superadmin Dashboard');
@@ -359,11 +365,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
     } catch {
       // In production, server failure or offline network must never grant admin access
       if (dataStorage.isExplicitDevelopment() && (cleanInput === '654321' || dataStorage.verifyPasscode(cleanInput))) {
-        dataStorage.setAdminAuthenticated(true);
-        sessionStorage.setItem('techcheck_developer_mode', 'true');
-        localStorage.setItem('techcheck_developer_mode', 'true');
-        sessionStorage.setItem('techcheck_admin_passcode', cleanInput);
-        localStorage.setItem('techcheck_admin_passcode', cleanInput);
+        dataStorage.setAdminSession(cleanInput);
         setIsAuthenticated(true);
         setLoginError('');
         showToast('Logged in (offline development mode)');
@@ -374,17 +376,11 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
   };
 
   const handleLogout = () => {
-    dataStorage.setAdminAuthenticated(false);
-    sessionStorage.removeItem('techcheck_developer_mode');
-    sessionStorage.removeItem('techcheck_visual_mode');
-    sessionStorage.removeItem('techcheck_admin_passcode');
-    localStorage.removeItem('techcheck_developer_mode');
-    localStorage.removeItem('techcheck_visual_mode');
-    localStorage.removeItem('techcheck_admin_passcode');
+    dataStorage.clearAdminSession();
     setIsAuthenticated(false);
     setLoginPasscode('');
     setShowSplashLoading(false);
-    window.location.href = 'https://techcheck.homes/';
+    onNavigate({ page: 'home' });
   };
 
   // --- PRODUCT ACTIONS ---
@@ -933,18 +929,16 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
 
   // --- SETTINGS ACTIONS ---
   const handleSaveSettings = async (newSettings: SiteSettings) => {
-    if (newSettings.adminPasscode) {
-      sessionStorage.setItem('techcheck_admin_passcode', newSettings.adminPasscode);
-      localStorage.setItem('techcheck_admin_passcode', newSettings.adminPasscode);
-    }
-    onUpdateSettings(newSettings);
-    dataStorage.saveSiteSettings(newSettings);
+    // Regular settings save NEVER alters session credentials or sends adminPasscode
+    const { adminPasscode: _omitted, ...cleanSettings } = newSettings;
+    onUpdateSettings(cleanSettings as SiteSettings);
+    dataStorage.saveSiteSettings(cleanSettings as SiteSettings);
     
     try {
       const res = await fetch('/api/settings', {
         method: 'POST',
         headers: getAdminHeaders({ 'Content-Type': 'application/json' }),
-        body: JSON.stringify(newSettings),
+        body: JSON.stringify(cleanSettings),
       });
       if (!res.ok) {
         const errJson = await res.json().catch(() => ({}));
@@ -954,6 +948,55 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
     } catch (err: any) {
       showToast(`Saved locally: ${err.message}`);
       console.error(err);
+    }
+  };
+
+  const handleUpdateAdminPasscode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanPasscode = newPasscodeField.trim();
+    if (!cleanPasscode) {
+      setPasscodeUpdateError('Passcode cannot be empty.');
+      return;
+    }
+    if (cleanPasscode.length < 6) {
+      setPasscodeUpdateError('Passcode must be at least 6 characters.');
+      return;
+    }
+    const currentActive = dataStorage.getAdminPasscode();
+    if (cleanPasscode === currentActive) {
+      setPasscodeUpdateError('New passcode is identical to the current active passcode.');
+      return;
+    }
+
+    setIsUpdatingPasscode(true);
+    setPasscodeUpdateError(null);
+
+    try {
+      // Intentionally send new adminPasscode to /api/settings using current active admin headers
+      const { adminPasscode: _old, ...cleanSettings } = siteSettings;
+      const res = await fetch('/api/settings', {
+        method: 'POST',
+        headers: getAdminHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({
+          ...cleanSettings,
+          adminPasscode: cleanPasscode,
+        }),
+      });
+
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error || `HTTP ${res.status}`);
+      }
+
+      // Only after server confirms successful update, update active in-memory session passcode
+      dataStorage.updateAdminPasscode(cleanPasscode);
+      setNewPasscodeField('');
+      showToast('Superadmin access passcode updated successfully!');
+    } catch (err: any) {
+      setPasscodeUpdateError(err.message || 'Failed to update passcode on server.');
+      showToast(`Passcode update failed: ${err.message}`);
+    } finally {
+      setIsUpdatingPasscode(false);
     }
   };
 
@@ -1950,30 +1993,43 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                 Superadmin Security & Passcode
               </h2>
               <p className="text-xs text-neutral-500 mb-5">
-                Update the login passcode to protect this superadmin dashboard.
+                Update the login passcode to protect this superadmin dashboard. Changes take effect immediately on the server.
               </p>
 
-              <div className="max-w-md space-y-4">
+              <form onSubmit={handleUpdateAdminPasscode} className="max-w-md space-y-4">
                 <div>
                   <label className="block text-xs font-semibold text-neutral-700 mb-1">
                     New Access Passcode
                   </label>
                   <input
                     type="password"
-                    value={siteSettings.adminPasscode || ''}
-                    placeholder="Enter new passcode to update..."
-                    onChange={(e) =>
-                      onUpdateSettings({ ...siteSettings, adminPasscode: e.target.value })
-                    }
-                    onBlur={() => {
-                      if (siteSettings.adminPasscode?.trim()) {
-                        handleSaveSettings(siteSettings);
-                      }
+                    value={newPasscodeField}
+                    placeholder="Enter new passcode (min. 6 characters)..."
+                    onChange={(e) => {
+                      setNewPasscodeField(e.target.value);
+                      if (passcodeUpdateError) setPasscodeUpdateError(null);
                     }}
-                    className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl text-xs font-mono font-bold text-[#111111]"
+                    className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl text-xs font-mono font-bold text-[#111111] focus:outline-none focus:border-[#FF6B00]"
                   />
+                  {passcodeUpdateError && (
+                    <p className="text-xs text-red-600 mt-1.5 flex items-center gap-1">
+                      <AlertTriangle className="w-3.5 h-3.5" />
+                      <span>{passcodeUpdateError}</span>
+                    </p>
+                  )}
                 </div>
-              </div>
+
+                <div className="flex justify-end">
+                  <button
+                    type="submit"
+                    disabled={isUpdatingPasscode || !newPasscodeField.trim()}
+                    className="px-5 py-2.5 bg-[#FF6B00] hover:bg-[#E05E00] disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-bold rounded-xl shadow-xs transition-all cursor-pointer flex items-center gap-1.5"
+                  >
+                    <KeyRound className="w-4 h-4" />
+                    <span>{isUpdatingPasscode ? 'Updating...' : 'Update Passcode'}</span>
+                  </button>
+                </div>
+              </form>
             </div>
 
             {/* Supabase Cloud Database Status & Sync */}

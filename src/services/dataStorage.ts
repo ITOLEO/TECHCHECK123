@@ -12,9 +12,47 @@ const STORAGE_KEYS = {
   AUDIT_LOG: 'techcheck_audit_log_v1',
 };
 
+// Active in-memory admin authentication state (ephemeral session lifecycle, zero storage persistence)
+let activeAdminSession: {
+  isAuthenticated: boolean;
+  passcode: string | null;
+} = {
+  isAuthenticated: false,
+  passcode: null,
+};
+
+export function clearLegacyAuthStorage(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    if (window.sessionStorage) {
+      window.sessionStorage.removeItem('techcheck_admin_passcode');
+      window.sessionStorage.removeItem('techcheck_admin_session_v1');
+      window.sessionStorage.removeItem('techcheck_developer_mode');
+      window.sessionStorage.removeItem('techcheck_visual_mode');
+    }
+    if (window.localStorage) {
+      window.localStorage.removeItem('techcheck_admin_passcode');
+      window.localStorage.removeItem('techcheck_admin_session_v1');
+      window.localStorage.removeItem('techcheck_developer_mode');
+      window.localStorage.removeItem('techcheck_visual_mode');
+      const rawSettings = window.localStorage.getItem(STORAGE_KEYS.SETTINGS);
+      if (rawSettings && rawSettings.includes('adminPasscode')) {
+        try {
+          const parsed = JSON.parse(rawSettings);
+          if (parsed && typeof parsed === 'object' && 'adminPasscode' in parsed) {
+            delete parsed.adminPasscode;
+            window.localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(parsed));
+          }
+        } catch {}
+      }
+    }
+  } catch {}
+}
+
 // Clean up legacy dummy data in browser localStorage
 if (typeof window !== 'undefined') {
   try {
+    clearLegacyAuthStorage();
     [
       'techcheck_products_v1',
       'techcheck_categories_v1',
@@ -52,7 +90,6 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   favicon: '/favicon.png',
   supportEmail: 'itleo4444@gmail.com',
   defaultAffiliateSubId: '14139310000',
-  adminPasscode: '654321',
   categoriesHeading: 'Find the right upgrade by category.',
   categoriesSubtext: 'Explore space-saving accessories based on what your setup needs most.',
   featuredHeading: 'Top Picks for Your Setup.',
@@ -94,17 +131,12 @@ function safeSetItem(key: string, value: string): void {
   }
 }
 
-// Authentication headers helper for admin requests
+// Authentication headers helper for admin requests (in-memory credentials only)
 export function getAdminHeaders(customHeaders: Record<string, string> = {}): Record<string, string> {
   const headers: Record<string, string> = { ...customHeaders };
-  if (typeof window !== 'undefined') {
-    const code =
-      localStorage.getItem('techcheck_admin_passcode') ||
-      sessionStorage.getItem('techcheck_admin_passcode') ||
-      '';
-    if (code) {
-      headers['x-admin-passcode'] = code.trim();
-    }
+  const code = dataStorage.getAdminPasscode();
+  if (code) {
+    headers['x-admin-passcode'] = code.trim();
   }
   return headers;
 }
@@ -283,8 +315,9 @@ export const dataStorage = {
             ...currentLocalSettings,
             ...settData,
           };
-          result.settings = mergedSett;
-          safeSetItem(STORAGE_KEYS.SETTINGS, JSON.stringify(mergedSett));
+          const { adminPasscode: _omitted, ...safeSettings } = mergedSett;
+          result.settings = safeSettings as SiteSettings;
+          safeSetItem(STORAGE_KEYS.SETTINGS, JSON.stringify(safeSettings));
         }
       }
 
@@ -342,11 +375,12 @@ export const dataStorage = {
   // Bulk push current state to Supabase tables
   async syncAllToSupabase(): Promise<{ success: boolean; message?: string; results?: any }> {
     try {
+      const { adminPasscode: _omitted, ...cleanSettings } = this.getSiteSettings();
       const payload = {
         categories: this.getCategories(),
         products: this.getProducts(),
         guides: this.getGuides(),
-        settings: this.getSiteSettings(),
+        settings: cleanSettings,
       };
       const res = await fetch('/api/sync-seed', {
         method: 'POST',
@@ -628,28 +662,28 @@ export const dataStorage = {
     ) {
       merged.heroImage = DEFAULT_SITE_SETTINGS.heroImage;
     }
-    if (merged.adminPasscode === 'admin123') {
-      merged.adminPasscode = '654321';
-    }
+    delete (merged as any).adminPasscode;
     return merged;
   },
 
   saveSiteSettings(settings: SiteSettings): void {
     try {
-      safeSetItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
-      this.notifyListeners({ settings });
+      const { adminPasscode: _omitted, ...safeSettings } = settings;
+      safeSetItem(STORAGE_KEYS.SETTINGS, JSON.stringify(safeSettings));
+      this.notifyListeners({ settings: safeSettings as SiteSettings });
     } catch (e) {
       console.error('Failed to save site settings', e);
     }
   },
 
   async syncSiteSettings(settings: SiteSettings): Promise<boolean> {
-    this.saveSiteSettings(settings);
+    const { adminPasscode: _omitted, ...safeSettings } = settings;
+    this.saveSiteSettings(safeSettings as SiteSettings);
     try {
       const res = await fetch('/api/settings', {
         method: 'POST',
         headers: getAdminHeaders({ 'Content-Type': 'application/json' }),
-        body: JSON.stringify(settings),
+        body: JSON.stringify(safeSettings),
       });
       return res.ok;
     } catch (e) {
@@ -732,22 +766,47 @@ export const dataStorage = {
     return false;
   },
 
+  clearLegacyAuthStorage(): void {
+    clearLegacyAuthStorage();
+  },
+
+  setAdminSession(passcode: string): void {
+    activeAdminSession = {
+      isAuthenticated: true,
+      passcode: passcode.trim(),
+    };
+    clearLegacyAuthStorage();
+  },
+
+  clearAdminSession(): void {
+    activeAdminSession = {
+      isAuthenticated: false,
+      passcode: null,
+    };
+    clearLegacyAuthStorage();
+  },
+
+  getAdminPasscode(): string {
+    return activeAdminSession.isAuthenticated ? (activeAdminSession.passcode || '') : '';
+  },
+
+  updateAdminPasscode(newPasscode: string): void {
+    const clean = newPasscode?.trim();
+    if (activeAdminSession.isAuthenticated && clean) {
+      activeAdminSession.passcode = clean;
+    }
+    clearLegacyAuthStorage();
+  },
+
   isAdminAuthenticated(): boolean {
-    if (typeof window === 'undefined') return false;
-    return (
-      sessionStorage.getItem(STORAGE_KEYS.ADMIN_AUTH) === 'true' ||
-      localStorage.getItem(STORAGE_KEYS.ADMIN_AUTH) === 'true'
-    );
+    return Boolean(activeAdminSession.isAuthenticated && activeAdminSession.passcode);
   },
 
   setAdminAuthenticated(status: boolean): void {
-    if (typeof window === 'undefined') return;
-    if (status) {
-      sessionStorage.setItem(STORAGE_KEYS.ADMIN_AUTH, 'true');
-      localStorage.setItem(STORAGE_KEYS.ADMIN_AUTH, 'true');
+    if (!status) {
+      this.clearAdminSession();
     } else {
-      sessionStorage.removeItem(STORAGE_KEYS.ADMIN_AUTH);
-      localStorage.removeItem(STORAGE_KEYS.ADMIN_AUTH);
+      activeAdminSession.isAuthenticated = true;
     }
   },
 
@@ -763,11 +822,7 @@ export const dataStorage = {
         },
       });
       if (res.ok) {
-        this.setAdminAuthenticated(true);
-        if (typeof window !== 'undefined') {
-          sessionStorage.setItem('techcheck_admin_passcode', cleanInput);
-          localStorage.setItem('techcheck_admin_passcode', cleanInput);
-        }
+        this.setAdminSession(cleanInput);
         return true;
       }
       return false;
@@ -778,11 +833,7 @@ export const dataStorage = {
       }
       const valid = cleanInput === '654321';
       if (valid) {
-        this.setAdminAuthenticated(true);
-        if (typeof window !== 'undefined') {
-          sessionStorage.setItem('techcheck_admin_passcode', cleanInput);
-          localStorage.setItem('techcheck_admin_passcode', cleanInput);
-        }
+        this.setAdminSession(cleanInput);
       }
       return valid;
     }
@@ -794,20 +845,9 @@ export const dataStorage = {
       return false;
     }
     const cleanInput = inputCode.trim();
-    const stored = typeof window !== 'undefined'
-      ? (localStorage.getItem('techcheck_admin_passcode') || sessionStorage.getItem('techcheck_admin_passcode') || '')
-      : '';
-    const settings = this.getSiteSettings();
-    const valid =
-      (stored && cleanInput === stored) ||
-      (settings.adminPasscode && cleanInput === settings.adminPasscode.trim()) ||
-      cleanInput === '654321';
+    const valid = cleanInput === '654321';
     if (valid) {
-      this.setAdminAuthenticated(true);
-      if (typeof window !== 'undefined') {
-        sessionStorage.setItem('techcheck_admin_passcode', cleanInput);
-        localStorage.setItem('techcheck_admin_passcode', cleanInput);
-      }
+      this.setAdminSession(cleanInput);
     }
     return Boolean(valid);
   },
@@ -825,7 +865,12 @@ export const dataStorage = {
 
   saveDraftState(draft: VisualDraftState): void {
     try {
-      localStorage.setItem(STORAGE_KEYS.DRAFT, JSON.stringify(draft));
+      let safeDraft = draft;
+      if (draft.settings) {
+        const { adminPasscode: _omitted, ...cleanSettings } = draft.settings;
+        safeDraft = { ...draft, settings: cleanSettings as SiteSettings };
+      }
+      localStorage.setItem(STORAGE_KEYS.DRAFT, JSON.stringify(safeDraft));
     } catch (e) {
       console.warn('Failed to save draft state to localStorage', e);
     }

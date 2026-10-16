@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Upload, Link2, Image as ImageIcon, X, AlertCircle, RefreshCw, CheckCircle2 } from 'lucide-react';
+import { getAdminHeaders, dataStorage } from '../services/dataStorage';
 
 export const SUPPORTED_MIME_TYPES = [
   'image/jpeg',
@@ -281,21 +282,21 @@ export const AdminImageUploader: React.FC<AdminImageUploaderProps> = ({
           ? 'article-images'
           : 'product-images');
 
+      // Check if admin is authenticated before uploading
+      if (!dataStorage.isAdminAuthenticated() || !dataStorage.getAdminPasscode()) {
+        setErrorMessage('Sesi admin tidak aktif atau kredensial tidak tersedia. Silakan login kembali.');
+        setPreviewDataUrl(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        return;
+      }
+
       // Attempt server-side upload to authorized Supabase Storage bucket
       try {
-        const adminPasscode =
-          typeof window !== 'undefined'
-            ? localStorage.getItem('techcheck_admin_passcode') ||
-              sessionStorage.getItem('techcheck_admin_passcode') ||
-              '654321'
-            : '654321';
-
         const res = await fetch('/api/upload', {
           method: 'POST',
-          headers: {
+          headers: getAdminHeaders({
             'Content-Type': 'application/json',
-            'x-admin-passcode': adminPasscode,
-          },
+          }),
           body: JSON.stringify({
             filename: cleanFileName,
             fileData: dataUrl,

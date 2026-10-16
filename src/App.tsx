@@ -246,42 +246,15 @@ export function parseLocationRoute(
 ): ViewRoute {
   if (typeof window === 'undefined') return { page: 'home' };
 
-  const pathname = (window.location.pathname || '').toLowerCase();
-  const hash = (window.location.hash || '').toLowerCase();
-  const search = (window.location.search || '').toLowerCase();
-  const href = (window.location.href || '').toLowerCase();
-
-  const isAdminTarget =
-    pathname.includes('admintechcheck') ||
-    pathname.includes('techcheckadmin') ||
-    pathname.includes('admindtechcheck') ||
-    pathname.includes('superadmind') ||
-    pathname.includes('superadmin') ||
-    pathname.includes('/admin') ||
-    pathname.endsWith('/admin') ||
-    hash.includes('admintechcheck') ||
-    hash.includes('techcheckadmin') ||
-    hash.includes('admindtechcheck') ||
-    hash.includes('superadmind') ||
-    hash.includes('superadmin') ||
-    hash.includes('admin') ||
-    search.includes('admintechcheck') ||
-    search.includes('techcheckadmin') ||
-    search.includes('admindtechcheck') ||
-    search.includes('superadmind') ||
-    search.includes('superadmin') ||
-    search.includes('admin') ||
-    href.includes('admintechcheck') ||
-    href.includes('techcheckadmin') ||
-    href.includes('admindtechcheck') ||
-    href.includes('superadmind');
-
-  if (isAdminTarget) {
+  // SuperAdmin is strictly accessed ONLY when pathname is exactly '/admintechcheck'
+  // No aliases, no partial matches, no query or hash bypass. Do NOT strip trailing slash before this check.
+  if (window.location.pathname === '/admintechcheck') {
     return { page: 'superadmin' };
   }
 
-  const rawHash = window.location.hash || '';
   const rawPathname = window.location.pathname || '';
+
+  const rawHash = window.location.hash || '';
   const cleanHash = rawHash.replace(/^#\/?/, '');
   const cleanPath = rawPathname.replace(/^\/+|\/+$/g, '');
   const rawPath = cleanHash.length > 0 ? cleanHash : cleanPath;
@@ -407,29 +380,9 @@ export default function App() {
   );
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [showSplash, setShowSplash] = useState(() => {
-    // If opening directly on admin route, let the admin security splash screen handle it
-    const path = (window.location.pathname || '').toLowerCase();
-    const hash = (window.location.hash || '').toLowerCase();
-    const search = (window.location.search || '').toLowerCase();
-    return !(
-      path.includes('admintechcheck') ||
-      path.includes('techcheckadmin') ||
-      path.includes('admindtechcheck') ||
-      path.includes('superadmin') ||
-      path.includes('superadmind') ||
-      path.includes('/admin') ||
-      hash.includes('admintechcheck') ||
-      hash.includes('techcheckadmin') ||
-      hash.includes('admindtechcheck') ||
-      hash.includes('superadmin') ||
-      hash.includes('superadmind') ||
-      hash.includes('admin') ||
-      search.includes('admintechcheck') ||
-      search.includes('techcheckadmin') ||
-      search.includes('admindtechcheck') ||
-      search.includes('superadmin') ||
-      search.includes('admin')
-    );
+    // If opening directly on admintechcheck, let the admin security splash screen handle it
+    if (typeof window === 'undefined') return true;
+    return window.location.pathname !== '/admintechcheck';
   });
   const [affiliateProduct, setAffiliateProduct] = useState<Product | null>(null);
   const [infoModalType, setInfoModalType] = useState<'about' | 'disclosure' | 'contact' | null>(null);
@@ -503,51 +456,9 @@ export default function App() {
     window.addEventListener('hashchange', handleLocationChange);
     window.addEventListener('popstate', handleLocationChange);
 
-    // Global keyboard shortcut to access admin (Ctrl+Shift+A or typing "admin")
-    let keyBuffer = '';
-    let bufferTimer: any;
-    const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      // Shortcut: Ctrl + Shift + A or Cmd + Shift + A -> Admin
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'a') {
-        e.preventDefault();
-        navigate({ page: 'superadmin' });
-        return;
-      }
-
-      // Sequence buffer when not typing in form inputs
-      const target = e.target as HTMLElement | null;
-      const tag = target?.tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target?.isContentEditable) {
-        return;
-      }
-
-      if (e.key && e.key.length === 1) {
-        keyBuffer += e.key.toLowerCase();
-        clearTimeout(bufferTimer);
-        bufferTimer = setTimeout(() => {
-          keyBuffer = '';
-        }, 1500);
-
-        if (
-          keyBuffer.includes('admintechcheck') ||
-          keyBuffer.includes('techcheckadmin') ||
-          keyBuffer.includes('admindtechcheck') ||
-          keyBuffer.endsWith('admin') ||
-          keyBuffer.endsWith('superadmin')
-        ) {
-          keyBuffer = '';
-          navigate({ page: 'superadmin' });
-        }
-      }
-    };
-
-    window.addEventListener('keydown', handleGlobalKeyDown);
-
     return () => {
       window.removeEventListener('hashchange', handleLocationChange);
       window.removeEventListener('popstate', handleLocationChange);
-      window.removeEventListener('keydown', handleGlobalKeyDown);
-      clearTimeout(bufferTimer);
     };
   }, []);
 
@@ -585,10 +496,8 @@ export default function App() {
         window.history.pushState(null, '', cleanPath);
       }
     } catch {
-      // Fallback for sandboxed iframe environments where pushState is restricted
-      if (route.page === 'superadmin') {
-        window.location.hash = '#/admintechcheck';
-      } else {
+      // Fallback for sandboxed iframe environments without creating admin hash backdoors
+      if (route.page !== 'superadmin') {
         window.location.hash = cleanPath === '/' ? '' : `#${cleanPath}`;
       }
     }

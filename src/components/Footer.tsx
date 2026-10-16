@@ -250,22 +250,15 @@ export const Footer: React.FC<FooterProps> = ({
 
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-zinc-500 gap-4">
             <div className="flex items-center gap-2">
-              <p
-                onDoubleClick={() => onNavigate({ page: 'superadmin' })}
-                title="Double-click to access admintechcheck"
-                className="select-none cursor-default"
-              >
+              <p className="select-none cursor-default">
                 © {new Date().getFullYear()} TechCheck Media. All rights reserved. English edition.
               </p>
-              <button
-                type="button"
-                onClick={() => onNavigate({ page: 'superadmin' })}
-                title="Portal admintechcheck"
-                aria-label="Portal admintechcheck"
-                className="text-zinc-600 hover:text-zinc-300 p-0.5 rounded transition-colors cursor-pointer"
+              <span
+                className="text-zinc-600 p-0.5 inline-flex items-center"
+                aria-hidden="true"
               >
-                <Lock className="w-3 h-3 opacity-30 hover:opacity-90" />
-              </button>
+                <Lock className="w-3 h-3 opacity-30" />
+              </span>
             </div>
             <p className="flex items-center gap-4">
               <span>Privacy Policy</span>
