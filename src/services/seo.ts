@@ -79,9 +79,10 @@ export function updateSEO(config: SEOConfig): void {
   setMetaTag('name', 'robots', config.robots || 'index, follow, max-image-preview:large');
 
   // 4. Canonical link
+  const cleanPath = (canonicalPath || '').split('?')[0].split('#')[0].trim();
   const canonicalUrl =
-    canonicalPath !== undefined && canonicalPath !== '' && canonicalPath !== '/'
-      ? `${BASE_URL}${canonicalPath.startsWith('/') ? canonicalPath : `/${canonicalPath}`}`
+    cleanPath !== '' && cleanPath !== '/'
+      ? `${BASE_URL}${cleanPath.startsWith('/') ? cleanPath : `/${cleanPath}`}`
       : `${BASE_URL}/`;
   setLinkTag('canonical', canonicalUrl);
 
@@ -132,8 +133,14 @@ function setMetaTag(attributeName: 'name' | 'property', attributeValue: string, 
 }
 
 function setLinkTag(rel: string, href: string): void {
-  let element = document.querySelector(`link[rel="${rel}"]`) as HTMLLinkElement | null;
-  if (!element) {
+  const elements = document.querySelectorAll(`link[rel="${rel}"]`);
+  let element: HTMLLinkElement;
+  if (elements.length > 0) {
+    element = elements[0] as HTMLLinkElement;
+    for (let i = 1; i < elements.length; i++) {
+      elements[i].remove();
+    }
+  } else {
     element = document.createElement('link');
     element.setAttribute('rel', rel);
     const firstScript = document.head.querySelector('script');
