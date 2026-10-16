@@ -5,6 +5,7 @@ import { Guide } from '../types';
 import { SafeImage } from '../components/SafeImage';
 import { analytics } from '../services/analytics';
 import { updateSEO, buildBreadcrumbSchema } from '../services/seo';
+import { isModifiedClick } from '../utils/slug';
 
 interface GuidesPageProps {
   guides: Guide[];
@@ -119,17 +120,18 @@ export const GuidesPage: React.FC<GuidesPageProps> = ({ guides, onSelectGuide })
 
       {/* Featured Guide Banner (Large Rounded-3xl Card) */}
       {featuredGuide && (
-        <motion.div
+        <motion.a
+          href={`/guides/${featuredGuide.slug}`}
           whileHover={{ y: -4 }}
           transition={{ duration: 0.2 }}
-          onClick={() => onSelectGuide(featuredGuide.slug)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') onSelectGuide(featuredGuide.slug);
+          onClick={(e) => {
+            if (!isModifiedClick(e)) {
+              e.preventDefault();
+              onSelectGuide(featuredGuide.slug);
+            }
           }}
-          tabIndex={0}
-          role="button"
           aria-label={`Read featured guide: ${featuredGuide.title}`}
-          className="group bg-white dark:bg-[#16171C] rounded-3xl border border-[#E9E9E6] dark:border-[#272932] hover:border-[#FF6B00] dark:hover:border-[#FF6B00] shadow-md overflow-hidden cursor-pointer grid grid-cols-1 lg:grid-cols-12 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
+          className="group bg-white dark:bg-[#16171C] rounded-3xl border border-[#E9E9E6] dark:border-[#272932] hover:border-[#FF6B00] dark:hover:border-[#FF6B00] shadow-md overflow-hidden cursor-pointer grid grid-cols-1 lg:grid-cols-12 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] no-underline"
         >
           <div className="lg:col-span-7 aspect-16/10 lg:aspect-auto overflow-hidden bg-neutral-100 dark:bg-[#1C1E25] relative">
             <SafeImage
@@ -202,25 +204,26 @@ export const GuidesPage: React.FC<GuidesPageProps> = ({ guides, onSelectGuide })
               </span>
             </div>
           </div>
-        </motion.div>
+        </motion.a>
       )}
 
       {/* Grid of Other Guides in Rounded-3xl Cards */}
       {regularGuides.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {regularGuides.map((guide) => (
-            <motion.div
+            <motion.a
               key={guide.id}
+              href={`/guides/${guide.slug}`}
               whileHover={{ y: -5 }}
               transition={{ duration: 0.2 }}
-              onClick={() => onSelectGuide(guide.slug)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') onSelectGuide(guide.slug);
+              onClick={(e) => {
+                if (!isModifiedClick(e)) {
+                  e.preventDefault();
+                  onSelectGuide(guide.slug);
+                }
               }}
-              tabIndex={0}
-              role="button"
               aria-label={`Read guide: ${guide.title}`}
-              className="group bg-white dark:bg-[#16171C] rounded-3xl border border-[#E9E9E6] dark:border-[#272932] hover:border-[#FF6B00] dark:hover:border-[#FF6B00] shadow-xs hover:shadow-xl transition-all overflow-hidden cursor-pointer flex flex-col justify-between focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] h-full"
+              className="group bg-white dark:bg-[#16171C] rounded-3xl border border-[#E9E9E6] dark:border-[#272932] hover:border-[#FF6B00] dark:hover:border-[#FF6B00] shadow-xs hover:shadow-xl transition-all overflow-hidden cursor-pointer flex flex-col justify-between focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] h-full no-underline"
             >
               <div className="relative aspect-16/10 overflow-hidden bg-neutral-100 dark:bg-[#1C1E25]">
                 <SafeImage
@@ -259,7 +262,7 @@ export const GuidesPage: React.FC<GuidesPageProps> = ({ guides, onSelectGuide })
                   <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
-            </motion.div>
+            </motion.a>
           ))}
         </div>
       )}

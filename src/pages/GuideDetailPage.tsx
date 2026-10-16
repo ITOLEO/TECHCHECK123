@@ -20,6 +20,7 @@ import { updateSEO, buildGuideSchema, buildBreadcrumbSchema } from '../services/
 
 interface GuideDetailPageProps {
   guide?: Guide | null;
+  slug?: string;
   allGuides?: Guide[];
   allProducts?: Product[];
   onNavigate: (route: ViewRoute) => void;
@@ -165,6 +166,7 @@ function renderDocumentProse(text: string) {
 
 export const GuideDetailPage: React.FC<GuideDetailPageProps> = ({
   guide,
+  slug,
   allGuides = [],
   allProducts = [],
   onNavigate,
@@ -180,6 +182,7 @@ export const GuideDetailPage: React.FC<GuideDetailPageProps> = ({
         description: guide.excerpt,
         canonicalPath: `guides/${guide.slug}`,
         ogType: 'article',
+        robots: 'index, follow, max-image-preview:large',
         jsonLd: {
           '@context': 'https://schema.org',
           '@graph': [
@@ -198,12 +201,19 @@ export const GuideDetailPage: React.FC<GuideDetailPageProps> = ({
         guideTitle: guide.title,
         category: guide.category,
       });
+    } else if (allGuides && allGuides.length > 0) {
+      const activeSlug = slug || (typeof window !== 'undefined' ? window.location.pathname.replace(/^\/guides\//, '').replace(/^\//, '') : '');
+      updateSEO({
+        title: 'Blueprint Not Found - TechCheck',
+        description: 'The requested guide article could not be found on TechCheck.',
+        canonicalPath: activeSlug ? `guides/${activeSlug}` : 'guides',
+        ogType: 'website',
+        robots: 'noindex, follow',
+      });
     }
 
-    return () => {
-      document.title = 'TechCheck — Small Space. Serious Setup.';
-    };
-  }, [guide]);
+    window.scrollTo(0, 0);
+  }, [guide, slug, allGuides.length]);
 
   if (!guide) {
     return (

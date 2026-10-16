@@ -79,9 +79,10 @@ export function updateSEO(config: SEOConfig): void {
   setMetaTag('name', 'robots', config.robots || 'index, follow, max-image-preview:large');
 
   // 4. Canonical link
-  const canonicalUrl = canonicalPath
-    ? `${BASE_URL}${canonicalPath.startsWith('/') ? canonicalPath : `/${canonicalPath}`}`
-    : BASE_URL;
+  const canonicalUrl =
+    canonicalPath !== undefined && canonicalPath !== '' && canonicalPath !== '/'
+      ? `${BASE_URL}${canonicalPath.startsWith('/') ? canonicalPath : `/${canonicalPath}`}`
+      : `${BASE_URL}/`;
   setLinkTag('canonical', canonicalUrl);
 
   // 5. OpenGraph tags
@@ -120,7 +121,12 @@ function setMetaTag(attributeName: 'name' | 'property', attributeValue: string, 
   if (!element) {
     element = document.createElement('meta');
     element.setAttribute(attributeName, attributeValue);
-    document.head.appendChild(element);
+    const firstScript = document.head.querySelector('script');
+    if (firstScript) {
+      document.head.insertBefore(element, firstScript);
+    } else {
+      document.head.appendChild(element);
+    }
   }
   element.setAttribute('content', content);
 }
@@ -130,7 +136,12 @@ function setLinkTag(rel: string, href: string): void {
   if (!element) {
     element = document.createElement('link');
     element.setAttribute('rel', rel);
-    document.head.appendChild(element);
+    const firstScript = document.head.querySelector('script');
+    if (firstScript) {
+      document.head.insertBefore(element, firstScript);
+    } else {
+      document.head.appendChild(element);
+    }
   }
   element.setAttribute('href', href);
 }

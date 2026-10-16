@@ -131,6 +131,7 @@ const AppContent: React.FC<AppContentProps> = ({
             return (
               <ProductDetailPage
                 product={product}
+                slug={currentRoute.slug}
                 allProducts={products}
                 onNavigate={navigate}
                 onSelectProduct={handleSelectProduct}
@@ -169,6 +170,7 @@ const AppContent: React.FC<AppContentProps> = ({
             return (
               <GuideDetailPage
                 guide={guide}
+                slug={currentRoute.slug}
                 allGuides={guides}
                 allProducts={products}
                 onNavigate={navigate}
@@ -234,8 +236,175 @@ const AppContent: React.FC<AppContentProps> = ({
   );
 };
 
+/**
+ * Pure helper to parse the current browser location into a ViewRoute.
+ * Used for both synchronous initial state and popstate/hashchange listeners.
+ */
+export function parseLocationRoute(
+  categories: CategoryInfo[],
+  products: Product[]
+): ViewRoute {
+  if (typeof window === 'undefined') return { page: 'home' };
+
+  const pathname = (window.location.pathname || '').toLowerCase();
+  const hash = (window.location.hash || '').toLowerCase();
+  const search = (window.location.search || '').toLowerCase();
+  const href = (window.location.href || '').toLowerCase();
+
+  const isAdminTarget =
+    pathname.includes('admintechcheck') ||
+    pathname.includes('techcheckadmin') ||
+    pathname.includes('admindtechcheck') ||
+    pathname.includes('superadmind') ||
+    pathname.includes('superadmin') ||
+    pathname.includes('/admin') ||
+    pathname.endsWith('/admin') ||
+    hash.includes('admintechcheck') ||
+    hash.includes('techcheckadmin') ||
+    hash.includes('admindtechcheck') ||
+    hash.includes('superadmind') ||
+    hash.includes('superadmin') ||
+    hash.includes('admin') ||
+    search.includes('admintechcheck') ||
+    search.includes('techcheckadmin') ||
+    search.includes('admindtechcheck') ||
+    search.includes('superadmind') ||
+    search.includes('superadmin') ||
+    search.includes('admin') ||
+    href.includes('admintechcheck') ||
+    href.includes('techcheckadmin') ||
+    href.includes('admindtechcheck') ||
+    href.includes('superadmind');
+
+  if (isAdminTarget) {
+    return { page: 'superadmin' };
+  }
+
+  const rawHash = window.location.hash || '';
+  const rawPathname = window.location.pathname || '';
+  const cleanHash = rawHash.replace(/^#\/?/, '');
+  const cleanPath = rawPathname.replace(/^\/+|\/+$/g, '');
+  const rawPath = cleanHash.length > 0 ? cleanHash : cleanPath;
+
+  let routePath = rawPath;
+  let queryStr = '';
+  if (rawPath.includes('?')) {
+    const qIdx = rawPath.indexOf('?');
+    routePath = rawPath.substring(0, qIdx);
+    queryStr = rawPath.substring(qIdx + 1);
+  }
+
+  const parts = routePath.split('/').filter(Boolean);
+  const searchParams = new URLSearchParams(queryStr || (window.location.search || '').replace(/^\?/, ''));
+  const rawCategoryParam = searchParams.get('category') || searchParams.get('cat') || searchParams.get('kategori');
+
+  const findCategoryMatch = (paramVal: string | null) => {
+    if (!paramVal) return null;
+    const decoded = decodeURIComponent(paramVal).trim();
+    if (
+      !decoded ||
+      decoded.toLowerCase() === 'all' ||
+      decoded.toLowerCase() === 'recommendation' ||
+      decoded.toLowerCase() === 'recommendations'
+    ) {
+      return null;
+    }
+    const match = (categories || []).find(
+      (c) =>
+        c.name.toLowerCase() === decoded.toLowerCase() ||
+        c.slug.toLowerCase() === decoded.toLowerCase() ||
+        c.name.toLowerCase().replace(/[\s_]+/g, '-') === decoded.toLowerCase().replace(/[\s_]+/g, '-')
+    );
+    return match ? match.name : null;
+  };
+
+  const routeSegment = (parts[0] || '').toLowerCase();
+
+  if (parts.length === 0) {
+    return { page: 'home' };
+  } else if (
+    routeSegment === 'recommendations' ||
+    routeSegment === 'recommendation' ||
+    routeSegment === 'products' ||
+    routeSegment === 'catalog'
+  ) {
+    if (parts[1]) {
+      const isProduct = (products || []).some(
+        (p) => p.slug.toLowerCase() === parts[1].toLowerCase()
+      );
+      if (isProduct) {
+        return { page: 'product-detail', slug: parts[1] };
+      } else {
+        const catMatch = findCategoryMatch(parts[1]);
+        if (catMatch) {
+          return {
+            page: 'recommendations',
+            categoryFilter: catMatch,
+          };
+        } else {
+          return { page: 'recommendations' };
+        }
+      }
+    } else if (rawCategoryParam) {
+      const matchedName = findCategoryMatch(rawCategoryParam);
+      if (matchedName) {
+        return {
+          page: 'recommendations',
+          categoryFilter: matchedName,
+        };
+      } else {
+        return { page: 'recommendations' };
+      }
+    } else {
+      return { page: 'recommendations' };
+    }
+  } else if (
+    routeSegment === 'categories' ||
+    routeSegment === 'category' ||
+    routeSegment === 'kategori'
+  ) {
+    if (parts[1]) {
+      return {
+        page: 'category-detail',
+        slug: parts[1],
+      };
+    } else if (rawCategoryParam) {
+      const matchedName = findCategoryMatch(rawCategoryParam);
+      const slugVal = matchedName ? categoryToSlug(matchedName) : categoryToSlug(decodeURIComponent(rawCategoryParam));
+      return {
+        page: 'category-detail',
+        slug: slugVal,
+      };
+    } else {
+      return { page: 'categories' };
+    }
+  } else if (routeSegment === 'guides') {
+    if (parts[1]) {
+      return { page: 'guide-detail', slug: parts[1] };
+    } else {
+      return { page: 'guides' };
+    }
+  } else {
+    const isProduct = (products || []).some(
+      (p) => p.slug.toLowerCase() === parts[0].toLowerCase()
+    );
+    if (isProduct) {
+      return { page: 'product-detail', slug: parts[0] };
+    } else {
+      const directCatMatch = findCategoryMatch(parts[0]);
+      if (directCatMatch) {
+        return { page: 'category-detail', slug: categoryToSlug(directCatMatch) };
+      } else {
+        return { page: 'home' };
+      }
+    }
+  }
+}
+
 export default function App() {
-  const [currentRoute, setCurrentRoute] = useState<ViewRoute>({ page: 'home' });
+  const [currentRoute, setCurrentRoute] = useState<ViewRoute>(() =>
+    parseLocationRoute(dataStorage.getCategories(), dataStorage.getProducts())
+  );
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [showSplash, setShowSplash] = useState(() => {
     // If opening directly on admin route, let the admin security splash screen handle it
@@ -327,167 +496,7 @@ export default function App() {
   // Parse URL pathname, hash, & query on mount and listen to navigation changes
   useEffect(() => {
     const handleLocationChange = () => {
-      const pathname = (window.location.pathname || '').toLowerCase();
-      const hash = (window.location.hash || '').toLowerCase();
-      const search = (window.location.search || '').toLowerCase();
-      const href = (window.location.href || '').toLowerCase();
-
-      // Check if accessing dedicated admin URL (/admintechcheck, /techcheckadmin, /admindtechcheck, /superadmind, /superadmin, /admin, etc.)
-      const isAdminTarget =
-        pathname.includes('admintechcheck') ||
-        pathname.includes('techcheckadmin') ||
-        pathname.includes('admindtechcheck') ||
-        pathname.includes('superadmind') ||
-        pathname.includes('superadmin') ||
-        pathname.includes('/admin') ||
-        pathname.endsWith('/admin') ||
-        hash.includes('admintechcheck') ||
-        hash.includes('techcheckadmin') ||
-        hash.includes('admindtechcheck') ||
-        hash.includes('superadmind') ||
-        hash.includes('superadmin') ||
-        hash.includes('admin') ||
-        search.includes('admintechcheck') ||
-        search.includes('techcheckadmin') ||
-        search.includes('admindtechcheck') ||
-        search.includes('superadmind') ||
-        search.includes('superadmin') ||
-        search.includes('admin') ||
-        href.includes('admintechcheck') ||
-        href.includes('techcheckadmin') ||
-        href.includes('admindtechcheck') ||
-        href.includes('superadmind');
-
-      if (isAdminTarget) {
-        setCurrentRoute({ page: 'superadmin' });
-        return;
-      }
-
-      // Check other routes based on raw (cased) hash or pathname
-      const rawHash = window.location.hash || '';
-      const rawPathname = window.location.pathname || '';
-      const cleanHash = rawHash.replace(/^#\/?/, '');
-      const cleanPath = rawPathname.replace(/^\/+|\/+$/g, '');
-      const rawPath = cleanHash.length > 0 ? cleanHash : cleanPath;
-
-      // Extract query string from path if present (e.g. recommendations?category=Desk%20Setup)
-      let routePath = rawPath;
-      let queryStr = '';
-      if (rawPath.includes('?')) {
-        const qIdx = rawPath.indexOf('?');
-        routePath = rawPath.substring(0, qIdx);
-        queryStr = rawPath.substring(qIdx + 1);
-      }
-
-      const parts = routePath.split('/').filter(Boolean);
-      const searchParams = new URLSearchParams(queryStr || (window.location.search || '').replace(/^\?/, ''));
-      const rawCategoryParam = searchParams.get('category') || searchParams.get('cat') || searchParams.get('kategori');
-
-      const findCategoryMatch = (paramVal: string | null) => {
-        if (!paramVal) return null;
-        const decoded = decodeURIComponent(paramVal).trim();
-        if (
-          !decoded ||
-          decoded.toLowerCase() === 'all' ||
-          decoded.toLowerCase() === 'recommendation' ||
-          decoded.toLowerCase() === 'recommendations'
-        ) {
-          return null;
-        }
-        const cats = categoriesRef.current || [];
-        const match = cats.find(
-          (c) =>
-            c.name.toLowerCase() === decoded.toLowerCase() ||
-            c.slug.toLowerCase() === decoded.toLowerCase() ||
-            c.name.toLowerCase().replace(/[\s_]+/g, '-') === decoded.toLowerCase().replace(/[\s_]+/g, '-')
-        );
-        return match ? match.name : null;
-      };
-
-      const routeSegment = (parts[0] || '').toLowerCase();
-
-      if (parts.length === 0) {
-        setCurrentRoute({ page: 'home' });
-      } else if (
-        routeSegment === 'recommendations' ||
-        routeSegment === 'recommendation' ||
-        routeSegment === 'products' ||
-        routeSegment === 'catalog'
-      ) {
-        if (parts[1]) {
-          // Check if parts[1] is an actual product slug first!
-          const isProduct = (productsRef.current || []).some(
-            (p) => p.slug.toLowerCase() === parts[1].toLowerCase()
-          );
-          if (isProduct) {
-            setCurrentRoute({ page: 'product-detail', slug: parts[1] });
-          } else {
-            // Treat as category filter!
-            const catMatch = findCategoryMatch(parts[1]);
-            if (catMatch) {
-              setCurrentRoute({
-                page: 'recommendations',
-                categoryFilter: catMatch,
-              });
-            } else {
-              setCurrentRoute({ page: 'recommendations' });
-            }
-          }
-        } else if (rawCategoryParam) {
-          const matchedName = findCategoryMatch(rawCategoryParam);
-          if (matchedName) {
-            setCurrentRoute({
-              page: 'recommendations',
-              categoryFilter: matchedName,
-            });
-          } else {
-            setCurrentRoute({ page: 'recommendations' });
-          }
-        } else {
-          setCurrentRoute({ page: 'recommendations' });
-        }
-      } else if (
-        routeSegment === 'categories' ||
-        routeSegment === 'category' ||
-        routeSegment === 'kategori'
-      ) {
-        if (parts[1]) {
-          setCurrentRoute({
-            page: 'category-detail',
-            slug: parts[1],
-          });
-        } else if (rawCategoryParam) {
-          const matchedName = findCategoryMatch(rawCategoryParam);
-          const slugVal = matchedName ? categoryToSlug(matchedName) : categoryToSlug(decodeURIComponent(rawCategoryParam));
-          setCurrentRoute({
-            page: 'category-detail',
-            slug: slugVal,
-          });
-        } else {
-          setCurrentRoute({ page: 'categories' });
-        }
-      } else if (routeSegment === 'guides') {
-        if (parts[1]) {
-          setCurrentRoute({ page: 'guide-detail', slug: parts[1] });
-        } else {
-          setCurrentRoute({ page: 'guides' });
-        }
-      } else {
-        // Fallback check if parts[0] is directly a category slug/name or product slug!
-        const isProduct = (productsRef.current || []).some(
-          (p) => p.slug.toLowerCase() === parts[0].toLowerCase()
-        );
-        if (isProduct) {
-          setCurrentRoute({ page: 'product-detail', slug: parts[0] });
-        } else {
-          const directCatMatch = findCategoryMatch(parts[0]);
-          if (directCatMatch) {
-            setCurrentRoute({ page: 'category-detail', slug: categoryToSlug(directCatMatch) });
-          } else {
-            setCurrentRoute({ page: 'home' });
-          }
-        }
-      }
+      setCurrentRoute(parseLocationRoute(categoriesRef.current, productsRef.current));
     };
 
     handleLocationChange();

@@ -9,6 +9,7 @@ import { categoryToSlug, isModifiedClick } from '../utils/slug';
 
 interface ProductDetailPageProps {
   product?: Product | null;
+  slug?: string;
   allProducts?: Product[];
   onNavigate: (route: ViewRoute) => void;
   onSelectProduct?: (slug: string) => void;
@@ -17,6 +18,8 @@ interface ProductDetailPageProps {
 
 export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
   product,
+  slug,
+  allProducts,
   onNavigate,
   onOpenAffiliateModal,
 }) => {
@@ -31,6 +34,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
         description: product.verdict || product.shortBenefit,
         canonicalPath: `recommendations/${product.slug}`,
         ogType: 'product',
+        robots: 'index, follow, max-image-preview:large',
         jsonLd: {
           '@context': 'https://schema.org',
           '@graph': [
@@ -50,12 +54,19 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
         productName: product.name,
         category: product.category,
       });
+    } else if (allProducts && allProducts.length > 0) {
+      const activeSlug = slug || (typeof window !== 'undefined' ? window.location.pathname.replace(/^\/(recommendations|product)\//, '').replace(/^\//, '') : '');
+      updateSEO({
+        title: 'Product Not Found - TechCheck',
+        description: 'The requested hardware item could not be found on TechCheck.',
+        canonicalPath: activeSlug ? `recommendations/${activeSlug}` : 'recommendations',
+        ogType: 'website',
+        robots: 'noindex, follow',
+      });
     }
 
-    return () => {
-      document.title = 'TechCheck — Small Space. Serious Setup.';
-    };
-  }, [product]);
+    window.scrollTo(0, 0);
+  }, [product, slug, allProducts?.length]);
 
   if (!product) {
     return (

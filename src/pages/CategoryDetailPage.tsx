@@ -62,7 +62,7 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
         categoryName: category.name,
         categorySlug: cleanSlug,
       });
-    } else {
+    } else if (categories.length > 0) {
       updateSEO({
         title: 'Category Not Found - TechCheck',
         description: 'The requested category could not be found on TechCheck.',
@@ -73,11 +73,7 @@ export const CategoryDetailPage: React.FC<CategoryDetailPageProps> = ({
     }
 
     window.scrollTo(0, 0);
-
-    return () => {
-      document.title = 'TechCheck — Small Space. Serious Setup.';
-    };
-  }, [category, slug]);
+  }, [category, slug, categories.length]);
 
   // Compute category list for tabs
   const allCategoryTabs = useMemo(() => {

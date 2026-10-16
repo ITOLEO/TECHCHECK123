@@ -35,7 +35,7 @@ import {
   Globe
 } from 'lucide-react';
 import { Product, CategoryInfo, Guide, GuideStep, SiteSettings, ViewRoute } from '../types';
-import { dataStorage, DEFAULT_SITE_SETTINGS } from '../services/dataStorage';
+import { dataStorage, DEFAULT_SITE_SETTINGS, getAdminHeaders } from '../services/dataStorage';
 import { AdminImageUploader } from '../components/AdminImageUploader';
 import { SafeImage } from '../components/SafeImage';
 
@@ -324,22 +324,52 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
   };
 
   // Login handler
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanInput = loginPasscode.trim();
-    if (cleanInput === '654321' || dataStorage.verifyPasscode(cleanInput)) {
-      dataStorage.setAdminAuthenticated(true);
-      sessionStorage.setItem('techcheck_developer_mode', 'true');
-      localStorage.setItem('techcheck_developer_mode', 'true');
-      sessionStorage.setItem('techcheck_admin_passcode', cleanInput);
-      localStorage.setItem('techcheck_admin_passcode', cleanInput);
-      sessionStorage.removeItem('techcheck_visual_mode');
-      localStorage.removeItem('techcheck_visual_mode');
-      setIsAuthenticated(true);
-      setLoginError('');
-      showToast('Successfully logged in to Superadmin Dashboard');
-    } else {
-      setLoginError('Invalid passcode. Default passcode: 654321');
+    if (!cleanInput) {
+      setLoginError('Please enter a passcode.');
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/verify-passcode', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-passcode': cleanInput,
+        },
+      });
+
+      if (res.ok) {
+        dataStorage.setAdminAuthenticated(true);
+        sessionStorage.setItem('techcheck_developer_mode', 'true');
+        localStorage.setItem('techcheck_developer_mode', 'true');
+        sessionStorage.setItem('techcheck_admin_passcode', cleanInput);
+        localStorage.setItem('techcheck_admin_passcode', cleanInput);
+        sessionStorage.removeItem('techcheck_visual_mode');
+        localStorage.removeItem('techcheck_visual_mode');
+        setIsAuthenticated(true);
+        setLoginError('');
+        showToast('Successfully logged in to Superadmin Dashboard');
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setLoginError(data.error || 'Invalid passcode. Access denied.');
+      }
+    } catch {
+      // In production, server failure or offline network must never grant admin access
+      if (dataStorage.isExplicitDevelopment() && (cleanInput === '654321' || dataStorage.verifyPasscode(cleanInput))) {
+        dataStorage.setAdminAuthenticated(true);
+        sessionStorage.setItem('techcheck_developer_mode', 'true');
+        localStorage.setItem('techcheck_developer_mode', 'true');
+        sessionStorage.setItem('techcheck_admin_passcode', cleanInput);
+        localStorage.setItem('techcheck_admin_passcode', cleanInput);
+        setIsAuthenticated(true);
+        setLoginError('');
+        showToast('Logged in (offline development mode)');
+      } else {
+        setLoginError('Verification failed. Unable to reach server.');
+      }
     }
   };
 
@@ -482,7 +512,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
     try {
       const res = await fetch('/api/products', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAdminHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(newProduct),
       });
 
@@ -539,7 +569,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
     try {
       const res = await fetch('/api/products', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAdminHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(duplicated),
       });
       if (!res.ok) {
@@ -564,7 +594,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
     try {
       const res = await fetch('/api/products', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAdminHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(toggled),
       });
       if (res.ok) {
@@ -660,7 +690,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
     try {
       const res = await fetch('/api/categories', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAdminHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(newCat),
       });
       if (!res.ok) {
@@ -856,7 +886,7 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
     try {
       const res = await fetch('/api/guides', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAdminHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(newGuide),
       });
       if (!res.ok) {
@@ -903,13 +933,17 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
 
   // --- SETTINGS ACTIONS ---
   const handleSaveSettings = async (newSettings: SiteSettings) => {
+    if (newSettings.adminPasscode) {
+      sessionStorage.setItem('techcheck_admin_passcode', newSettings.adminPasscode);
+      localStorage.setItem('techcheck_admin_passcode', newSettings.adminPasscode);
+    }
     onUpdateSettings(newSettings);
     dataStorage.saveSiteSettings(newSettings);
     
     try {
       const res = await fetch('/api/settings', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAdminHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(newSettings),
       });
       if (!res.ok) {
@@ -1925,12 +1959,17 @@ export const SuperAdminPage: React.FC<SuperAdminPageProps> = ({
                     New Access Passcode
                   </label>
                   <input
-                    type="text"
-                    value={siteSettings.adminPasscode}
+                    type="password"
+                    value={siteSettings.adminPasscode || ''}
+                    placeholder="Enter new passcode to update..."
                     onChange={(e) =>
                       onUpdateSettings({ ...siteSettings, adminPasscode: e.target.value })
                     }
-                    onBlur={() => handleSaveSettings(siteSettings)}
+                    onBlur={() => {
+                      if (siteSettings.adminPasscode?.trim()) {
+                        handleSaveSettings(siteSettings);
+                      }
+                    }}
                     className="w-full p-2.5 bg-[#F7F6F2] border border-[#E9E9E6] rounded-xl text-xs font-mono font-bold text-[#111111]"
                   />
                 </div>

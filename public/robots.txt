@@ -7,6 +7,11 @@ Allow: /favicon-96x96.png
 Allow: /favicon-144x144.png
 Allow: /favicon-192x192.png
 Allow: /apple-touch-icon.png
+Allow: /api/products
+Allow: /api/categories
+Allow: /api/guides
+Allow: /api/settings
+Allow: /api/status
 Disallow: /admintechcheck
 Disallow: /superadmin
 Disallow: /api/

@@ -1,6 +1,7 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { supabase as defaultClient, SUPABASE_BASE_URL, SUPABASE_PUBLIC_KEY } from '../subabaseClient.js';
 import { Product, CategoryInfo, Guide, SiteSettings, GuideStep } from '../types';
+import { getAdminHeaders } from './dataStorage';
 
 /**
  * Modern Supabase Client & Repository Service
@@ -405,7 +406,7 @@ export const supabaseService = {
     try {
       const res = await fetch('/api/products', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAdminHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(product),
       });
       return res.ok;
@@ -419,7 +420,10 @@ export const supabaseService = {
    */
   async deleteProduct(id: string): Promise<boolean> {
     try {
-      const res = await fetch(`/api/products/${encodeURIComponent(id)}`, { method: 'DELETE' });
+      const res = await fetch(`/api/products/${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+        headers: getAdminHeaders(),
+      });
       return res.ok;
     } catch {
       return false;
@@ -447,7 +451,7 @@ export const supabaseService = {
     try {
       const res = await fetch('/api/categories', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAdminHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(cat),
       });
       return res.ok;
@@ -461,7 +465,10 @@ export const supabaseService = {
    */
   async deleteCategory(id: string): Promise<boolean> {
     try {
-      const res = await fetch(`/api/categories/${encodeURIComponent(id)}`, { method: 'DELETE' });
+      const res = await fetch(`/api/categories/${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+        headers: getAdminHeaders(),
+      });
       return res.ok;
     } catch {
       return false;
@@ -489,7 +496,7 @@ export const supabaseService = {
     try {
       const res = await fetch('/api/guides', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAdminHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(guide),
       });
       return res.ok;
@@ -503,7 +510,10 @@ export const supabaseService = {
    */
   async deleteGuide(id: string): Promise<boolean> {
     try {
-      const res = await fetch(`/api/guides/${encodeURIComponent(id)}`, { method: 'DELETE' });
+      const res = await fetch(`/api/guides/${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+        headers: getAdminHeaders(),
+      });
       return res.ok;
     } catch {
       return false;
@@ -531,7 +541,7 @@ export const supabaseService = {
     try {
       const res = await fetch('/api/settings', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAdminHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(settings),
       });
       return res.ok;
@@ -560,7 +570,7 @@ export const supabaseService = {
     try {
       const res = await fetch(`/api/article-blocks/${encodeURIComponent(blockId)}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAdminHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(data),
       });
       if (!res.ok) {
@@ -586,7 +596,7 @@ export const supabaseService = {
     try {
       const res = await fetch('/api/sync-seed', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAdminHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(payload),
       });
       if (!res.ok) {

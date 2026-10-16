@@ -94,6 +94,21 @@ function safeSetItem(key: string, value: string): void {
   }
 }
 
+// Authentication headers helper for admin requests
+export function getAdminHeaders(customHeaders: Record<string, string> = {}): Record<string, string> {
+  const headers: Record<string, string> = { ...customHeaders };
+  if (typeof window !== 'undefined') {
+    const code =
+      localStorage.getItem('techcheck_admin_passcode') ||
+      sessionStorage.getItem('techcheck_admin_passcode') ||
+      '';
+    if (code) {
+      headers['x-admin-passcode'] = code.trim();
+    }
+  }
+  return headers;
+}
+
 export interface SupabaseTableDetail {
   name: string;
   label: string;
@@ -168,7 +183,10 @@ export const dataStorage = {
   // Get current Supabase project URL & configuration
   async getSupabaseConfig(): Promise<{ url: string; keyMasked: string; hasKey: boolean; isConfigured: boolean }> {
     try {
-      const res = await fetch('/api/supabase-config', { cache: 'no-store' });
+      const res = await fetch('/api/supabase-config', {
+        cache: 'no-store',
+        headers: getAdminHeaders(),
+      });
       if (res.ok) {
         return await res.json();
       }
@@ -181,7 +199,7 @@ export const dataStorage = {
     try {
       const res = await fetch('/api/supabase-config', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAdminHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ url, key }),
       });
       const data = await res.json();
@@ -332,7 +350,7 @@ export const dataStorage = {
       };
       const res = await fetch('/api/sync-seed', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAdminHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(payload),
       });
       if (!res.ok) {
@@ -372,7 +390,7 @@ export const dataStorage = {
 
       const res = await fetch('/api/products', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAdminHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(product),
       });
       return res.ok;
@@ -407,7 +425,7 @@ export const dataStorage = {
 
       const res = await fetch('/api/categories', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAdminHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(cat),
       });
       return res.ok;
@@ -472,7 +490,7 @@ export const dataStorage = {
 
       const res = await fetch('/api/guides', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAdminHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(guide),
       });
       return res.ok;
@@ -534,7 +552,7 @@ export const dataStorage = {
       // 2. Send targeted PATCH request to backend (Updates Supabase public.article_blocks directly)
       const res = await fetch(`/api/article-blocks/${encodeURIComponent(blockId)}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAdminHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(data),
       });
 
@@ -554,7 +572,10 @@ export const dataStorage = {
   // Remote DELETE methods for Supabase
   async deleteProductRemote(id: string): Promise<void> {
     try {
-      await fetch(`/api/products/${encodeURIComponent(id)}`, { method: 'DELETE' });
+      await fetch(`/api/products/${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+        headers: getAdminHeaders(),
+      });
     } catch (e) {
       console.warn('Failed to delete product remotely from Supabase:', e);
     }
@@ -562,7 +583,10 @@ export const dataStorage = {
 
   async deleteCategoryRemote(id: string): Promise<void> {
     try {
-      await fetch(`/api/categories/${encodeURIComponent(id)}`, { method: 'DELETE' });
+      await fetch(`/api/categories/${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+        headers: getAdminHeaders(),
+      });
     } catch (e) {
       console.warn('Failed to delete category remotely from Supabase:', e);
     }
@@ -570,7 +594,10 @@ export const dataStorage = {
 
   async deleteGuideRemote(id: string): Promise<void> {
     try {
-      await fetch(`/api/guides/${encodeURIComponent(id)}`, { method: 'DELETE' });
+      await fetch(`/api/guides/${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+        headers: getAdminHeaders(),
+      });
     } catch (e) {
       console.warn('Failed to delete guide remotely from Supabase:', e);
     }
@@ -621,7 +648,7 @@ export const dataStorage = {
     try {
       const res = await fetch('/api/settings', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAdminHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify(settings),
       });
       return res.ok;
@@ -690,6 +717,21 @@ export const dataStorage = {
   },
 
   // Auth management
+  isExplicitDevelopment(): boolean {
+    try {
+      if (typeof import.meta !== 'undefined' && (import.meta as any).env) {
+        const env = (import.meta as any).env;
+        if (env.PROD === true || env.MODE === 'production') {
+          return false;
+        }
+        return env.DEV === true && env.MODE === 'development';
+      }
+    } catch {
+      return false;
+    }
+    return false;
+  },
+
   isAdminAuthenticated(): boolean {
     if (typeof window === 'undefined') return false;
     return (
@@ -709,14 +751,65 @@ export const dataStorage = {
     }
   },
 
-  verifyPasscode(inputCode: string): boolean {
-    const settings = this.getSiteSettings();
+  async verifyPasscodeAsync(inputCode: string): Promise<boolean> {
     const cleanInput = inputCode.trim();
-    const valid = cleanInput === settings.adminPasscode.trim() || cleanInput === '654321';
+    if (!cleanInput) return false;
+    try {
+      const res = await fetch('/api/verify-passcode', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-passcode': cleanInput,
+        },
+      });
+      if (res.ok) {
+        this.setAdminAuthenticated(true);
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('techcheck_admin_passcode', cleanInput);
+          localStorage.setItem('techcheck_admin_passcode', cleanInput);
+        }
+        return true;
+      }
+      return false;
+    } catch {
+      // In production, server/network failures must never authenticate or fall back to offline login.
+      if (!this.isExplicitDevelopment()) {
+        return false;
+      }
+      const valid = cleanInput === '654321';
+      if (valid) {
+        this.setAdminAuthenticated(true);
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('techcheck_admin_passcode', cleanInput);
+          localStorage.setItem('techcheck_admin_passcode', cleanInput);
+        }
+      }
+      return valid;
+    }
+  },
+
+  verifyPasscode(inputCode: string): boolean {
+    // In production, synchronous local fallback must never grant admin authentication.
+    if (!this.isExplicitDevelopment()) {
+      return false;
+    }
+    const cleanInput = inputCode.trim();
+    const stored = typeof window !== 'undefined'
+      ? (localStorage.getItem('techcheck_admin_passcode') || sessionStorage.getItem('techcheck_admin_passcode') || '')
+      : '';
+    const settings = this.getSiteSettings();
+    const valid =
+      (stored && cleanInput === stored) ||
+      (settings.adminPasscode && cleanInput === settings.adminPasscode.trim()) ||
+      cleanInput === '654321';
     if (valid) {
       this.setAdminAuthenticated(true);
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('techcheck_admin_passcode', cleanInput);
+        localStorage.setItem('techcheck_admin_passcode', cleanInput);
+      }
     }
-    return valid;
+    return Boolean(valid);
   },
 
   // Visual CMS Draft & Autosave

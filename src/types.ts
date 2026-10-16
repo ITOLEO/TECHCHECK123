@@ -117,7 +117,7 @@ export interface SiteSettings {
   favicon?: string;
   supportEmail: string;
   defaultAffiliateSubId: string;
-  adminPasscode: string;
+  adminPasscode?: string;
   categoriesHeading?: string;
   categoriesSubtext?: string;
   featuredHeading?: string;

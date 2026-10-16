@@ -17,7 +17,7 @@ import { SafeImage } from '../components/SafeImage';
 import { analytics } from '../services/analytics';
 import { updateSEO, buildBreadcrumbSchema } from '../services/seo';
 import { heroImage } from '../heroImage';
-import { categoryToSlug } from '../utils/slug';
+import { categoryToSlug, isModifiedClick } from '../utils/slug';
 
 interface HomePageProps {
   products: Product[];
@@ -323,17 +323,18 @@ export const HomePage: React.FC<HomePageProps> = ({
 
         {/* Featured Guide Card (Large) */}
         {featuredGuide ? (
-          <motion.div
+          <motion.a
+            href={`/guides/${featuredGuide.slug}`}
             whileHover={{ y: -4 }}
             transition={{ duration: 0.2 }}
-            onClick={() => onSelectGuide(featuredGuide.slug)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') onSelectGuide(featuredGuide.slug);
+            onClick={(e) => {
+              if (!isModifiedClick(e)) {
+                e.preventDefault();
+                onSelectGuide(featuredGuide.slug);
+              }
             }}
-            tabIndex={0}
-            role="button"
             aria-label={`Read featured guide: ${featuredGuide.title}`}
-            className="group bg-white dark:bg-[#16171D] rounded-2xl border border-[#E9E9E6] dark:border-[#272932] hover:border-[#FF6B00] dark:hover:border-[#FF6B00] shadow-sm overflow-hidden cursor-pointer grid grid-cols-1 lg:grid-cols-12 mb-8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00]"
+            className="group bg-white dark:bg-[#16171D] rounded-2xl border border-[#E9E9E6] dark:border-[#272932] hover:border-[#FF6B00] dark:hover:border-[#FF6B00] shadow-sm overflow-hidden cursor-pointer grid grid-cols-1 lg:grid-cols-12 mb-8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] no-underline"
           >
             <div className="lg:col-span-7 relative min-h-[280px] lg:min-h-[380px] overflow-hidden bg-neutral-900">
               <SafeImage
@@ -390,7 +391,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                 </span>
               </div>
             </div>
-          </motion.div>
+          </motion.a>
         ) : (
           <div className="bg-white dark:bg-[#16171D] rounded-2xl border border-[#E9E9E6] dark:border-[#272932] p-10 text-center text-neutral-500 text-xs mb-8">
             No guide articles published yet.
@@ -401,18 +402,19 @@ export const HomePage: React.FC<HomePageProps> = ({
         {secondaryGuides.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {secondaryGuides.map((guide) => (
-              <motion.div
+              <motion.a
                 key={guide.id}
+                href={`/guides/${guide.slug}`}
                 whileHover={{ y: -4 }}
                 transition={{ duration: 0.2 }}
-                onClick={() => onSelectGuide(guide.slug)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') onSelectGuide(guide.slug);
+                onClick={(e) => {
+                  if (!isModifiedClick(e)) {
+                    e.preventDefault();
+                    onSelectGuide(guide.slug);
+                  }
                 }}
-                role="button"
-                tabIndex={0}
                 aria-label={`Read guide: ${guide.title}`}
-                className="group bg-white dark:bg-[#16171D] rounded-xl border border-[#E9E9E6] dark:border-[#272932] hover:border-[#FF6B00] dark:hover:border-[#FF6B00] shadow-xs hover:shadow-md transition-all overflow-hidden cursor-pointer flex flex-col justify-between focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] h-full"
+                className="group bg-white dark:bg-[#16171D] rounded-xl border border-[#E9E9E6] dark:border-[#272932] hover:border-[#FF6B00] dark:hover:border-[#FF6B00] shadow-xs hover:shadow-md transition-all overflow-hidden cursor-pointer flex flex-col justify-between focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] h-full no-underline"
               >
                 <div className="aspect-16/10 overflow-hidden bg-neutral-100 dark:bg-[#1D1F27] relative">
                   <SafeImage
@@ -449,7 +451,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                     <ArrowRight className="w-3.5 h-3.5" />
                   </div>
                 </div>
-              </motion.div>
+              </motion.a>
             ))}
           </div>
         )}

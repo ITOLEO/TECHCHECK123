@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import fs from 'fs';
 import path from 'path';
 import dotenv from 'dotenv';
@@ -19,7 +19,7 @@ app.use(express.json({ limit: '15mb' }));
 app.use((req: Request, res: Response, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, x-admin-passcode');
 
   if (req.method === 'OPTIONS') {
     res.sendStatus(204);
@@ -817,64 +817,100 @@ function fromSettingsRow(row: any) {
   };
 }
 
+function toPublicSettings(settings: any) {
+  if (!settings || typeof settings !== 'object') return null;
+  const { adminPasscode, ...publicSettings } = settings;
+  return publicSettings;
+}
+
+async function getActiveAdminPasscodes(): Promise<{ envPasscode: string; dbPasscode: string }> {
+  const envPasscode = (process.env.ADMIN_PASSCODE || '').trim();
+  let dbPasscode = '';
+  try {
+    const localDb = getLocalDb();
+    if (localDb.settings?.adminPasscode) {
+      dbPasscode = String(localDb.settings.adminPasscode).trim();
+    }
+  } catch (e) {}
+
+  if (!dbPasscode) {
+    try {
+      const supabase = getSupabase();
+      if (supabase) {
+        const { data } = await supabase
+          .from('site_settings')
+          .select('admin_passcode')
+          .eq('id', 1)
+          .maybeSingle();
+        if (data?.admin_passcode) {
+          dbPasscode = String(data.admin_passcode).trim();
+          try {
+            const localDb = getLocalDb();
+            localDb.settings = { ...(localDb.settings || {}), adminPasscode: dbPasscode };
+            saveLocalDb(localDb);
+          } catch (e) {}
+        }
+      }
+    } catch (e) {}
+  }
+
+  return { envPasscode, dbPasscode };
+}
+
+async function requireAdminAuth(req: Request, res: Response, next: NextFunction): Promise<void> {
+  const authHeader = req.headers['authorization'];
+  const customPasscodeHeader = req.headers['x-admin-passcode'];
+  const bodyPasscode = req.body && typeof req.body === 'object' ? req.body.adminPasscode : undefined;
+
+  const providedCode = (
+    (typeof customPasscodeHeader === 'string' ? customPasscodeHeader : '') ||
+    (typeof bodyPasscode === 'string' ? bodyPasscode : '') ||
+    (typeof authHeader === 'string' && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '')
+  ).trim();
+
+  const { envPasscode, dbPasscode } = await getActiveAdminPasscodes();
+  const isProduction = process.env.NODE_ENV === 'production' || Boolean(process.env.VERCEL);
+
+  if (isProduction && !envPasscode && (!dbPasscode || dbPasscode === '654321')) {
+    res.status(500).json({
+      success: false,
+      error: 'Konfigurasi keamanan Production belum lengkap: Harap atur environment variable ADMIN_PASSCODE pada server.',
+      storage: 'unconfigured_security',
+    });
+    return;
+  }
+
+  const validCodes = new Set<string>();
+  if (envPasscode) validCodes.add(envPasscode);
+  if (dbPasscode) validCodes.add(dbPasscode);
+  if (!isProduction && validCodes.size === 0) {
+    validCodes.add('654321');
+  }
+
+  if (!providedCode || !validCodes.has(providedCode)) {
+    res.status(401).json({
+      success: false,
+      error: 'Unauthorized: Autentikasi admin diperlukan.',
+      storage: 'unauthorized',
+    });
+    return;
+  }
+
+  next();
+}
+
 // ==========================================
 // API ROUTES
 // ==========================================
 
+// SuperAdmin Passcode Verification endpoint
+app.post('/api/verify-passcode', requireAdminAuth, (_req: Request, res: Response) => {
+  res.json({ success: true, message: 'Authenticated' });
+});
+
 // 0. Image Upload API (Uploads to authorized Supabase Storage buckets: product-images, article-images, site-images)
-app.post('/api/upload', async (req: Request, res: Response) => {
+app.post('/api/upload', requireAdminAuth, async (req: Request, res: Response) => {
   try {
-    // Security Verification: Require valid Admin authentication
-    const authHeader = req.headers['authorization'];
-    const customPasscodeHeader = req.headers['x-admin-passcode'];
-    const bodyPasscode = req.body.adminPasscode;
-
-    const providedCode = (
-      (typeof customPasscodeHeader === 'string' ? customPasscodeHeader : '') ||
-      (typeof bodyPasscode === 'string' ? bodyPasscode : '') ||
-      (typeof authHeader === 'string' && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '')
-    ).trim();
-
-    const envPasscode = (process.env.ADMIN_PASSCODE || '').trim();
-    const isProduction = process.env.NODE_ENV === 'production' || Boolean(process.env.VERCEL);
-
-    let dbPasscode = '';
-    try {
-      const localDb = getLocalDb();
-      if (localDb.settings?.adminPasscode) {
-        dbPasscode = String(localDb.settings.adminPasscode).trim();
-      }
-    } catch (e) {}
-
-    // In Production: Never fall back to the weak default '654321'.
-    // Must have a configured passcode (envPasscode or non-default dbPasscode).
-    // If not configured in Production, fail with a clear configuration message without displaying any secrets.
-    if (isProduction && !envPasscode && (!dbPasscode || dbPasscode === '654321')) {
-      res.status(500).json({
-        success: false,
-        error: 'Konfigurasi keamanan Production belum lengkap: Harap atur environment variable ADMIN_PASSCODE pada server.',
-        storage: 'unconfigured_security',
-      });
-      return;
-    }
-
-    const validCodes = new Set<string>();
-    if (envPasscode) validCodes.add(envPasscode);
-    if (dbPasscode) validCodes.add(dbPasscode);
-    if (!isProduction && validCodes.size === 0) {
-      // Local development fallback only when no custom passcode is configured
-      validCodes.add('654321');
-    }
-
-    if (!providedCode || !validCodes.has(providedCode)) {
-      res.status(401).json({
-        success: false,
-        error: 'Unauthorized: Autentikasi admin diperlukan untuk mengunggah gambar.',
-        storage: 'unauthorized',
-      });
-      return;
-    }
-
     const { filename, fileData, mimeType, bucket } = req.body;
     if (!fileData || !filename) {
       res.status(400).json({ error: 'Missing fileData or filename' });
@@ -1042,7 +1078,7 @@ app.post('/api/upload', async (req: Request, res: Response) => {
 });
 
 // Supabase Configuration Management API (Allows viewing & updating credentials directly from UI)
-app.get('/api/supabase-config', (req: Request, res: Response) => {
+app.get('/api/supabase-config', requireAdminAuth, (req: Request, res: Response) => {
   const { url, key } = getSupabaseConfig();
   const maskedKey = key ? `${key.slice(0, 6)}...${key.slice(-4)}` : '';
   res.json({
@@ -1053,7 +1089,7 @@ app.get('/api/supabase-config', (req: Request, res: Response) => {
   });
 });
 
-app.post('/api/supabase-config', async (req: Request, res: Response) => {
+app.post('/api/supabase-config', requireAdminAuth, async (req: Request, res: Response) => {
   try {
     const { url, key } = req.body;
     if (!url || !key) {
@@ -1258,7 +1294,7 @@ app.get('/api/categories', async (req: Request, res: Response) => {
   res.json(localDb.categories || []);
 });
 
-app.post('/api/categories', async (req: Request, res: Response) => {
+app.post('/api/categories', requireAdminAuth, async (req: Request, res: Response) => {
   const category = req.body;
   const row = toCategoryRow(category);
 
@@ -1291,7 +1327,7 @@ app.post('/api/categories', async (req: Request, res: Response) => {
   res.json(category);
 });
 
-app.delete('/api/categories/:id', async (req: Request, res: Response) => {
+app.delete('/api/categories/:id', requireAdminAuth, async (req: Request, res: Response) => {
   const { id } = req.params;
 
   // Remove from local persistent storage
@@ -1339,7 +1375,7 @@ app.get('/api/products', async (req: Request, res: Response) => {
   res.json(localDb.products || []);
 });
 
-app.post('/api/products', async (req: Request, res: Response) => {
+app.post('/api/products', requireAdminAuth, async (req: Request, res: Response) => {
   const product = { ...req.body };
 
   // Generate unique stable ID if not provided or placeholder
@@ -1434,7 +1470,7 @@ app.post('/api/products', async (req: Request, res: Response) => {
   }
 });
 
-app.delete('/api/products/:id', async (req: Request, res: Response) => {
+app.delete('/api/products/:id', requireAdminAuth, async (req: Request, res: Response) => {
   const { id } = req.params;
 
   // Remove from local persistent storage
@@ -1490,7 +1526,7 @@ app.get('/api/guides', async (req: Request, res: Response) => {
   res.json(localDb.guides || []);
 });
 
-app.post('/api/guides', async (req: Request, res: Response) => {
+app.post('/api/guides', requireAdminAuth, async (req: Request, res: Response) => {
   const guide = { ...req.body };
 
   // Convert raw base64 guide image and step images to compact persistent URLs
@@ -1578,7 +1614,7 @@ app.post('/api/guides', async (req: Request, res: Response) => {
   res.json(guide);
 });
 
-app.delete('/api/guides/:id', async (req: Request, res: Response) => {
+app.delete('/api/guides/:id', requireAdminAuth, async (req: Request, res: Response) => {
   const { id } = req.params;
 
   // Remove from local persistent storage
@@ -1694,7 +1730,7 @@ app.get('/api/article-blocks/:guideId', async (req: Request, res: Response) => {
 });
 
 // PATCH a single article block (Targeted Update: Updates ONLY image/text without rewriting entire guide or dataset)
-app.patch('/api/article-blocks/:id', async (req: Request, res: Response) => {
+app.patch('/api/article-blocks/:id', requireAdminAuth, async (req: Request, res: Response) => {
   const { id } = req.params;
   const {
     image_url,
@@ -1817,7 +1853,7 @@ app.patch('/api/article-blocks/:id', async (req: Request, res: Response) => {
 });
 
 // Explicit backfill endpoint
-app.post('/api/article-blocks/backfill', async (req: Request, res: Response) => {
+app.post('/api/article-blocks/backfill', requireAdminAuth, async (req: Request, res: Response) => {
   const supabase = getSupabase();
   const blocks = extractArticleBlocksFromGuides();
 
@@ -1840,7 +1876,7 @@ app.post('/api/article-blocks/backfill', async (req: Request, res: Response) => 
 });
 
 // Targeted PUT for single guide
-app.put('/api/guides/:id', async (req: Request, res: Response) => {
+app.put('/api/guides/:id', requireAdminAuth, async (req: Request, res: Response) => {
   const { id } = req.params;
   const guide = { ...req.body, id };
 
@@ -1908,7 +1944,7 @@ app.put('/api/guides/:id', async (req: Request, res: Response) => {
 });
 
 // Targeted PUT for single product
-app.put('/api/products/:id', async (req: Request, res: Response) => {
+app.put('/api/products/:id', requireAdminAuth, async (req: Request, res: Response) => {
   const { id } = req.params;
   const product = { ...req.body, id };
 
@@ -1942,7 +1978,7 @@ app.put('/api/products/:id', async (req: Request, res: Response) => {
 });
 
 // Targeted PUT for single category
-app.put('/api/categories/:id', async (req: Request, res: Response) => {
+app.put('/api/categories/:id', requireAdminAuth, async (req: Request, res: Response) => {
   const { id } = req.params;
   const cat = { ...req.body, id };
   const row = toCategoryRow(cat);
@@ -1993,7 +2029,7 @@ app.get('/api/settings', async (req: Request, res: Response) => {
 
         const settings = fromSettingsRow(data);
         saveLocalDb({ settings });
-        res.json(settings);
+        res.json(toPublicSettings(settings));
         return;
       }
     } catch (err: any) {
@@ -2002,15 +2038,21 @@ app.get('/api/settings', async (req: Request, res: Response) => {
   }
 
   const localDb = getLocalDb();
-  res.json(localDb.settings || null);
+  res.json(toPublicSettings(localDb.settings) || null);
 });
 
-app.post('/api/settings', async (req: Request, res: Response) => {
+app.post('/api/settings', requireAdminAuth, async (req: Request, res: Response) => {
   const settings = { ...req.body };
 
   // Convert raw base64 heroImage to compact CDN or persistent image URL
   if (settings.heroImage && settings.heroImage.startsWith('data:image/')) {
     settings.heroImage = await normalizeAndUploadImageIfBase64(settings.heroImage, 'hero-banner');
+  }
+
+  // Preserve existing passcode if not explicitly updated
+  const currentDb = getLocalDb();
+  if (!settings.adminPasscode && currentDb.settings?.adminPasscode) {
+    settings.adminPasscode = currentDb.settings.adminPasscode;
   }
 
   const row = toSettingsRow(settings);
@@ -2049,7 +2091,7 @@ app.post('/api/settings', async (req: Request, res: Response) => {
           .maybeSingle();
 
         if (!fallbackResult.error) {
-          res.json({
+          const resultSettings = {
             ...fromSettingsRow(fallbackResult.data || fallbackRow),
             heroImage: row.hero_image,
             heroImageAlt: row.hero_image_alt,
@@ -2060,13 +2102,14 @@ app.post('/api/settings', async (req: Request, res: Response) => {
             heroCtaPrimaryUrl: row.hero_cta_primary_url,
             heroCtaSecondaryText: row.hero_cta_secondary_text,
             heroCtaSecondaryUrl: row.hero_cta_secondary_url,
-          });
+          };
+          res.json(toPublicSettings(resultSettings));
           return;
         }
       }
 
       if (!error && (data || row)) {
-        res.json(fromSettingsRow(data || row));
+        res.json(toPublicSettings(fromSettingsRow(data || row)));
         return;
       }
     } catch (err: any) {
@@ -2074,11 +2117,11 @@ app.post('/api/settings', async (req: Request, res: Response) => {
     }
   }
 
-  res.json(settings);
+  res.json(toPublicSettings(settings));
 });
 
 // 6. Bulk Sync / Seed API (Pushes existing data to Supabase and persists locally)
-app.post('/api/sync-seed', async (req: Request, res: Response) => {
+app.post('/api/sync-seed', requireAdminAuth, async (req: Request, res: Response) => {
   try {
     const { categories = [], products = [], guides = [], settings } = req.body;
 
